@@ -16,14 +16,9 @@ export type B1Input = z.infer<typeof b1InputSchema>
 
 export const esgInputSchema = z
   .object({
-    B1: b1InputSchema.optional(),
-    B2: z.string().optional()
+    B1: b1InputSchema.optional()
   })
   .passthrough()
-export const esgInputSchema = z.object({
-  B1: z.string().optional(),
-  B2: z.string().optional()
-}).passthrough()
 
 export type EsgInput = z.infer<typeof esgInputSchema>
 

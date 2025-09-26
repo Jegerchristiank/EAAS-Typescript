@@ -12,7 +12,3 @@ export const factors = {
     unit: 't CO2e'
   }
 } as const
-
-export const factors: Record<string, number> = {
-  defaultFactor: 1
-}

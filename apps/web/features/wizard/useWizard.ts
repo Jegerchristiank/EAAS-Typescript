@@ -10,7 +10,6 @@ import { loadWizardState, persistWizardState } from '../../lib/storage/localStor
 import { wizardSteps } from './steps'
 
 export type WizardState = ModuleInput
-export type WizardState = Record<string, unknown>
 
 type WizardHook = {
   currentStep: number

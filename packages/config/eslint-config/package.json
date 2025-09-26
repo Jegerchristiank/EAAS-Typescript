@@ -1,0 +1,11 @@
+{
+  "name": "@org/eslint-config",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "files": ["base.js", "next.js"],
+  "exports": {
+    "./base": "./base.js",
+    "./next": "./next.js"
+  }
+}

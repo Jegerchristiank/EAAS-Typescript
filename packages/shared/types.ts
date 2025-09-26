@@ -28,18 +28,15 @@ export const moduleIds = [
 
 export type ModuleId = (typeof moduleIds)[number]
 
-export type ModuleInput = {
-  B1?: B1Input
-  [key: string]: unknown
+type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
+  B1?: B1Input | null | undefined
 }
 
- * Fælles typer for input, moduler og PDF.
- */
-export type ModuleInput = Record<string, unknown>
+export type ModuleInput = ModuleInputBase & Record<string, unknown>
 
 export type ModuleResult = {
-  value: number | string
-  unit?: string
+  value: number
+  unit: string
   assumptions: string[]
   trace: string[]
   warnings: string[]
