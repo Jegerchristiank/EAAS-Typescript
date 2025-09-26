@@ -8,6 +8,39 @@ export type CsvSchemaRow = {
   value_type: string
 }
 
+const b1Override = {
+  type: 'object',
+  title: 'B1Input',
+  description: 'Scope 2 elforbrug',
+  properties: {
+    electricityConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt elforbrug (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af strøm indkøbt som vedvarende energi (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
+const typeMap: Record<string, unknown> = {
+  string: { type: 'string' },
+  number: { type: 'number' },
+  object: { type: 'object' }
+}
+
+const moduleOverrides: Record<string, unknown> = {
+  B1: b1Override
 const typeMap: Record<string, unknown> = {
   string: { type: 'string' },
   number: { type: 'number' }
@@ -21,6 +54,10 @@ export async function convertCsvToSchema(csvPath: string): Promise<Record<string
   const properties = rows.reduce<Record<string, unknown>>((acc, line) => {
     const [module, valueType] = line.split(',').map((cell) => cell.trim())
     if (!module) {
+      return acc
+    }
+    if (moduleOverrides[module]) {
+      acc[module] = moduleOverrides[module]
       return acc
     }
     acc[module] = typeMap[valueType] ?? { type: 'string' }

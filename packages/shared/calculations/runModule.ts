@@ -1,6 +1,14 @@
 /**
  * Koordinerer modulberegninger og aggregerede resultater.
  */
+import {
+  moduleIds,
+  type CalculatedModuleResult,
+  type ModuleCalculator,
+  type ModuleId,
+  type ModuleInput,
+  type ModuleResult
+} from '../types'
 import type { ModuleCalculator, ModuleInput, ModuleResult } from '../types'
 import { factors } from './factors'
 import { runB1 } from './modules/runB1'
@@ -24,6 +32,30 @@ import { runC7 } from './modules/runC7'
 import { runC8 } from './modules/runC8'
 import { runC9 } from './modules/runC9'
 
+const moduleTitles: Record<ModuleId, string> = {
+  B1: 'B1 – Scope 2 elforbrug',
+  B2: 'Modul B2',
+  B3: 'Modul B3',
+  B4: 'Modul B4',
+  B5: 'Modul B5',
+  B6: 'Modul B6',
+  B7: 'Modul B7',
+  B8: 'Modul B8',
+  B9: 'Modul B9',
+  B10: 'Modul B10',
+  B11: 'Modul B11',
+  C1: 'Modul C1',
+  C2: 'Modul C2',
+  C3: 'Modul C3',
+  C4: 'Modul C4',
+  C5: 'Modul C5',
+  C6: 'Modul C6',
+  C7: 'Modul C7',
+  C8: 'Modul C8',
+  C9: 'Modul C9'
+}
+
+export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
 export const moduleCalculators: Record<string, ModuleCalculator> = {
   B1: runB1,
   B2: runB2,
@@ -47,8 +79,8 @@ export const moduleCalculators: Record<string, ModuleCalculator> = {
   C9: runC9
 }
 
+export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): ModuleResult {
 export type ModuleId = keyof typeof moduleCalculators
-
 export function createDefaultResult(moduleId: string, input: ModuleInput): ModuleResult {
   const rawValue = input[moduleId]
   const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0)
@@ -67,6 +99,12 @@ export function runModule(moduleId: ModuleId, input: ModuleInput): ModuleResult 
   return calculator(input)
 }
 
+export function aggregateResults(input: ModuleInput): CalculatedModuleResult[] {
+  return moduleIds.map((moduleId) => ({
+    moduleId,
+    title: moduleTitles[moduleId],
+    result: runModule(moduleId, input)
+  }))
 export function aggregateResults(input: ModuleInput): ModuleResult[] {
   return (Object.keys(moduleCalculators) as ModuleId[]).map((moduleId) =>
     runModule(moduleId, input)

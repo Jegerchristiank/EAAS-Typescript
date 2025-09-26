@@ -3,10 +3,13 @@
  */
 'use client'
 
+
+import type { ModuleInput } from '@org/shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { loadWizardState, persistWizardState } from '../../lib/storage/localStorage'
 import { wizardSteps } from './steps'
 
+export type WizardState = ModuleInput
 export type WizardState = Record<string, unknown>
 
 type WizardHook = {
