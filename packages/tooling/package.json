@@ -1,0 +1,28 @@
+{
+  "name": "@org/tooling",
+  "version": "0.0.1",
+  "type": "module",
+  "private": false,
+  "publishConfig": { "registry": "https://npm.pkg.github.com" },
+  "bin": {
+    "org-tooling": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "dev": "tsc --project tsconfig.build.json --watch",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "schema:generate": "tsx src/cli.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsx": "^4.15.7",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5",
+    "@types/node": "^20.11.30",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0"
+  }
+}
