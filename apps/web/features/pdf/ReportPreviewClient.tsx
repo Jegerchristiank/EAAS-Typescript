@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import type { ModuleResult } from '@org/shared'
+import type { CalculatedModuleResult } from '@org/shared'
 
 const PDFViewer = dynamic(() => import('@react-pdf/renderer').then((mod) => mod.PDFViewer), {
   ssr: false
@@ -14,9 +14,13 @@ const DocumentComponent = dynamic(() => import('@org/shared').then((mod) => mod.
   ssr: false
 })
 
-export default function ReportPreviewClient({ results }: { results: ModuleResult[] }): JSX.Element {
+export default function ReportPreviewClient({
+  results
+}: {
+  results: CalculatedModuleResult[]
+}): JSX.Element {
   const printable = useMemo(
-    () => results.filter((result) => !result.assumptions.includes('Stubberegning')),
+    () => results.filter((entry) => !entry.result.assumptions.includes('Stubberegning')),
     [results]
   )
 

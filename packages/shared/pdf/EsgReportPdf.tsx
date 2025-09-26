@@ -2,7 +2,7 @@
  * React-PDF dokument der viser simple ESG-resultater.
  */
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
-import type { ModuleResult } from '../types'
+import type { CalculatedModuleResult } from '../types'
 
 const styles = StyleSheet.create({
   page: { padding: 32 },
@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
   traceItem: { fontSize: 9, marginLeft: 12, marginBottom: 1 }
 })
 
-export function EsgReportPdf({ results }: { results: ModuleResult[] }): JSX.Element {
+export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] }): JSX.Element {
   const sections = results.length ? results : []
 
   return (
@@ -25,17 +25,20 @@ export function EsgReportPdf({ results }: { results: ModuleResult[] }): JSX.Elem
         {sections.length === 0 ? (
           <Text style={styles.metric}>Ingen beregninger tilgængelige.</Text>
         ) : (
-          sections.map((result) => (
-            <View key={result.moduleId} style={styles.module}>
-              <Text style={styles.moduleTitle}>{result.title ?? `Modul ${result.moduleId}`}</Text>
+          sections.map((entry) => (
+            <View key={entry.moduleId} style={styles.module}>
+              <Text style={styles.moduleTitle}>{entry.title}</Text>
               <Text style={styles.metric}>
-                Nettoresultat: {String(result.value)} {result.unit ?? ''}
+                Nettoresultat: {String(entry.result.value)} {entry.result.unit ?? ''}
               </Text>
-              {result.warnings.length > 0 && (
+              {entry.result.warnings.length > 0 && (
                 <View>
                   <Text style={styles.label}>Advarsler</Text>
-                  {result.warnings.map((warning, index) => (
-                    <Text key={`${result.moduleId}-warning-${index}`} style={styles.listItem}>
+                  {entry.result.warnings.map((warning, index) => (
+                    <Text
+                      key={`${entry.moduleId}-warning-${index}`}
+                      style={styles.listItem}
+                    >
                       • {warning}
                     </Text>
                   ))}
@@ -43,17 +46,20 @@ export function EsgReportPdf({ results }: { results: ModuleResult[] }): JSX.Elem
               )}
               <View>
                 <Text style={styles.label}>Antagelser</Text>
-                {result.assumptions.map((assumption, index) => (
-                  <Text key={`${result.moduleId}-assumption-${index}`} style={styles.listItem}>
+                {entry.result.assumptions.map((assumption, index) => (
+                  <Text
+                    key={`${entry.moduleId}-assumption-${index}`}
+                    style={styles.listItem}
+                  >
                     • {assumption}
                   </Text>
                 ))}
               </View>
               <View>
                 <Text style={styles.label}>Trace</Text>
-                {result.trace.map((entry, index) => (
-                  <Text key={`${result.moduleId}-trace-${index}`} style={styles.traceItem}>
-                    {entry}
+                {entry.result.trace.map((traceEntry, index) => (
+                  <Text key={`${entry.moduleId}-trace-${index}`} style={styles.traceItem}>
+                    {traceEntry}
                   </Text>
                 ))}
               </View>

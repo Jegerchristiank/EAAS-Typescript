@@ -5,10 +5,10 @@
 
 import { useMemo } from 'react'
 import { aggregateResults } from '@org/shared'
-import type { ModuleResult } from '@org/shared'
+import type { CalculatedModuleResult } from '@org/shared'
 import { useWizard } from '../wizard/useWizard'
 
-export function useLiveResults(): { results: ModuleResult[] } {
+export function useLiveResults(): { results: CalculatedModuleResult[] } {
   const { state } = useWizard()
 
   return useMemo(() => {

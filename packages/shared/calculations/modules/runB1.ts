@@ -8,8 +8,6 @@ type SanitisedB1 = Required<{
   [Key in keyof B1Input]: number
 }>
 
-const DEFAULT_TITLE = 'B1 – Scope 2 elforbrug'
-
 export function runB1(input: ModuleInput): ModuleResult {
   const warnings: string[] = []
   const assumptions = [
@@ -33,8 +31,6 @@ export function runB1(input: ModuleInput): ModuleResult {
   const value = Number(netEmissionsTonnes.toFixed(factors.b1.resultPrecision))
 
   return {
-    moduleId: 'B1',
-    title: DEFAULT_TITLE,
     value,
     unit: factors.b1.unit,
     assumptions,

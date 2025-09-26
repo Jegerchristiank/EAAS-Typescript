@@ -6,7 +6,7 @@
 import { useMemo } from 'react'
 import type { CSSProperties } from 'react'
 import Link from 'next/link'
-import type { ModuleResult } from '@org/shared'
+import type { CalculatedModuleResult } from '@org/shared'
 import { useLiveResults } from '../../../features/results/useLiveResults'
 import { downloadReport } from '../../../features/pdf/downloadClient'
 import { PrimaryButton } from '../../../components/ui/PrimaryButton'
@@ -24,12 +24,12 @@ export default function ReviewPage(): JSX.Element {
   const { results } = useLiveResults()
 
   const printable = useMemo(
-    () => results.filter((result) => !result.assumptions.includes('Stubberegning')),
+    () => results.filter((entry) => !entry.result.assumptions.includes('Stubberegning')),
     [results]
   )
 
-  const b1Result = printable.find((result) => result.moduleId === 'B1') ?? null
-  const secondaryResults = printable.filter((result) => result.moduleId !== 'B1')
+  const b1Result = printable.find((entry) => entry.moduleId === 'B1') ?? null
+  const secondaryResults = printable.filter((entry) => entry.moduleId !== 'B1')
 
   const handleDownload = async (): Promise<void> => {
     await downloadReport(printable)
@@ -45,7 +45,7 @@ export default function ReviewPage(): JSX.Element {
         </p>
       </header>
 
-      {b1Result ? <ResultCard result={b1Result} /> : <EmptyCard />}
+      {b1Result ? <ResultCard entry={b1Result} /> : <EmptyCard />}
 
       {secondaryResults.length > 0 && (
         <section style={{ display: 'grid', gap: '1rem' }}>
@@ -75,11 +75,12 @@ export default function ReviewPage(): JSX.Element {
   )
 }
 
-function ResultCard({ result }: { result: ModuleResult }): JSX.Element {
+function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
+  const { result } = entry
   return (
     <section style={cardStyle}>
       <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2 style={{ margin: 0 }}>{result.title ?? `Modul ${result.moduleId}`}</h2>
+        <h2 style={{ margin: 0 }}>{entry.title}</h2>
         <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
           {result.value} {result.unit ?? ''}
         </p>
@@ -88,7 +89,7 @@ function ResultCard({ result }: { result: ModuleResult }): JSX.Element {
         <strong>Antagelser</strong>
         <ul>
           {result.assumptions.map((assumption, index) => (
-            <li key={`${result.moduleId}-assumption-${index}`}>{assumption}</li>
+            <li key={`${entry.moduleId}-assumption-${index}`}>{assumption}</li>
           ))}
         </ul>
       </div>
@@ -97,7 +98,7 @@ function ResultCard({ result }: { result: ModuleResult }): JSX.Element {
           <strong>Advarsler</strong>
           <ul>
             {result.warnings.map((warning, index) => (
-              <li key={`${result.moduleId}-warning-${index}`}>{warning}</li>
+              <li key={`${entry.moduleId}-warning-${index}`}>{warning}</li>
             ))}
           </ul>
         </div>
@@ -105,9 +106,9 @@ function ResultCard({ result }: { result: ModuleResult }): JSX.Element {
       <details>
         <summary>Trace</summary>
         <ul>
-          {result.trace.map((entry, index) => (
-            <li key={`${result.moduleId}-trace-${index}`} style={{ fontFamily: 'monospace' }}>
-              {entry}
+          {result.trace.map((traceEntry, index) => (
+            <li key={`${entry.moduleId}-trace-${index}`} style={{ fontFamily: 'monospace' }}>
+              {traceEntry}
             </li>
           ))}
         </ul>

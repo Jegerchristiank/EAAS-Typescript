@@ -5,8 +5,6 @@ exports[`createDefaultResult > returnerer forventet basisstruktur for andre modu
   "assumptions": [
     "Standardfaktor: 1",
   ],
-  "moduleId": "B2",
-  "title": "Modul B2",
   "trace": [
     "Input(B2)=42",
   ],
