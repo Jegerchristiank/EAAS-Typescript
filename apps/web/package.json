@@ -1,0 +1,33 @@
+{
+  "name": "@org/web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run --passWithNoTests",
+    "lint": "next lint",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@org/shared": "workspace:*",
+    "@react-pdf/renderer": "^3.4.4",
+    "file-saver": "^2.0.5",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5",
+    "@testing-library/jest-dom": "^6.4.5",
+    "jsdom": "^24.1.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5"
+  }
+}
