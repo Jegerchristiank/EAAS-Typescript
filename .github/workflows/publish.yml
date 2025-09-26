@@ -1,0 +1,22 @@
+# CI workflow til publish efter godkendte tests
+name: Publish
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*.*.*']
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@org'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -w run lint && pnpm -w run test && pnpm -w run build
+      - run: pnpm -r publish --access restricted
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
