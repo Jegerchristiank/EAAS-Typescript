@@ -17,12 +17,14 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@org/eslint-config": "workspace:*",
+    "@org/tsconfig": "workspace:*",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
     "tsx": "^4.15.7",
     "typescript": "^5.6.2",
-    "vitest": "^2.0.5",
-    "@types/node": "^20.11.30",
-    "eslint": "^8.57.0",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0"
+    "vitest": "^2.0.5"
   }
 }
