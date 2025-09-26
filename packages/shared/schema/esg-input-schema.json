@@ -27,6 +27,7 @@
       },
       "additionalProperties": false
     },
+    "B1": { "type": "string" },
     "B2": { "type": "string" }
   },
   "additionalProperties": true

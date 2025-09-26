@@ -20,6 +20,10 @@ export const esgInputSchema = z
     B2: z.string().optional()
   })
   .passthrough()
+export const esgInputSchema = z.object({
+  B1: z.string().optional(),
+  B2: z.string().optional()
+}).passthrough()
 
 export type EsgInput = z.infer<typeof esgInputSchema>
 

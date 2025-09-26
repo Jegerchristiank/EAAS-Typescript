@@ -3,6 +3,7 @@
  */
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { CalculatedModuleResult } from '../types'
+import type { ModuleResult } from '../types'
 
 const styles = StyleSheet.create({
   page: { padding: 32 },
@@ -18,6 +19,10 @@ const styles = StyleSheet.create({
 export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] }): JSX.Element {
   const sections = results.length ? results : []
 
+  row: { marginBottom: 8 }
+})
+
+export function EsgReportPdf({ results }: { results: ModuleResult[] }): JSX.Element {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -66,6 +71,13 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
             </View>
           ))
         )}
+        <View>
+          {results.map((result, index) => (
+            <Text key={index} style={styles.row}>
+              Resultat {index + 1}: {String(result.value)} {result.unit ?? ''}
+            </Text>
+          ))}
+        </View>
       </Page>
     </Document>
   )

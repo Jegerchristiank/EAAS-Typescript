@@ -33,6 +33,10 @@ export type ModuleInput = {
   [key: string]: unknown
 }
 
+ * Fælles typer for input, moduler og PDF.
+ */
+export type ModuleInput = Record<string, unknown>
+
 export type ModuleResult = {
   value: number | string
   unit?: string

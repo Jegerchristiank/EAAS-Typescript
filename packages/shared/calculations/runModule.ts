@@ -9,6 +9,7 @@ import {
   type ModuleInput,
   type ModuleResult
 } from '../types'
+import type { ModuleCalculator, ModuleInput, ModuleResult } from '../types'
 import { factors } from './factors'
 import { runB1 } from './modules/runB1'
 import { runB2 } from './modules/runB2'
@@ -55,6 +56,7 @@ const moduleTitles: Record<ModuleId, string> = {
 }
 
 export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
+export const moduleCalculators: Record<string, ModuleCalculator> = {
   B1: runB1,
   B2: runB2,
   B3: runB3,
@@ -78,6 +80,8 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
 }
 
 export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): ModuleResult {
+export type ModuleId = keyof typeof moduleCalculators
+export function createDefaultResult(moduleId: string, input: ModuleInput): ModuleResult {
   const rawValue = input[moduleId]
   const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0)
 
@@ -101,4 +105,8 @@ export function aggregateResults(input: ModuleInput): CalculatedModuleResult[] {
     title: moduleTitles[moduleId],
     result: runModule(moduleId, input)
   }))
+export function aggregateResults(input: ModuleInput): ModuleResult[] {
+  return (Object.keys(moduleCalculators) as ModuleId[]).map((moduleId) =>
+    runModule(moduleId, input)
+  )
 }

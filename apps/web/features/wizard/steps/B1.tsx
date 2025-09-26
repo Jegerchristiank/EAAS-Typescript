@@ -144,3 +144,6 @@ export function B1Step({ state, onChange }: WizardStepProps): JSX.Element {
     </form>
   )
 }
+import { createWizardStep } from './StepTemplate'
+
+export const B1Step = createWizardStep('B1', 'Modul B1')

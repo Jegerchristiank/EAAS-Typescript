@@ -7,9 +7,13 @@ import { useMemo } from 'react'
 import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import type { CalculatedModuleResult } from '@org/shared'
+*/
+'use client'
+import Link from 'next/link'
 import { useLiveResults } from '../../../features/results/useLiveResults'
 import { downloadReport } from '../../../features/pdf/downloadClient'
 import { PrimaryButton } from '../../../components/ui/PrimaryButton'
+
 
 const cardStyle: CSSProperties = {
   padding: '1.5rem',
@@ -125,5 +129,23 @@ function EmptyCard(): JSX.Element {
         Når du udfylder modul B1 i wizardens første trin, vises resultatet her.
       </p>
     </section>
+export default function ReviewPage(): JSX.Element {
+  const { results } = useLiveResults()
+
+  const handleDownload = async (): Promise<void> => {
+    await downloadReport(results)
+  }
+
+  return (
+    <main style={{ padding: '2rem' }}>
+      <h1>Review og download</h1>
+      <pre>{JSON.stringify(results, null, 2)}</pre>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <PrimaryButton onClick={handleDownload}>Download PDF</PrimaryButton>
+        <PrimaryButton as={Link} href="/wizard">
+          Tilbage til wizard
+        </PrimaryButton>
+      </div>
+    </main>
   )
 }

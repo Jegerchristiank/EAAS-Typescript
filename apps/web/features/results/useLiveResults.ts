@@ -25,4 +25,11 @@ export function useLiveResults(): { results: CalculatedModuleResult[] } {
 
     return { results: sorted }
   }, [state])
+import type { ModuleResult } from '@org/shared'
+import { useWizard } from '../wizard/useWizard'
+
+export function useLiveResults(): { results: ModuleResult[] } {
+  const { state } = useWizard()
+
+  return useMemo(() => ({ results: aggregateResults(state) }), [state])
 }

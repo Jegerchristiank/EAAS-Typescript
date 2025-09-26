@@ -18,6 +18,7 @@ export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<st
     if (module) {
       const trimmed = module.trim()
       acc[trimmed] = formulaOverrides[trimmed] ?? `${trimmed} = input`
+      acc[module.trim()] = `${module.trim()} = input`
     }
     return acc
   }, {})

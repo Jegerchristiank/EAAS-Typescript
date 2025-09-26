@@ -1,4 +1,5 @@
 {
   "B1": "B1 = (el-forbrug * emissionsfaktor) - (el-forbrug * emissionsfaktor * (vedvarende% / 100) * 0.9)",
+  "B1": "B1 = input",
   "B2": "B2 = input"
 }
