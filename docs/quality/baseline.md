@@ -1,21 +1,21 @@
 # Baseline – February 2025
 
 ## Installation
-- `pnpm install` succeeds with warnings about missing `GITHUB_TOKEN` and a broken lockfile that contains duplicated mapping keys for `next`. Install pulls ~540 packages and completes in ~50s.
+- `pnpm install --frozen-lockfile` succeeds without warnings. pnpm reports 34 packages processed (32 added, 18 removed) and finishes in ~2.2 s.
 
 ## Lint
-- `pnpm -w run lint` fails because `apps/web` relies on `next lint` with a `next.config.ts` file. Next 14.2.5 aborts linting when configuration is not provided via `.js` or `.mjs`.
+- `pnpm -w run lint` passes across @org/tooling, @org/shared and @org/web. Next.js telemetry notice is the only output; Turbo reports all three tasks succeeding in ~5.4 s.
 
 ## Typecheck
-- `pnpm -w run typecheck` fails in `packages/tooling` due to merge artefacts inside `src/csv-to-schema.ts` that break TypeScript parsing.
+- `pnpm -w run typecheck` succeeds in @org/tooling, @org/shared and @org/web via `tsc --noEmit`, completing in ~5.6 s.
 
 ## Tests
-- `pnpm -w run test` fails in `packages/shared`. The Vitest suite cannot parse `calculations/__tests__/runModule.spec.ts` because duplicated comments/imports left from a merge introduce stray text.
+- `pnpm -w run test` succeeds. Vitest runs three assertions in `packages/shared`; @org/web and @org/tooling currently have no test files and exit early.
 
 ## Build
-- `pnpm -w run build` fails for the same `packages/tooling` TypeScript errors seen during typechecking.
+- `pnpm -w run build` succeeds. Next.js 14.2.5 reports first-load JavaScript of ~544 kB for `/review` and ~536 kB for `/wizard`, with 87.1 kB shared across routes.
 
 ## Notable Risks
-- Repository lockfile is invalid, preventing deterministic installs.
-- `.npmrc` enforces a GitHub token for all commands, spamming local workflows.
-- Duplicate dependency keys exist in `apps/web/package.json`, causing Vite warnings during tests.
+- High initial JS payloads for the `/review` and `/wizard` routes (≥536 kB) risk slow client performance.
+- Only the shared package currently has automated tests; other workspaces rely on `--passWithNoTests`, reducing coverage confidence.
+- Turbo remote caching remains disabled, so CI runs do not reuse build artefacts yet.
