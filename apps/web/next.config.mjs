@@ -1,9 +1,8 @@
 /**
- * Next.js konfiguration for webappen med streng typed import.
+ * Next.js konfiguration for webappen.
+ * @type {import('next').NextConfig}
  */
-import type { NextConfig } from 'next'
-
-const config: NextConfig = {
+const config = {
   reactStrictMode: true,
   experimental: {
     typedRoutes: true

@@ -7,9 +7,14 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "format": "prettier -w .",
+    "format:check": "prettier -c ."
   },
   "devDependencies": {
+    "@org/eslint-config": "workspace:*",
+    "@org/prettier-config": "workspace:*",
+    "@org/tsconfig": "workspace:*",
     "@types/node": "^20.11.30",
     "playwright": "^1.48.0",
     "turbo": "^2.1.1",

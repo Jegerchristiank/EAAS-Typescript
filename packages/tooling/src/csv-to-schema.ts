@@ -41,9 +41,6 @@ const typeMap: Record<string, unknown> = {
 
 const moduleOverrides: Record<string, unknown> = {
   B1: b1Override
-const typeMap: Record<string, unknown> = {
-  string: { type: 'string' },
-  number: { type: 'number' }
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {
@@ -56,11 +53,13 @@ export async function convertCsvToSchema(csvPath: string): Promise<Record<string
     if (!module) {
       return acc
     }
-    if (moduleOverrides[module]) {
-      acc[module] = moduleOverrides[module]
+    const override = moduleOverrides[module]
+    if (override) {
+      acc[module] = override
       return acc
     }
-    acc[module] = typeMap[valueType] ?? { type: 'string' }
+    const mappedType = typeMap[valueType ?? '']
+    acc[module] = mappedType ?? { type: 'string' }
     return acc
   }, {})
 

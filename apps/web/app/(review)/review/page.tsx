@@ -3,17 +3,14 @@
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { CSSProperties } from 'react'
 import Link from 'next/link'
-import type { CalculatedModuleResult } from '@org/shared'
-*/
-'use client'
-import Link from 'next/link'
-import { useLiveResults } from '../../../features/results/useLiveResults'
-import { downloadReport } from '../../../features/pdf/downloadClient'
-import { PrimaryButton } from '../../../components/ui/PrimaryButton'
+import { useMemo, type CSSProperties } from 'react'
 
+import { PrimaryButton } from '../../../components/ui/PrimaryButton'
+import { downloadReport } from '../../../features/pdf/downloadClient'
+import { useLiveResults } from '../../../features/results/useLiveResults'
+
+import type { CalculatedModuleResult } from '@org/shared'
 
 const cardStyle: CSSProperties = {
   padding: '1.5rem',
@@ -44,8 +41,7 @@ export default function ReviewPage(): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h1>Review og download</h1>
         <p style={{ maxWidth: '48rem' }}>
-          Et overblik over beregningerne for modul B1. Eksporter rapporten som PDF for at dele den med
-          resten af organisationen.
+          Et overblik over beregningerne for modul B1. Eksporter rapporten som PDF for at dele den med resten af organisationen.
         </p>
       </header>
 
@@ -86,7 +82,7 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h2 style={{ margin: 0 }}>{entry.title}</h2>
         <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
-          {result.value} {result.unit ?? ''}
+          {result.value} {result.unit}
         </p>
       </header>
       <div>
@@ -129,23 +125,5 @@ function EmptyCard(): JSX.Element {
         Når du udfylder modul B1 i wizardens første trin, vises resultatet her.
       </p>
     </section>
-export default function ReviewPage(): JSX.Element {
-  const { results } = useLiveResults()
-
-  const handleDownload = async (): Promise<void> => {
-    await downloadReport(results)
-  }
-
-  return (
-    <main style={{ padding: '2rem' }}>
-      <h1>Review og download</h1>
-      <pre>{JSON.stringify(results, null, 2)}</pre>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <PrimaryButton onClick={handleDownload}>Download PDF</PrimaryButton>
-        <PrimaryButton as={Link} href="/wizard">
-          Tilbage til wizard
-        </PrimaryButton>
-      </div>
-    </main>
   )
 }

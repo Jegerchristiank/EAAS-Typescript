@@ -12,10 +12,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@org'
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      - name: Configure GitHub Packages auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat <<'EOF' > ~/.npmrc
+          @org:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
+          always-auth=true
+          EOF
       - run: pnpm -w run lint && pnpm -w run test && pnpm -w run build
       - run: pnpm -r publish --access restricted
         env:
