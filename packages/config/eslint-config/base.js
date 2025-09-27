@@ -4,10 +4,6 @@ module.exports = {
   root: false,
   env: {
     es2022: true,
-module.exports = {
-  root: false,
-  env: {
-    es2021: true,
     node: true
   },
   parser: '@typescript-eslint/parser',
@@ -67,6 +63,4 @@ module.exports = {
     'object-shorthand': ['error', 'always'],
     'prefer-const': ['error', { destructuring: 'all', ignoreReadBeforeAssign: true }]
   }
-  plugins: ['@typescript-eslint'],
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended']
 }

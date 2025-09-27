@@ -15,12 +15,6 @@
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
-    "target": "ES2021",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": "."
