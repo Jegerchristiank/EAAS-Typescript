@@ -1,0 +1,9 @@
+# Ignorer byggede artefakter og lokale miljøfiler
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+.DS_Store
+.env
+*.tsbuildinfo

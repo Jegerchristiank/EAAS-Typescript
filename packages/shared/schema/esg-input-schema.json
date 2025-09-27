@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ESGInput",
+  "type": "object",
+  "properties": {
+    "B1": {
+      "type": "object",
+      "title": "B1Input",
+      "description": "Scope 2 elforbrug",
+      "properties": {
+        "electricityConsumptionKwh": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Årligt elforbrug (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af strøm indkøbt som vedvarende energi (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B1": { "type": "string" },
+    "B2": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@org/monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.10.0",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier -w .",
+    "format:check": "prettier -c ."
+  },
+  "devDependencies": {
+    "@org/eslint-config": "workspace:*",
+    "@org/prettier-config": "workspace:*",
+    "@org/tsconfig": "workspace:*",
+    "@types/node": "^20.11.30",
+    "playwright": "^1.48.0",
+    "turbo": "^2.1.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5"
+  }
+}
