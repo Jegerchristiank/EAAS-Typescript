@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Normalised wizard infrastructure to rely on strongly typed module input and removed duplicate step registrations.
 - Tuned Turbo test outputs to avoid false cache warnings while coverage instrumentation is not yet enabled.
 - Hardened the shared TypeScript compiler defaults with additional strictness flags and introduced stricter ESLint rules for imports.
-- Replaced the multi-job CI setup with a matrix workflow that blocks on lint, typecheck, test and build failures.
+- Replaced the validation workflow with a single matrix job that disables telemetry, installs with a frozen lockfile, and blocks on lint, typecheck, test and build failures.
+- Refreshed the baseline quality report to reflect the current green installation, lint, typecheck, test and build status, while documenting outstanding bundle-size and coverage risks.
 - Removed the repository-level `.npmrc`; publishing now generates scoped auth config in CI to avoid local token requirements.
 
 ### Fixed
