@@ -15,10 +15,8 @@ jobs:
         task: [lint, typecheck, test, build]
     env:
       CI: true
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    continue-on-error: true # TODO: remove once lint passes with shared config
+      NEXT_TELEMETRY_DISABLED: '1'
+      TURBO_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,53 +28,3 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm -w run ${{ matrix.task }}
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm -w run lint
-
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    continue-on-error: true # TODO: remove once type errors are resolved
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.10.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm -w run typecheck
-
-  test:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    continue-on-error: true # TODO: remove once tests are green
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.10.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm -w run test
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    continue-on-error: true # TODO: remove once build issues are fixed
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.10.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm -w run build
