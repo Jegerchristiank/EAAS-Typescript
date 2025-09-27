@@ -5,13 +5,16 @@
 
 import Link from 'next/link'
 import { useMemo, type CSSProperties } from 'react'
-
+import { useMemo, type CSSProperties } from 'react'
+import Link from 'next/link'
+import type { CalculatedModuleResult } from '@org/shared'
+import { useLiveResults } from '../../../features/results/useLiveResults'
+import { downloadReport } from '../../../features/pdf/downloadClient'
 import { PrimaryButton } from '../../../components/ui/PrimaryButton'
 import { downloadReport } from '../../../features/pdf/downloadClient'
 import { useLiveResults } from '../../../features/results/useLiveResults'
 
 import type { CalculatedModuleResult } from '@org/shared'
-
 const cardStyle: CSSProperties = {
   padding: '1.5rem',
   borderRadius: '0.75rem',
