@@ -15,11 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Git keepers for migrations and runbooks to maintain directory structure.
 - Root Prettier configuration pointing to the shared preset.
 - Updated TypeScript and ESLint configs to consume workspace presets.
+- ADR 0002 documenting the enforcement of strict lint/type settings and CI gates.
+- Publish runbook describing safe GitHub Packages authentication for releases.
 
 ### Changed
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.
 - Normalised wizard infrastructure to rely on strongly typed module input and removed duplicate step registrations.
 - Tuned Turbo test outputs to avoid false cache warnings while coverage instrumentation is not yet enabled.
+- Hardened the shared TypeScript compiler defaults with additional strictness flags and introduced stricter ESLint rules for imports.
+- Replaced the multi-job CI setup with a matrix workflow that blocks on lint, typecheck, test and build failures.
+- Removed the repository-level `.npmrc`; publishing now generates scoped auth config in CI to avoid local token requirements.
 
 ### Fixed
 - Resolved merge artefacts across shared calculation, schema, PDF and tooling modules so TypeScript and ESLint parse cleanly.

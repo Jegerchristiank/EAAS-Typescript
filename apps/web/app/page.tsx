@@ -2,6 +2,7 @@
  * Landing page der leder brugeren ind i beregningsflowet.
  */
 import Link from 'next/link'
+
 import { PrimaryButton } from '../components/ui/PrimaryButton'
 
 export default function HomePage(): JSX.Element {
