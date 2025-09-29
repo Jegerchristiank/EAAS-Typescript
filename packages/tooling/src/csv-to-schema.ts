@@ -129,11 +129,42 @@ const b4Override = {
   additionalProperties: false
 } as const
 
+const b5Override = {
+  type: 'object',
+  title: 'B5Input',
+  description: 'Scope 2 øvrige energileverancer',
+  properties: {
+    otherEnergyConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt forbrug af den indkøbte energitype (kWh)'
+    },
+    recoveredEnergyKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Genindvundet energi eller procesudnyttelse der reducerer behovet (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for energileverancen (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel dokumenteret som vedvarende energi (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
 const moduleOverrides: Record<string, unknown> = {
   B1: b1Override,
   B2: b2Override,
   B3: b3Override,
-  B4: b4Override
+  B4: b4Override,
+  B5: b5Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

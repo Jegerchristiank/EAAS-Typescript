@@ -11,7 +11,9 @@ const formulaOverrides: Record<string, string> = {
   B3:
     'B3 = ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh) - ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)',
   B4:
-    'B4 = ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh) - ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)'
+    'B4 = ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh) - ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)',
+  B5:
+    'B5 = ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh) - ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.8)'
 }
 
 export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<string, string>> {

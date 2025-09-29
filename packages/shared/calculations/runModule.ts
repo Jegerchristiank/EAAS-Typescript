@@ -36,7 +36,7 @@ const moduleTitles: Record<ModuleId, string> = {
   B2: 'B2 – Scope 2 varmeforbrug',
   B3: 'B3 – Scope 2 køleforbrug',
   B4: 'B4 – Scope 2 dampforbrug',
-  B5: 'Modul B5',
+  B5: 'B5 – Scope 2 øvrige energileverancer',
   B6: 'Modul B6',
   B7: 'Modul B7',
   B8: 'Modul B8',

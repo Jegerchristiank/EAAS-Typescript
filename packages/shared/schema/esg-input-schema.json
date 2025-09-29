@@ -158,6 +158,47 @@
         }
       },
       "additionalProperties": false
+    },
+    "B5": {
+      "type": "object",
+      "title": "B5Input",
+      "description": "Scope 2 øvrige energileverancer",
+      "properties": {
+        "otherEnergyConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt forbrug af den indkøbte energitype (kWh)"
+        },
+        "recoveredEnergyKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet energi eller procesudnyttelse der reducerer behovet (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for energileverancen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel dokumenteret som vedvarende energi (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true
