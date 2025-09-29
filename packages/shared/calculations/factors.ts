@@ -10,5 +10,23 @@ export const factors = {
     maximumRenewableSharePercent: 100,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  b2: {
+    kgToTonnes: 0.001,
+    renewableMitigationRate: 0.85,
+    percentToRatio: 0.01,
+    maximumRenewableSharePercent: 100,
+    recoveryCreditRate: 1,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  b3: {
+    kgToTonnes: 0.001,
+    renewableMitigationRate: 0.9,
+    percentToRatio: 0.01,
+    maximumRenewableSharePercent: 100,
+    recoveryCreditRate: 1,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const

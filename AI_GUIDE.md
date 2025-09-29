@@ -7,6 +7,7 @@ Principper
 • Domænelaget i packages/shared må ikke kende til Next.js.
 • Al IO og lagring er klientside. Ingen serverstat.
 • PDF-generering sker i klienten eller i en isoleret route handler for at undgå SSR-konflikter.
+• Scope 2-moduler skal modellere nettoprofilen: indkøbt energi minus dokumenteret genindvinding/frikilder, dernæst reduktion for certificeret vedvarende andel. Enhederne er konsekvent kWh og resultatet udtrykkes i ton CO2e.
 
 Mappekompas
 • apps/web: UI, routing, wizard, storage, PDF-download UI.

@@ -12,11 +12,33 @@ export const b1InputSchema = z
   })
   .strict()
 
+export const b2InputSchema = z
+  .object({
+    heatConsumptionKwh: z.number().min(0).nullable(),
+    recoveredHeatKwh: z.number().min(0).nullable(),
+    emissionFactorKgPerKwh: z.number().min(0).nullable(),
+    renewableSharePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const b3InputSchema = z
+  .object({
+    coolingConsumptionKwh: z.number().min(0).nullable(),
+    recoveredCoolingKwh: z.number().min(0).nullable(),
+    emissionFactorKgPerKwh: z.number().min(0).nullable(),
+    renewableSharePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
 export type B1Input = z.infer<typeof b1InputSchema>
+export type B2Input = z.infer<typeof b2InputSchema>
+export type B3Input = z.infer<typeof b3InputSchema>
 
 export const esgInputSchema = z
   .object({
-    B1: b1InputSchema.optional()
+    B1: b1InputSchema.optional(),
+    B2: b2InputSchema.optional(),
+    B3: b3InputSchema.optional()
   })
   .passthrough()
 

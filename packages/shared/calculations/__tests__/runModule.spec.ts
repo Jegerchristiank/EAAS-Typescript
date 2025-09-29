@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 import type { ModuleInput } from '../../types'
 import { createDefaultResult } from '../runModule'
 import { runB1 } from '../modules/runB1'
+import { runB2 } from '../modules/runB2'
+import { runB3 } from '../modules/runB3'
 import { factors } from '../factors'
 
 describe('createDefaultResult', () => {
@@ -49,6 +51,88 @@ describe('runB1', () => {
       'Feltet electricityConsumptionKwh kan ikke være negativt. 0 anvendes i stedet.',
       'Feltet emissionFactorKgPerKwh mangler og behandles som 0.',
       'Andelen af vedvarende energi er begrænset til 100%.'
+    ])
+  })
+})
+
+describe('runB2', () => {
+  it('beregner nettoemission med fradrag for genindvinding og vedvarende andel', () => {
+    const input: ModuleInput = {
+      B2: {
+        heatConsumptionKwh: 80_000,
+        recoveredHeatKwh: 5_000,
+        emissionFactorKgPerKwh: 0.12,
+        renewableSharePercent: 30
+      }
+    }
+
+    const result = runB2(input)
+
+    expect(result.value).toBe(6.705)
+    expect(result.unit).toBe(factors.b2.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('netHeatConsumptionKwh=75000')
+  })
+
+  it('håndterer ugyldige værdier og advarer om for højt fradrag', () => {
+    const input: ModuleInput = {
+      B2: {
+        heatConsumptionKwh: 10_000,
+        recoveredHeatKwh: 12_500,
+        emissionFactorKgPerKwh: -0.1,
+        renewableSharePercent: 150
+      }
+    }
+
+    const result = runB2(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('emissionFactorKgPerKwh=0')
+    expect(result.warnings).toEqual([
+      'Feltet emissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Andelen af vedvarende energi er begrænset til 100%.',
+      'Genindvundet varme overstiger det registrerede forbrug. Nettoforbruget sættes til 0.'
+    ])
+  })
+})
+
+describe('runB3', () => {
+  it('beregner nettoemission med fradrag for frikøling og vedvarende andel', () => {
+    const input: ModuleInput = {
+      B3: {
+        coolingConsumptionKwh: 50_000,
+        recoveredCoolingKwh: 4_000,
+        emissionFactorKgPerKwh: 0.05,
+        renewableSharePercent: 20
+      }
+    }
+
+    const result = runB3(input)
+
+    expect(result.value).toBe(1.886)
+    expect(result.unit).toBe(factors.b3.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('netCoolingConsumptionKwh=46000')
+  })
+
+  it('håndterer ugyldige værdier og advarer om for højt fradrag', () => {
+    const input: ModuleInput = {
+      B3: {
+        coolingConsumptionKwh: 5_000,
+        recoveredCoolingKwh: 7_500,
+        emissionFactorKgPerKwh: -0.03,
+        renewableSharePercent: 130
+      }
+    }
+
+    const result = runB3(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('emissionFactorKgPerKwh=0')
+    expect(result.warnings).toEqual([
+      'Feltet emissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Andelen af vedvarende energi er begrænset til 100%.',
+      'Genindvundet køling overstiger det registrerede forbrug. Nettoforbruget sættes til 0.'
     ])
   })
 })

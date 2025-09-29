@@ -1,5 +1,5 @@
 {
   "B1": "B1 = (el-forbrug * emissionsfaktor) - (el-forbrug * emissionsfaktor * (vedvarende% / 100) * 0.9)",
-  "B1": "B1 = input",
-  "B2": "B2 = input"
+  "B2": "B2 = ((varmeforbrug - genindvinding) * emissionsfaktor) - ((varmeforbrug - genindvinding) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
+  "B3": "B3 = ((køleforbrug - frikøling) * emissionsfaktor) - ((køleforbrug - frikøling) * emissionsfaktor * (vedvarende% / 100) * 0.9)"
 }
