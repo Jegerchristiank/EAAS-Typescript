@@ -20,5 +20,10 @@
     "turbo": "^2.1.1",
     "typescript": "~5.5.4",
     "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "typescript": "5.5.4"
+    }
   }
 }

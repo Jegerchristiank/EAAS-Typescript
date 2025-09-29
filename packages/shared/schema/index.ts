@@ -75,6 +75,36 @@ export const b8InputSchema = z
   })
   .strict()
 
+export const b9InputSchema = z
+  .object({
+    ppaDeliveredKwh: z.number().min(0).nullable(),
+    matchedConsumptionKwh: z.number().min(0).nullable(),
+    gridLossPercent: z.number().min(0).max(100).nullable(),
+    residualEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const b10InputSchema = z
+  .object({
+    ppaSettledKwh: z.number().min(0).nullable(),
+    matchedConsumptionKwh: z.number().min(0).nullable(),
+    marketSettlementPercent: z.number().min(0).max(100).nullable(),
+    residualEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const b11InputSchema = z
+  .object({
+    certificatesRetiredKwh: z.number().min(0).nullable(),
+    matchedConsumptionKwh: z.number().min(0).nullable(),
+    timeCorrelationPercent: z.number().min(0).max(100).nullable(),
+    residualEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
@@ -83,6 +113,9 @@ export type B5Input = z.infer<typeof b5InputSchema>
 export type B6Input = z.infer<typeof b6InputSchema>
 export type B7Input = z.infer<typeof b7InputSchema>
 export type B8Input = z.infer<typeof b8InputSchema>
+export type B9Input = z.infer<typeof b9InputSchema>
+export type B10Input = z.infer<typeof b10InputSchema>
+export type B11Input = z.infer<typeof b11InputSchema>
 
 
 export const esgInputSchema = z
@@ -94,9 +127,10 @@ export const esgInputSchema = z
     B5: b5InputSchema.optional(),
     B6: b6InputSchema.optional(),
     B7: b7InputSchema.optional(),
-    B8: b8InputSchema.optional()
-
-
+    B8: b8InputSchema.optional(),
+    B9: b9InputSchema.optional(),
+    B10: b10InputSchema.optional(),
+    B11: b11InputSchema.optional()
   })
   .passthrough()
 
