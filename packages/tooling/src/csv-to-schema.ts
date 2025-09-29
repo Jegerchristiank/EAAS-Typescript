@@ -99,10 +99,41 @@ const b3Override = {
   additionalProperties: false
 } as const
 
+const b4Override = {
+  type: 'object',
+  title: 'B4Input',
+  description: 'Scope 2 dampforbrug',
+  properties: {
+    steamConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt dampforbrug fra leverandør (kWh)'
+    },
+    recoveredSteamKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Genindvundet kondensat eller procesdamp trukket fra (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for dampforsyningen (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af certificeret vedvarende damp (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
 const moduleOverrides: Record<string, unknown> = {
   B1: b1Override,
   B2: b2Override,
-  B3: b3Override
+  B3: b3Override,
+  B4: b4Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

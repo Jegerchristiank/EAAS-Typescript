@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated TypeScript and ESLint configs to consume workspace presets.
 - ADR 0002 documenting the enforcement of strict lint/type settings and CI gates.
 - Publish runbook describing safe GitHub Packages authentication for releases.
+- Fuldt B4-modul for Scope 2 dampforbrug med schema, beregning, UI og tests.
 
 ### Changed
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.

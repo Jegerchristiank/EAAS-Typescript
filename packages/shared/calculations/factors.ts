@@ -28,5 +28,14 @@ export const factors = {
     recoveryCreditRate: 1,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  b4: {
+    kgToTonnes: 0.001,
+    renewableMitigationRate: 0.85,
+    percentToRatio: 0.01,
+    maximumRenewableSharePercent: 100,
+    recoveryCreditRate: 1,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const
