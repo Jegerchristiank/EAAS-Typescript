@@ -12,7 +12,10 @@ import { runB5 } from '../modules/runB5'
 import { runB6 } from '../modules/runB6'
 import { runB7 } from '../modules/runB7'
 import { runB8 } from '../modules/runB8'
+import { runB9 } from '../modules/runB9'
+import { runB10 } from '../modules/runB10'
 import { factors } from '../factors'
+import { runB11 } from '../modules/runB11'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -363,5 +366,143 @@ describe('runB8', () => {
       'Eksporteret vedvarende el overstiger produktionen. Nettoreduktionen sættes til 0.',
       'Dokumentationskvalitet under 15% kan blive udfordret i revision.'
     ])
+  })
+})
+
+describe('runB9', () => {
+  it('beregner reduktion for en PPA-leverance efter nettab og kvalitet', () => {
+    const input: ModuleInput = {
+      B9: {
+        ppaDeliveredKwh: 12_000,
+        matchedConsumptionKwh: 11_000,
+        gridLossPercent: 3,
+        residualEmissionFactorKgPerKwh: 0.233,
+        documentationQualityPercent: 90
+      }
+    }
+
+    const result = runB9(input)
+
+    expect(result.value).toBe(-2.058)
+    expect(result.unit).toBe(factors.b9.unit)
+    expect(result.trace).toContain('netMatchedKwh=10670')
+    expect(result.warnings).toEqual([])
+  })
+
+  it('håndterer ugyldige værdier og matcher forbrug med leverance', () => {
+    const input: ModuleInput = {
+      B9: {
+        ppaDeliveredKwh: -500,
+        matchedConsumptionKwh: 800,
+        gridLossPercent: 40,
+        residualEmissionFactorKgPerKwh: null,
+        documentationQualityPercent: 10
+      }
+    }
+
+    const result = runB9(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('gridLossPercent=15')
+    expect(result.warnings).toEqual([
+      'Feltet ppaDeliveredKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Nettab er begrænset til 15%.',
+      'Feltet residualEmissionFactorKgPerKwh mangler og behandles som 0.',
+      'Dokumentationskvalitet under 20% kan blive udfordret i revision.',
+      'Forbrugsdata overstiger PPA-leverancen. Overskydende mængde ignoreres.'
+    ])
+  })
+})
+
+describe('runB10', () => {
+  it('beregner reduktion for en virtuel PPA efter settlement og kvalitet', () => {
+    const input: ModuleInput = {
+      B10: {
+        ppaSettledKwh: 12_000,
+        matchedConsumptionKwh: 11_000,
+        marketSettlementPercent: 85,
+        residualEmissionFactorKgPerKwh: 0.233,
+        documentationQualityPercent: 80
+      }
+    }
+
+    const result = runB10(input)
+
+    expect(result.value).toBe(-1.534)
+    expect(result.unit).toBe(factors.b10.unit)
+    expect(result.trace).toContain('settlementAdjustedKwh=9350')
+    expect(result.warnings).toEqual([])
+  })
+
+  it('håndterer ugyldige værdier og settlement med advarsler', () => {
+    const input: ModuleInput = {
+      B10: {
+        ppaSettledKwh: 500,
+        matchedConsumptionKwh: 800,
+        marketSettlementPercent: -5,
+        residualEmissionFactorKgPerKwh: null,
+        documentationQualityPercent: 150
+      }
+    }
+
+    const result = runB10(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('marketSettlementPercent=0')
+    expect(result.warnings).toEqual([
+      'Finansiel dækning kan ikke være negativ. 0% anvendes.',
+      'Feltet residualEmissionFactorKgPerKwh mangler og behandles som 0.',
+      'Dokumentationskvalitet er begrænset til 100%.',
+      'Forbrugsdata overstiger PPA-leverancen. Overskydende mængde ignoreres.',
+      'Finansiel dækning på 0% betyder, at ingen reduktion kan bogføres.'
+    ])
+  })
+})
+
+describe('runB11', () => {
+  it('beregner reduktion med timekorrelation og dokumentationsjustering', () => {
+    const input: ModuleInput = {
+      B11: {
+        certificatesRetiredKwh: 12_000,
+        matchedConsumptionKwh: 11_000,
+        timeCorrelationPercent: 85,
+        residualEmissionFactorKgPerKwh: 0.233,
+        documentationQualityPercent: 90
+      }
+    }
+
+    const result = runB11(input)
+
+    expect(result.value).toBe(-1.5)
+    expect(result.unit).toBe(factors.b11.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('timeAdjustedKwh=8415')
+  })
+
+  it('håndterer ugyldige værdier og giver relevante advarsler', () => {
+    const input: ModuleInput = {
+      B11: {
+        certificatesRetiredKwh: -100,
+        matchedConsumptionKwh: 500,
+        timeCorrelationPercent: 20,
+        residualEmissionFactorKgPerKwh: -0.1,
+        documentationQualityPercent: null
+      }
+    }
+
+    const result = runB11(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('timeCorrelationPercent=20')
+    expect(result.warnings).toHaveLength(5)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Feltet certificatesRetiredKwh kan ikke være negativt. 0 anvendes i stedet.',
+        'Forbrugsdata overstiger certificeret mængde. Overskydende energi ignoreres.',
+        'Timekorrelation under 50% kan blive udfordret i revision.',
+        'Feltet residualEmissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
+        'Dokumentationskvalitet mangler og behandles som 0%.'
+      ])
+    )
   })
 })

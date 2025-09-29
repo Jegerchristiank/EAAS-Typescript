@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B6-modul for Scope 2 nettab i elnettet med schema, beregning, UI og tests.
 - Fuldt B7-modul for dokumenteret vedvarende el med schema, beregning, UI og tests.
 - Fuldt B8-modul for egenproduceret vedvarende el med schema, beregning, UI og tests.
+- Fuldt B9-modul for fysiske PPA-leverancer med schema, beregning, UI og tests.
+- Fuldt B10-modul for virtuelle PPA-leverancer med schema, beregning, UI og tests.
+- Fuldt B11-modul for time-matchede certifikatporteføljer med schema, beregning, UI og tests.
 
 
 ### Changed
@@ -37,3 +40,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved merge artefacts across shared calculation, schema, PDF and tooling modules so TypeScript and ESLint parse cleanly.
 - Restored review, PDF preview and storage utilities after conflict markers to ensure runtime components compile again.
 - Cleaned B1 calculation tests to eliminate duplicate suites and reinstate deterministic assertions.
+- Ensured `next lint` bruger den understøttede TypeScript-version ved at fastlåse 5.5.4 gennem pnpm overrides.

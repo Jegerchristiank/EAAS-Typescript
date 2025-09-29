@@ -315,6 +315,156 @@
         }
       },
       "additionalProperties": false
+    },
+    "B9": {
+      "type": "object",
+      "title": "B9Input",
+      "description": "Fysisk PPA for vedvarende el",
+      "properties": {
+        "ppaDeliveredKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Leveret elektricitet fra PPA-aftalen (kWh)"
+        },
+        "matchedConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Eget elforbrug der dokumenteret dækkes af PPA’en (kWh)"
+        },
+        "gridLossPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Nettab i % mellem producent og forbruger"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for PPA-rapporteringen (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B10": {
+      "type": "object",
+      "title": "B10Input",
+      "description": "Virtuel PPA for vedvarende el",
+      "properties": {
+        "ppaSettledKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Kontrakteret og finansielt afregnet vedvarende el (kWh)"
+        },
+        "matchedConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Eget elforbrug der matches med den virtuelle PPA (kWh)"
+        },
+        "marketSettlementPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Forventet finansiel dækning efter basisrisiko (%)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for den virtuelle PPA (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B11": {
+      "type": "object",
+      "title": "B11Input",
+      "description": "Time-matchede certifikater for vedvarende el",
+      "properties": {
+        "certificatesRetiredKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årlig mængde certifikater annulleret til virksomhedens forbrug (kWh)"
+        },
+        "matchedConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Eget elforbrug der matches med certifikaterne (kWh)"
+        },
+        "timeCorrelationPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Timekorrelation mellem certifikater og forbrug (%)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for time-matchet certificering (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

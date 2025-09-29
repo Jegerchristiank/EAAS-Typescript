@@ -10,7 +10,10 @@ import type {
   B5Input,
   B6Input,
   B7Input,
-  B8Input
+  B8Input,
+  B9Input,
+  B10Input,
+  B11Input
 } from './schema'
 
 
@@ -48,7 +51,9 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   B6?: B6Input | null | undefined
   B7?: B7Input | null | undefined
   B8?: B8Input | null | undefined
-
+  B9?: B9Input | null | undefined
+  B10?: B10Input | null | undefined,
+  B11?: B11Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
@@ -69,5 +74,17 @@ export type CalculatedModuleResult = {
   result: ModuleResult
 }
 
-export type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input, B7Input, B8Input }
+export type {
+  B1Input,
+  B2Input,
+  B3Input,
+  B4Input,
+  B5Input,
+  B6Input,
+  B7Input,
+  B8Input,
+  B9Input,
+  B10Input,
+  B11Input
+}
 
