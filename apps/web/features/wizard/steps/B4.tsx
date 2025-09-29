@@ -56,7 +56,7 @@ const EMPTY_B4: B4Input = {
 }
 
 export function B4Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.B4 as B4Input | undefined) ?? EMPTY_B4
+  const current = (state['B4'] as B4Input | undefined) ?? EMPTY_B4
 
   const preview = useMemo<ModuleResult>(() => {
     return runB4({ B4: current } as ModuleInput)
