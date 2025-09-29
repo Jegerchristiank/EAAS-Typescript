@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B5-modul for øvrige Scope 2-energileverancer med schema, beregning, UI og tests.
 - Fuldt B6-modul for Scope 2 nettab i elnettet med schema, beregning, UI og tests.
 - Fuldt B7-modul for dokumenteret vedvarende el med schema, beregning, UI og tests.
+- Fuldt B8-modul for egenproduceret vedvarende el med schema, beregning, UI og tests.
+
 
 ### Changed
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.

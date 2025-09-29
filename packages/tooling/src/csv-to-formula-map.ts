@@ -17,7 +17,9 @@ const formulaOverrides: Record<string, string> = {
   B6:
     'B6 = (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh) - (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)',
   B7:
-    'B7 = -(documentedRenewableKwh * documentationQualityPercent/100 * 0.95 * residualEmissionFactorKgPerKwh)'
+    'B7 = -(documentedRenewableKwh * documentationQualityPercent/100 * 0.95 * residualEmissionFactorKgPerKwh)',
+  B8:
+    'B8 = -((onSiteRenewableKwh - exportedRenewableKwh) * documentationQualityPercent/100 * 0.9 * residualEmissionFactorKgPerKwh)'
 
 }
 

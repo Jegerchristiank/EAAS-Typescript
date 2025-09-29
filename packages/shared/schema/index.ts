@@ -66,15 +66,23 @@ export const b7InputSchema = z
   })
   .strict()
 
+export const b8InputSchema = z
+  .object({
+    onSiteRenewableKwh: z.number().min(0).nullable(),
+    exportedRenewableKwh: z.number().min(0).nullable(),
+    residualEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
 
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
 export type B4Input = z.infer<typeof b4InputSchema>
 export type B5Input = z.infer<typeof b5InputSchema>
-
 export type B6Input = z.infer<typeof b6InputSchema>
 export type B7Input = z.infer<typeof b7InputSchema>
+export type B8Input = z.infer<typeof b8InputSchema>
 
 
 export const esgInputSchema = z
@@ -85,7 +93,9 @@ export const esgInputSchema = z
     B4: b4InputSchema.optional(),
     B5: b5InputSchema.optional(),
     B6: b6InputSchema.optional(),
-    B7: b7InputSchema.optional()
+    B7: b7InputSchema.optional(),
+    B8: b8InputSchema.optional()
+
 
   })
   .passthrough()

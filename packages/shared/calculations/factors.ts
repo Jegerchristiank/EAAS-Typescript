@@ -64,5 +64,14 @@ export const factors = {
     minimumEffectiveQualityPercent: 10,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  b8: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    qualityMitigationRate: 0.9,
+    maximumDocumentationPercent: 100,
+    minimumEffectiveQualityPercent: 15,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const
