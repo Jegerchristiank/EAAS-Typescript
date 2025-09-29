@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Publish runbook describing safe GitHub Packages authentication for releases.
 - Fuldt B4-modul for Scope 2 dampforbrug med schema, beregning, UI og tests.
 - Fuldt B5-modul for øvrige Scope 2-energileverancer med schema, beregning, UI og tests.
+- Fuldt B6-modul for Scope 2 nettab i elnettet med schema, beregning, UI og tests.
 
 ### Changed
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.

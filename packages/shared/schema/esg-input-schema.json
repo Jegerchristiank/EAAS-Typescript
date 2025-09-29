@@ -199,6 +199,48 @@
         }
       },
       "additionalProperties": false
+    },
+    "B6": {
+      "type": "object",
+      "title": "B6Input",
+      "description": "Scope 2 nettab i elnettet",
+      "properties": {
+        "electricitySuppliedKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt elforbrug der danner grundlag for nettab (kWh)"
+        },
+        "gridLossPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Forventet transmissions- og distributionstab (%)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for tabt elektricitet (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af tabet der dækkes af vedvarende energi (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

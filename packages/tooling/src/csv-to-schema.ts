@@ -159,12 +159,45 @@ const b5Override = {
   additionalProperties: false
 } as const
 
+const b6Override = {
+  type: 'object',
+  title: 'B6Input',
+  description: 'Scope 2 nettab i elnettet',
+  properties: {
+    electricitySuppliedKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt elforbrug der danner grundlag for nettab (kWh)'
+    },
+    gridLossPercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Forventet transmissions- og distributionstab (%)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for tabt elektricitet (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af tabet der dækkes af vedvarende energi (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
+
 const moduleOverrides: Record<string, unknown> = {
   B1: b1Override,
   B2: b2Override,
   B3: b3Override,
   B4: b4Override,
-  B5: b5Override
+  B5: b5Override,
+  B6: b6Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

@@ -48,11 +48,25 @@ export const b5InputSchema = z
   })
   .strict()
 
+
+export const b6InputSchema = z
+  .object({
+    electricitySuppliedKwh: z.number().min(0).nullable(),
+    gridLossPercent: z.number().min(0).max(100).nullable(),
+    emissionFactorKgPerKwh: z.number().min(0).nullable(),
+    renewableSharePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
 export type B4Input = z.infer<typeof b4InputSchema>
 export type B5Input = z.infer<typeof b5InputSchema>
+
+export type B6Input = z.infer<typeof b6InputSchema>
+
 
 export const esgInputSchema = z
   .object({
@@ -60,7 +74,9 @@ export const esgInputSchema = z
     B2: b2InputSchema.optional(),
     B3: b3InputSchema.optional(),
     B4: b4InputSchema.optional(),
-    B5: b5InputSchema.optional()
+    B5: b5InputSchema.optional(),
+    B6: b6InputSchema.optional()
+
   })
   .passthrough()
 

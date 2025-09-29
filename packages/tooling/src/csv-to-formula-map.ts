@@ -13,7 +13,10 @@ const formulaOverrides: Record<string, string> = {
   B4:
     'B4 = ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh) - ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)',
   B5:
-    'B5 = ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh) - ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.8)'
+    'B5 = ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh) - ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.8)',
+  B6:
+    'B6 = (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh) - (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)'
+
 }
 
 export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<string, string>> {
@@ -25,8 +28,8 @@ export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<st
     const [module] = line.split(',')
     if (module) {
       const trimmed = module.trim()
-      acc[trimmed] = formulaOverrides[trimmed] ?? `${trimmed} = input`
-      acc[module.trim()] = `${module.trim()} = input`
+      const override = formulaOverrides[trimmed]
+      acc[trimmed] = override ?? `${trimmed} = input`
     }
     return acc
   }, {})
