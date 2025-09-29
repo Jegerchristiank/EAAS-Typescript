@@ -137,6 +137,7 @@ function EmptyCard(): JSX.Element {
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
         Når du udfylder modulerne B1, B2, B3, B4, B5 eller B6 i wizardens første trin, vises resultaterne her.
+
       </p>
     </section>
   )

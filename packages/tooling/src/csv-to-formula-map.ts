@@ -16,6 +16,7 @@ const formulaOverrides: Record<string, string> = {
     'B5 = ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh) - ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.8)',
   B6:
     'B6 = (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh) - (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)'
+
 }
 
 export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<string, string>> {

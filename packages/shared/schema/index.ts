@@ -48,6 +48,7 @@ export const b5InputSchema = z
   })
   .strict()
 
+
 export const b6InputSchema = z
   .object({
     electricitySuppliedKwh: z.number().min(0).nullable(),
@@ -57,12 +58,15 @@ export const b6InputSchema = z
   })
   .strict()
 
+
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
 export type B4Input = z.infer<typeof b4InputSchema>
 export type B5Input = z.infer<typeof b5InputSchema>
+
 export type B6Input = z.infer<typeof b6InputSchema>
+
 
 export const esgInputSchema = z
   .object({
@@ -72,6 +76,7 @@ export const esgInputSchema = z
     B4: b4InputSchema.optional(),
     B5: b5InputSchema.optional(),
     B6: b6InputSchema.optional()
+
   })
   .passthrough()
 
