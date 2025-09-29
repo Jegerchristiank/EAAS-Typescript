@@ -9,17 +9,26 @@
       "description": "Scope 2 elforbrug",
       "properties": {
         "electricityConsumptionKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Årligt elforbrug (kWh)"
         },
         "emissionFactorKgPerKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Emissionsfaktor (kg CO2e pr. kWh)"
         },
         "renewableSharePercent": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Andel af strøm indkøbt som vedvarende energi (%)"
@@ -27,8 +36,436 @@
       },
       "additionalProperties": false
     },
-    "B1": { "type": "string" },
-    "B2": { "type": "string" }
+    "B2": {
+      "type": "object",
+      "title": "B2Input",
+      "description": "Scope 2 varmeforbrug",
+      "properties": {
+        "heatConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt varmeforbrug fra leverandør (kWh)"
+        },
+        "recoveredHeatKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet eller egenproduceret varme trukket fra (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for varmeleverancen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af certificeret vedvarende varme (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B3": {
+      "type": "object",
+      "title": "B3Input",
+      "description": "Scope 2 køleforbrug",
+      "properties": {
+        "coolingConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt køleforbrug fra leverandør (kWh)"
+        },
+        "recoveredCoolingKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet eller frikøling trukket fra (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for køleleverancen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af certificeret vedvarende køling (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B4": {
+      "type": "object",
+      "title": "B4Input",
+      "description": "Scope 2 dampforbrug",
+      "properties": {
+        "steamConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt dampforbrug fra leverandør (kWh)"
+        },
+        "recoveredSteamKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet kondensat eller procesdamp trukket fra (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for dampforsyningen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af certificeret vedvarende damp (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B5": {
+      "type": "object",
+      "title": "B5Input",
+      "description": "Scope 2 øvrige energileverancer",
+      "properties": {
+        "otherEnergyConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt forbrug af den indkøbte energitype (kWh)"
+        },
+        "recoveredEnergyKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet energi eller procesudnyttelse der reducerer behovet (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for energileverancen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel dokumenteret som vedvarende energi (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B6": {
+      "type": "object",
+      "title": "B6Input",
+      "description": "Scope 2 nettab i elnettet",
+      "properties": {
+        "electricitySuppliedKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt elforbrug der danner grundlag for nettab (kWh)"
+        },
+        "gridLossPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Forventet transmissions- og distributionstab (%)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for tabt elektricitet (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af tabet der dækkes af vedvarende energi (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B7": {
+      "type": "object",
+      "title": "B7Input",
+      "description": "Dokumenteret vedvarende el",
+      "properties": {
+        "documentedRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Dokumenteret vedvarende el dækket af certifikater (kWh)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet der forventes godkendt (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B8": {
+      "type": "object",
+      "title": "B8Input",
+      "description": "Egenproduceret vedvarende el",
+      "properties": {
+        "onSiteRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Produceret vedvarende el på egne anlæg (kWh)"
+        },
+        "exportedRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Andel af egenproduktion eksporteret til nettet (kWh)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for måling og allokering (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B9": {
+      "type": "object",
+      "title": "B9Input",
+      "description": "Fysisk PPA for vedvarende el",
+      "properties": {
+        "ppaDeliveredKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Leveret elektricitet fra PPA-aftalen (kWh)"
+        },
+        "matchedConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Eget elforbrug der dokumenteret dækkes af PPA’en (kWh)"
+        },
+        "gridLossPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Nettab i % mellem producent og forbruger"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for PPA-rapporteringen (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B10": {
+      "type": "object",
+      "title": "B10Input",
+      "description": "Virtuel PPA for vedvarende el",
+      "properties": {
+        "ppaSettledKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Kontrakteret og finansielt afregnet vedvarende el (kWh)"
+        },
+        "matchedConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Eget elforbrug der matches med den virtuelle PPA (kWh)"
+        },
+        "marketSettlementPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Forventet finansiel dækning efter basisrisiko (%)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for den virtuelle PPA (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B11": {
+      "type": "object",
+      "title": "B11Input",
+      "description": "Time-matchede certifikater for vedvarende el",
+      "properties": {
+        "certificatesRetiredKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årlig mængde certifikater annulleret til virksomhedens forbrug (kWh)"
+        },
+        "matchedConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Eget elforbrug der matches med certifikaterne (kWh)"
+        },
+        "timeCorrelationPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Timekorrelation mellem certifikater og forbrug (%)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for time-matchet certificering (%)"
+        }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": true
 }

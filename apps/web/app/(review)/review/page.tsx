@@ -29,8 +29,14 @@ export default function ReviewPage(): JSX.Element {
     [results]
   )
 
-  const b1Result = printable.find((entry) => entry.moduleId === 'B1') ?? null
-  const secondaryResults = printable.filter((entry) => entry.moduleId !== 'B1')
+  const primaryModuleIds = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6'] as const
+  type PrimaryModuleId = (typeof primaryModuleIds)[number]
+  const primaryResults = primaryModuleIds
+    .map((moduleId) => printable.find((entry) => entry.moduleId === moduleId) ?? null)
+    .filter((entry): entry is CalculatedModuleResult => entry !== null)
+  const secondaryResults = printable.filter(
+    (entry) => !primaryModuleIds.includes(entry.moduleId as PrimaryModuleId)
+  )
 
   const handleDownload = async (): Promise<void> => {
     await downloadReport(printable)
@@ -41,11 +47,19 @@ export default function ReviewPage(): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h1>Review og download</h1>
         <p style={{ maxWidth: '48rem' }}>
-          Et overblik over beregningerne for modul B1. Eksporter rapporten som PDF for at dele den med resten af organisationen.
+          Et overblik over de vigtigste Scope 2-moduler. Eksporter rapporten som PDF for at dele den med resten af organisationen.
         </p>
       </header>
 
-      {b1Result ? <ResultCard entry={b1Result} /> : <EmptyCard />}
+      {primaryResults.length > 0 ? (
+        <section style={{ display: 'grid', gap: '1.5rem' }}>
+          {primaryResults.map((entry) => (
+            <ResultCard key={entry.moduleId} entry={entry} />
+          ))}
+        </section>
+      ) : (
+        <EmptyCard />
+      )}
 
       {secondaryResults.length > 0 && (
         <section style={{ display: 'grid', gap: '1rem' }}>
@@ -122,7 +136,8 @@ function EmptyCard(): JSX.Element {
     <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
-        Når du udfylder modul B1 i wizardens første trin, vises resultatet her.
+        Når du udfylder modulerne B1, B2, B3, B4, B5 eller B6 i wizardens første trin, vises resultaterne her.
+
       </p>
     </section>
   )

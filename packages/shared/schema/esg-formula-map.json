@@ -1,5 +1,13 @@
 {
   "B1": "B1 = (el-forbrug * emissionsfaktor) - (el-forbrug * emissionsfaktor * (vedvarende% / 100) * 0.9)",
-  "B1": "B1 = input",
-  "B2": "B2 = input"
+  "B2": "B2 = ((varmeforbrug - genindvinding) * emissionsfaktor) - ((varmeforbrug - genindvinding) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
+  "B3": "B3 = ((køleforbrug - frikøling) * emissionsfaktor) - ((køleforbrug - frikøling) * emissionsfaktor * (vedvarende% / 100) * 0.9)",
+  "B4": "B4 = ((dampforbrug - genindvundet damp) * emissionsfaktor) - ((dampforbrug - genindvundet damp) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
+  "B5": "B5 = ((øvrigt energiforbrug - genindvundet energi) * emissionsfaktor) - ((øvrigt energiforbrug - genindvundet energi) * emissionsfaktor * (vedvarende% / 100) * 0.8)",
+  "B6": "B6 = (elforbrug * nettab% / 100 * emissionsfaktor) - (elforbrug * nettab% / 100 * emissionsfaktor * (vedvarende% / 100) * 0.9)",
+  "B7": "B7 = -(dokumenteret vedvarende el * dokumentationskvalitet% / 100 * 0.95 * residual emissionsfaktor)",
+  "B8": "B8 = -((egenproduceret vedvarende el - eksport) * dokumentationskvalitet% / 100 * 0.9 * residual emissionsfaktor)",
+  "B9": "B9 = -(min(PPA-leveret el, matchet forbrug) * (1 - nettab% / 100) * dokumentationskvalitet% / 100 * 0.92 * residual emissionsfaktor)",
+  "B10": "B10 = -(min(PPA-kontrakteret el, matchet forbrug) * finansiel dækning% / 100 * dokumentationskvalitet% / 100 * 0.88 * residual emissionsfaktor)",
+  "B11": "B11 = -(min(certifikater, matchet forbrug) * timekorrelation% / 100 * 0.9 * dokumentationskvalitet% / 100 * 0.85 * residual emissionsfaktor)"
 }

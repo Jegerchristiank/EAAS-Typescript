@@ -7,6 +7,7 @@ Principper
 • Domænelaget i packages/shared må ikke kende til Next.js.
 • Al IO og lagring er klientside. Ingen serverstat.
 • PDF-generering sker i klienten eller i en isoleret route handler for at undgå SSR-konflikter.
+• Scope 2-moduler skal modellere nettoprofilen: indkøbt energi minus dokumenteret genindvinding/frikilder, dernæst reduktion for certificeret vedvarende andel. Enhederne er konsekvent kWh og resultatet udtrykkes i ton CO2e.
 
 Mappekompas
 • apps/web: UI, routing, wizard, storage, PDF-download UI.
@@ -43,8 +44,15 @@ Kvalitetsbarre
 • UI-ændringer kræver 1 Playwright-scenarie.
 • Ingen advarsler i build. 0 lint-fejl. 0 any.
 
+Erfaringer
+• ModuleInput er typet via et index signature. Brug bracket notation (`state['B7']`) fremfor dot-notation for modulnøgler i UI og beregninger for at undgå TypeScript-fejl.
+• Scope 2-reduktioner som B7 må returnere negative værdier; UI bør formidle at negative tal repræsenterer reduktioner fremfor udledninger.
+• B8 fratrækker eksporteret strøm fra egenproduktionen før kvalitetsjustering; informer brugeren hvis eksporten overstiger produktionen.
+
+
 Fejltyper vi kender
 • SSR og @react-pdf/renderer: løses med dynamic import eller route handler.
 • pnpm publish mod forkert registry: tjek publishConfig og .npmrc i pakke og root.
 • NPM-auth: brug env-variabel i CI. Ingen .env indlæsning i npm.
+• Merge-konflikter: GitHub accepterer ikke filer med `<<<<<<<`/`=======`/`>>>>>>>`. Ryd altid markørerne og bekræft med `rg '<<<<<<<'` før commit.
 

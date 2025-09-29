@@ -1,7 +1,7 @@
 {
   "name": "@org/monorepo",
   "private": true,
-  "packageManager": "pnpm@9.10.0",
+  "packageManager": "pnpm@10.17.1",
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
@@ -20,5 +20,10 @@
     "turbo": "^2.1.1",
     "typescript": "~5.5.4",
     "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "typescript": "5.5.4"
+    }
   }
 }
