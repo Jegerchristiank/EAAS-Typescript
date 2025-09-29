@@ -29,7 +29,7 @@ export default function ReviewPage(): JSX.Element {
     [results]
   )
 
-  const primaryModuleIds = ['B1', 'B2', 'B3'] as const
+  const primaryModuleIds = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6'] as const
   type PrimaryModuleId = (typeof primaryModuleIds)[number]
   const primaryResults = primaryModuleIds
     .map((moduleId) => printable.find((entry) => entry.moduleId === moduleId) ?? null)
@@ -136,7 +136,7 @@ function EmptyCard(): JSX.Element {
     <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
-        Når du udfylder modulerne B1, B2 eller B3 i wizardens første trin, vises resultaterne her.
+        Når du udfylder modulerne B1, B2, B3, B4, B5 eller B6 i wizardens første trin, vises resultaterne her.
       </p>
     </section>
   )
