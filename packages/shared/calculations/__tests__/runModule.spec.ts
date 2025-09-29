@@ -16,6 +16,12 @@ import { runB9 } from '../modules/runB9'
 import { runB10 } from '../modules/runB10'
 import { factors } from '../factors'
 import { runB11 } from '../modules/runB11'
+import { runC1 } from '../modules/runC1'
+import { runC2 } from '../modules/runC2'
+import { runC3 } from '../modules/runC3'
+import { runC4 } from '../modules/runC4'
+import { runC5 } from '../modules/runC5'
+import { runC6 } from '../modules/runC6'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -504,5 +510,338 @@ describe('runB11', () => {
         'Dokumentationskvalitet mangler og behandles som 0%.'
       ])
     )
+  })
+})
+
+describe('runC1', () => {
+  it('beregner pendlingsemissioner med reduktion for fjernarbejde', () => {
+    const input: ModuleInput = {
+      C1: {
+        employeesCovered: 120,
+        averageCommuteDistanceKm: 18,
+        commutingDaysPerWeek: 3,
+        weeksPerYear: 44,
+        remoteWorkSharePercent: 25,
+        emissionFactorKgPerKm: 0.142
+      }
+    }
+
+    const result = runC1(input)
+
+    expect(result.value).toBe(30.365)
+    expect(result.unit).toBe(factors.c1.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('totalDistanceKm=213840')
+  })
+
+  it('håndterer manglende og ugyldige værdier med advarsler', () => {
+    const input: ModuleInput = {
+      C1: {
+        employeesCovered: -5,
+        averageCommuteDistanceKm: null,
+        commutingDaysPerWeek: 12,
+        weeksPerYear: 70,
+        remoteWorkSharePercent: 180,
+        emissionFactorKgPerKm: -0.3
+      }
+    }
+
+    const result = runC1(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('weeksPerYear=52')
+    expect(result.warnings).toEqual([
+      'Feltet employeesCovered kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet averageCommuteDistanceKm mangler og behandles som 0.',
+      'Feltet commutingDaysPerWeek er begrænset til 7.',
+      'Feltet weeksPerYear er begrænset til 52 uger.',
+      'Feltet remoteWorkSharePercent er begrænset til 100%.',
+      'Feltet emissionFactorKgPerKm kan ikke være negativt. 0 anvendes i stedet.'
+    ])
+  })
+})
+
+describe('runC2', () => {
+  it('beregner emissioner for forretningsrejser med virtuelle reduktioner', () => {
+    const input: ModuleInput = {
+      C2: {
+        airTravelDistanceKm: 12_000,
+        airEmissionFactorKgPerKm: 0.158,
+        railTravelDistanceKm: 3_000,
+        railEmissionFactorKgPerKm: 0.014,
+        roadTravelDistanceKm: 8_000,
+        roadEmissionFactorKgPerKm: 0.192,
+        hotelNights: 220,
+        hotelEmissionFactorKgPerNight: 12,
+        virtualMeetingSharePercent: 20
+      }
+    }
+
+    const result = runC2(input)
+
+    expect(result.value).toBe(5.419)
+    expect(result.unit).toBe(factors.c2.unit)
+    expect(result.warnings).toEqual([])
+    const adjustedLine = result.trace.find((line) =>
+      line.startsWith('adjustedTravelEmissionsKg=')
+    )
+    expect(adjustedLine).toBeDefined()
+    expect(Number(adjustedLine?.split('=')[1])).toBeCloseTo(2779.2, 6)
+  })
+
+  it('håndterer manglende og ugyldige værdier med standardfaktor for hotel', () => {
+    const input: ModuleInput = {
+      C2: {
+        airTravelDistanceKm: -100,
+        airEmissionFactorKgPerKm: -0.3,
+        railTravelDistanceKm: null,
+        railEmissionFactorKgPerKm: null,
+        roadTravelDistanceKm: 5_000,
+        roadEmissionFactorKgPerKm: 0.2,
+        hotelNights: 10,
+        hotelEmissionFactorKgPerNight: null,
+        virtualMeetingSharePercent: 160
+      }
+    }
+
+    const result = runC2(input)
+
+    expect(result.value).toBe(0.15)
+    expect(result.trace).toContain('virtualReductionRatio=1')
+    expect(result.warnings).toEqual([
+      'Feltet airTravelDistanceKm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet airEmissionFactorKgPerKm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet railTravelDistanceKm mangler og behandles som 0.',
+      'Feltet railEmissionFactorKgPerKm mangler og behandles som 0.',
+      'Feltet hotelEmissionFactorKgPerNight mangler. Standardfaktoren 15 anvendes.',
+      'Feltet virtualMeetingSharePercent er begrænset til 100%.'
+    ])
+  })
+})
+
+describe('runC3', () => {
+  it('beregner upstream emissioner med nettab og vedvarende reduktion', () => {
+    const input: ModuleInput = {
+      C3: {
+        purchasedElectricityKwh: 120_000,
+        electricityUpstreamEmissionFactorKgPerKwh: 0.05,
+        transmissionLossPercent: 8,
+        renewableSharePercent: 35,
+        fuelConsumptionKwh: 40_000,
+        fuelUpstreamEmissionFactorKgPerKwh: 0.07
+      }
+    }
+
+    const result = runC3(input)
+
+    expect(result.value).toBe(7.466)
+    expect(result.unit).toBe(factors.c3.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('lossMultiplier=1.08')
+    expect(result.trace).toContain('renewableMitigationMultiplier=0.72')
+  })
+
+  it('håndterer ugyldige værdier og begrænser procenter', () => {
+    const input: ModuleInput = {
+      C3: {
+        purchasedElectricityKwh: -20_000,
+        electricityUpstreamEmissionFactorKgPerKwh: null,
+        transmissionLossPercent: 50,
+        renewableSharePercent: 180,
+        fuelConsumptionKwh: -1_500,
+        fuelUpstreamEmissionFactorKgPerKwh: -0.2
+      }
+    }
+
+    const result = runC3(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('transmissionLossPercent=20')
+    expect(result.warnings).toEqual([
+      'Feltet purchasedElectricityKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet electricityUpstreamEmissionFactorKgPerKwh mangler og behandles som 0.',
+      'Feltet transmissionLossPercent er begrænset til 20%.',
+      'Feltet renewableSharePercent er begrænset til 100%.',
+      'Feltet fuelConsumptionKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet fuelUpstreamEmissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.'
+    ])
+  })
+})
+
+describe('runC4', () => {
+  it('beregner transportemissioner med dokumenterede afbødninger', () => {
+    const input: ModuleInput = {
+      C4: {
+        roadTonnesKm: 5_000,
+        roadEmissionFactorKgPerTonneKm: 0.12,
+        railTonnesKm: 2_000,
+        railEmissionFactorKgPerTonneKm: 0.03,
+        seaTonnesKm: 8_000,
+        seaEmissionFactorKgPerTonneKm: 0.015,
+        airTonnesKm: 500,
+        airEmissionFactorKgPerTonneKm: 0.55,
+        consolidationEfficiencyPercent: 20,
+        lowCarbonSharePercent: 15
+      }
+    }
+
+    const result = runC4(input)
+
+    expect(result.value).toBe(0.81)
+    expect(result.unit).toBe(factors.c4.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('totalModalEmissionsKg=1055')
+    expect(result.trace).toContain('mitigationMultiplier=0.767500')
+  })
+
+  it('håndterer ugyldige værdier og begrænser procenter', () => {
+    const input: ModuleInput = {
+      C4: {
+        roadTonnesKm: -100,
+        roadEmissionFactorKgPerTonneKm: null,
+        railTonnesKm: null,
+        railEmissionFactorKgPerTonneKm: -0.02,
+        seaTonnesKm: -50,
+        seaEmissionFactorKgPerTonneKm: null,
+        airTonnesKm: null,
+        airEmissionFactorKgPerTonneKm: -0.5,
+        consolidationEfficiencyPercent: 80,
+        lowCarbonSharePercent: 140
+      }
+    }
+
+    const result = runC4(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('consolidationMitigationRatio=0.300000')
+    expect(result.warnings).toEqual([
+      'Feltet roadTonnesKm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet roadEmissionFactorKgPerTonneKm mangler og behandles som 0.',
+      'Feltet railTonnesKm mangler og behandles som 0.',
+      'Feltet railEmissionFactorKgPerTonneKm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet seaTonnesKm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet seaEmissionFactorKgPerTonneKm mangler og behandles som 0.',
+      'Feltet airTonnesKm mangler og behandles som 0.',
+      'Feltet airEmissionFactorKgPerTonneKm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet consolidationEfficiencyPercent er begrænset til 50%.',
+      'Feltet lowCarbonSharePercent er begrænset til 100%.'
+    ])
+  })
+})
+
+describe('runC5', () => {
+  it('beregner emissioner for affaldshåndtering med genanvendelses- og genbrugskreditter', () => {
+    const input: ModuleInput = {
+      C5: {
+        landfillWasteTonnes: 120,
+        landfillEmissionFactorKgPerTonne: 480,
+        incinerationWasteTonnes: 80,
+        incinerationEmissionFactorKgPerTonne: 320,
+        recyclingWasteTonnes: 60,
+        recyclingEmissionFactorKgPerTonne: 50,
+        compostingWasteTonnes: 40,
+        compostingEmissionFactorKgPerTonne: 100,
+        recyclingRecoveryPercent: 70,
+        reuseSharePercent: 30
+      }
+    }
+
+    const result = runC5(input)
+
+    expect(result.value).toBe(24.354)
+    expect(result.unit).toBe(factors.c5.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('grossEmissionsKg=90200')
+    expect(result.trace).toContain('mitigationMultiplier=0.270000')
+  })
+
+  it('normaliserer negative og manglende værdier og begrænser procenter', () => {
+    const input: ModuleInput = {
+      C5: {
+        landfillWasteTonnes: -5,
+        landfillEmissionFactorKgPerTonne: null,
+        incinerationWasteTonnes: 10,
+        incinerationEmissionFactorKgPerTonne: -25,
+        recyclingWasteTonnes: null,
+        recyclingEmissionFactorKgPerTonne: 40,
+        compostingWasteTonnes: 2,
+        compostingEmissionFactorKgPerTonne: -15,
+        recyclingRecoveryPercent: 120,
+        reuseSharePercent: -10
+      }
+    }
+
+    const result = runC5(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('landfillEmissionFactorKgPerTonne=0')
+    expect(result.trace).toContain('recyclingRecoveryPercent=90')
+    expect(result.warnings).toEqual([
+      'Feltet landfillWasteTonnes kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet landfillEmissionFactorKgPerTonne mangler og behandles som 0.',
+      'Feltet incinerationEmissionFactorKgPerTonne kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet compostingEmissionFactorKgPerTonne kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet recyclingWasteTonnes mangler og behandles som 0.',
+      'Feltet recyclingRecoveryPercent er begrænset til 90%.',
+      'Feltet reuseSharePercent kan ikke være negativt. 0% anvendes i stedet.'
+    ])
+  })
+})
+
+describe('runC6', () => {
+  it('beregner emissioner for udlejede aktiver med fordeling og vedvarende reduktioner', () => {
+    const input: ModuleInput = {
+      C6: {
+        leasedFloorAreaSqm: 3200,
+        electricityIntensityKwhPerSqm: 90,
+        heatIntensityKwhPerSqm: 70,
+        occupancySharePercent: 75,
+        sharedServicesAllocationPercent: 10,
+        electricityEmissionFactorKgPerKwh: 0.25,
+        heatEmissionFactorKgPerKwh: 0.18,
+        renewableElectricitySharePercent: 40,
+        renewableHeatSharePercent: 20
+      }
+    }
+
+    const result = runC6(input)
+
+    expect(result.value).toBe(57.97)
+    expect(result.unit).toBe(factors.c6.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('effectiveAllocationRatio=0.675000')
+    expect(result.trace).toContain('electricityEmissionsKg=34020')
+  })
+
+  it('normaliserer negative og manglende værdier og begrænser procenter', () => {
+    const input: ModuleInput = {
+      C6: {
+        leasedFloorAreaSqm: -100,
+        electricityIntensityKwhPerSqm: 80,
+        heatIntensityKwhPerSqm: null,
+        occupancySharePercent: 140,
+        sharedServicesAllocationPercent: -5,
+        electricityEmissionFactorKgPerKwh: null,
+        heatEmissionFactorKgPerKwh: -0.2,
+        renewableElectricitySharePercent: 250,
+        renewableHeatSharePercent: -10
+      }
+    }
+
+    const result = runC6(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('leasedFloorAreaSqm=0')
+    expect(result.trace).toContain('renewableElectricitySharePercent=100')
+    expect(result.warnings).toEqual([
+      'Feltet leasedFloorAreaSqm kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet heatIntensityKwhPerSqm mangler og behandles som 0.',
+      'Feltet occupancySharePercent er begrænset til 100%.',
+      'Feltet sharedServicesAllocationPercent kan ikke være negativt. 0% anvendes i stedet.',
+      'Feltet electricityEmissionFactorKgPerKwh mangler og behandles som 0.',
+      'Feltet heatEmissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Feltet renewableElectricitySharePercent er begrænset til 100%.',
+      'Feltet renewableHeatSharePercent kan ikke være negativt. 0% anvendes i stedet.'
+    ])
   })
 })

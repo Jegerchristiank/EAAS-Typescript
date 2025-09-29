@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B9-modul for fysiske PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B10-modul for virtuelle PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B11-modul for time-matchede certifikatporteføljer med schema, beregning, UI og tests.
+- Fuldt C1-modul for Scope 3 medarbejderpendling med schema, beregning, UI og tests.
+- Fuldt C2-modul for Scope 3 forretningsrejser med schema, beregning, UI og tests.
+- Fuldt C3-modul for Scope 3 brændstof- og energirelaterede aktiviteter med schema, beregning, UI og tests.
+- Fuldt C4-modul for Scope 3 upstream transport og distribution med schema, beregning, UI og tests.
+- Fuldt C5-modul for Scope 3 affald fra drift (upstream) med schema, beregning, UI og tests.
+- Fuldt C6-modul for Scope 3 udlejede aktiver (upstream) med schema, beregning, UI og tests.
 
 
 ### Changed

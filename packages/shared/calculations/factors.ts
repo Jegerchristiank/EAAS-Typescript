@@ -106,5 +106,61 @@ export const factors = {
     minimumEffectiveTimeCorrelationPercent: 50,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  c1: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    maximumDaysPerWeek: 7,
+    maximumWeeksPerYear: 52,
+    defaultWeeksPerYear: 46,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c2: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    defaultHotelEmissionFactorKgPerNight: 15,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c3: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    renewableMitigationRate: 0.8,
+    maximumTransmissionLossPercent: 20,
+    maximumRenewableSharePercent: 100,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c4: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    consolidationMitigationRate: 0.6,
+    lowCarbonMitigationRate: 0.75,
+    maximumConsolidationPercent: 50,
+    maximumLowCarbonSharePercent: 100,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c5: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    recyclingMitigationRate: 0.7,
+    reuseMitigationRate: 0.8,
+    maximumRecyclingRecoveryPercent: 90,
+    maximumReuseSharePercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c6: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    electricityRenewableMitigationRate: 0.75,
+    heatRenewableMitigationRate: 0.6,
+    maximumOccupancyPercent: 100,
+    maximumSharedServicesPercent: 50,
+    maximumRenewableSharePercent: 100,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const

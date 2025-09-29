@@ -13,7 +13,13 @@ import type {
   B8Input,
   B9Input,
   B10Input,
-  B11Input
+  B11Input,
+  C1Input,
+  C2Input,
+  C3Input,
+  C4Input,
+  C5Input,
+  C6Input
 } from './schema'
 
 
@@ -52,8 +58,14 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   B7?: B7Input | null | undefined
   B8?: B8Input | null | undefined
   B9?: B9Input | null | undefined
-  B10?: B10Input | null | undefined,
+  B10?: B10Input | null | undefined
   B11?: B11Input | null | undefined
+  C1?: C1Input | null | undefined
+  C2?: C2Input | null | undefined
+  C3?: C3Input | null | undefined
+  C4?: C4Input | null | undefined
+  C5?: C5Input | null | undefined
+  C6?: C6Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
@@ -85,6 +97,12 @@ export type {
   B8Input,
   B9Input,
   B10Input,
-  B11Input
+  B11Input,
+  C1Input,
+  C2Input,
+  C3Input,
+  C4Input,
+  C5Input,
+  C6Input
 }
 
