@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B7-modul for dokumenteret vedvarende el med schema, beregning, UI og tests.
 - Fuldt B8-modul for egenproduceret vedvarende el med schema, beregning, UI og tests.
 
+
 ### Changed
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.
 - Normalised wizard infrastructure to rely on strongly typed module input and removed duplicate step registrations.
