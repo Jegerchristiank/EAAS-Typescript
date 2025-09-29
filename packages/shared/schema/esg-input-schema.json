@@ -465,6 +465,468 @@
         }
       },
       "additionalProperties": false
+    },
+    "C1": {
+      "type": "object",
+      "title": "C1Input",
+      "description": "Scope 3 medarbejderpendling",
+      "properties": {
+        "employeesCovered": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal ansatte (FTE) omfattet af pendlingen"
+        },
+        "averageCommuteDistanceKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Gennemsnitlig tur-retur distance pr. arbejdsdag (km)"
+        },
+        "commutingDaysPerWeek": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 7,
+          "description": "Pendlerdage pr. uge"
+        },
+        "weeksPerYear": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 52,
+          "description": "Arbejdsuger pr. år"
+        },
+        "remoteWorkSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af arbejdsdage med fjernarbejde (%)"
+        },
+        "emissionFactorKgPerKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for gennemsnitligt transportmiddel (kg CO2e pr. km)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C2": {
+      "type": "object",
+      "title": "C2Input",
+      "description": "Scope 3 forretningsrejser",
+      "properties": {
+        "airTravelDistanceKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlede fløjne kilometer for alle flyrejser (tur/retur)"
+        },
+        "airEmissionFactorKgPerKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for flyrejser (kg CO2e pr. km)"
+        },
+        "railTravelDistanceKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlede kilometer rejst med tog"
+        },
+        "railEmissionFactorKgPerKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for togrejser (kg CO2e pr. km)"
+        },
+        "roadTravelDistanceKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlede kilometer rejst med bil, taxa eller bus"
+        },
+        "roadEmissionFactorKgPerKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for vejtransport (kg CO2e pr. km)"
+        },
+        "hotelNights": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlet antal hotelovernatninger relateret til rejser"
+        },
+        "hotelEmissionFactorKgPerNight": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for hotelovernatning (kg CO2e pr. nat)"
+        },
+        "virtualMeetingSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af rejseaktivitet erstattet af virtuelle møder (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C3": {
+      "type": "object",
+      "title": "C3Input",
+      "description": "Scope 3 brændstof- og energirelaterede aktiviteter",
+      "properties": {
+        "purchasedElectricityKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Elforbrug (kWh) der skal have upstream emissioner"
+        },
+        "electricityUpstreamEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Upstream emissionsfaktor for el (kg CO2e pr. kWh)"
+        },
+        "transmissionLossPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 20,
+          "description": "Transmissions- og distributionsspild i elnettet (%)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af el dækket af dokumenteret vedvarende energi (%)"
+        },
+        "fuelConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Brændstofforbrug konverteret til kWh til upstream beregning"
+        },
+        "fuelUpstreamEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Upstream emissionsfaktor for brændstoffer (kg CO2e pr. kWh)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C4": {
+      "type": "object",
+      "title": "C4Input",
+      "description": "Scope 3 upstream transport og distribution",
+      "properties": {
+        "roadTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Ton-kilometer for vejtransport"
+        },
+        "roadEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e pr. ton-km) for vejtransport"
+        },
+        "railTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Ton-kilometer for banetransport"
+        },
+        "railEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e pr. ton-km) for banetransport"
+        },
+        "seaTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Ton-kilometer for søtransport"
+        },
+        "seaEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e pr. ton-km) for søtransport"
+        },
+        "airTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Ton-kilometer for lufttransport"
+        },
+        "airEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e pr. ton-km) for lufttransport"
+        },
+        "consolidationEfficiencyPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Effektiviseringsprocent fra konsolidering"
+        },
+        "lowCarbonSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumenteret andel lavemissionsløsninger"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C5": {
+      "type": "object",
+      "title": "C5Input",
+      "description": "Scope 3 affald fra drift (upstream)",
+      "properties": {
+        "landfillWasteTonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Mængde affald til deponi (ton)"
+        },
+        "landfillEmissionFactorKgPerTonne": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e/ton) for deponi"
+        },
+        "incinerationWasteTonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Mængde affald til forbrænding (ton)"
+        },
+        "incinerationEmissionFactorKgPerTonne": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e/ton) for forbrænding"
+        },
+        "recyclingWasteTonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Mængde affald til genanvendelse (ton)"
+        },
+        "recyclingEmissionFactorKgPerTonne": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e/ton) for genanvendelse"
+        },
+        "compostingWasteTonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Mængde affald til kompostering eller biogas (ton)"
+        },
+        "compostingEmissionFactorKgPerTonne": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor (kg CO2e/ton) for kompostering"
+        },
+        "recyclingRecoveryPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 90,
+          "description": "Andel af genanvendelse der substituerer jomfruelige materialer"
+        },
+        "reuseSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 60,
+          "description": "Andel der afledes gennem direkte genbrug/donation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C6": {
+      "type": "object",
+      "title": "C6Input",
+      "description": "Scope 3 udlejede aktiver (upstream)",
+      "properties": {
+        "leasedFloorAreaSqm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlet lejet areal i kvadratmeter"
+        },
+        "electricityIntensityKwhPerSqm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Elforbrug pr. kvadratmeter (kWh/m²)"
+        },
+        "heatIntensityKwhPerSqm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Varmeforbrug pr. kvadratmeter (kWh/m²)"
+        },
+        "occupancySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Lejerens andel af det samlede areal (%)"
+        },
+        "sharedServicesAllocationPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Andel af energien der fratrækkes til fælles services (%)"
+        },
+        "electricityEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for el (kg CO2e/kWh)"
+        },
+        "heatEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for varme (kg CO2e/kWh)"
+        },
+        "renewableElectricitySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumenteret vedvarende andel af elforbruget (%)"
+        },
+        "renewableHeatSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumenteret vedvarende andel af varmeforbruget (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true
