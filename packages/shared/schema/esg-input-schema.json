@@ -9,17 +9,26 @@
       "description": "Scope 2 elforbrug",
       "properties": {
         "electricityConsumptionKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Årligt elforbrug (kWh)"
         },
         "emissionFactorKgPerKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Emissionsfaktor (kg CO2e pr. kWh)"
         },
         "renewableSharePercent": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Andel af strøm indkøbt som vedvarende energi (%)"
@@ -33,22 +42,34 @@
       "description": "Scope 2 varmeforbrug",
       "properties": {
         "heatConsumptionKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Årligt varmeforbrug fra leverandør (kWh)"
         },
         "recoveredHeatKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Genindvundet eller egenproduceret varme trukket fra (kWh)"
         },
         "emissionFactorKgPerKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Emissionsfaktor for varmeleverancen (kg CO2e pr. kWh)"
         },
         "renewableSharePercent": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Andel af certificeret vedvarende varme (%)"
@@ -62,25 +83,119 @@
       "description": "Scope 2 køleforbrug",
       "properties": {
         "coolingConsumptionKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Årligt køleforbrug fra leverandør (kWh)"
         },
         "recoveredCoolingKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Genindvundet eller frikøling trukket fra (kWh)"
         },
         "emissionFactorKgPerKwh": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Emissionsfaktor for køleleverancen (kg CO2e pr. kWh)"
         },
         "renewableSharePercent": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Andel af certificeret vedvarende køling (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B4": {
+      "type": "object",
+      "title": "B4Input",
+      "description": "Scope 2 dampforbrug",
+      "properties": {
+        "steamConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt dampforbrug fra leverandør (kWh)"
+        },
+        "recoveredSteamKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet kondensat eller procesdamp trukket fra (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for dampforsyningen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af certificeret vedvarende damp (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B5": {
+      "type": "object",
+      "title": "B5Input",
+      "description": "Scope 2 øvrige energileverancer",
+      "properties": {
+        "otherEnergyConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt forbrug af den indkøbte energitype (kWh)"
+        },
+        "recoveredEnergyKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Genindvundet energi eller procesudnyttelse der reducerer behovet (kWh)"
+        },
+        "emissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for energileverancen (kg CO2e pr. kWh)"
+        },
+        "renewableSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel dokumenteret som vedvarende energi (%)"
         }
       },
       "additionalProperties": false

@@ -1,5 +1,7 @@
 {
   "B1": "B1 = (el-forbrug * emissionsfaktor) - (el-forbrug * emissionsfaktor * (vedvarende% / 100) * 0.9)",
   "B2": "B2 = ((varmeforbrug - genindvinding) * emissionsfaktor) - ((varmeforbrug - genindvinding) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
-  "B3": "B3 = ((køleforbrug - frikøling) * emissionsfaktor) - ((køleforbrug - frikøling) * emissionsfaktor * (vedvarende% / 100) * 0.9)"
+  "B3": "B3 = ((køleforbrug - frikøling) * emissionsfaktor) - ((køleforbrug - frikøling) * emissionsfaktor * (vedvarende% / 100) * 0.9)",
+  "B4": "B4 = ((dampforbrug - genindvundet damp) * emissionsfaktor) - ((dampforbrug - genindvundet damp) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
+  "B5": "B5 = ((øvrigt energiforbrug - genindvundet energi) * emissionsfaktor) - ((øvrigt energiforbrug - genindvundet energi) * emissionsfaktor * (vedvarende% / 100) * 0.8)"
 }

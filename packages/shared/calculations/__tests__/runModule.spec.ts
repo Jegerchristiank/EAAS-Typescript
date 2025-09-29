@@ -7,6 +7,8 @@ import { createDefaultResult } from '../runModule'
 import { runB1 } from '../modules/runB1'
 import { runB2 } from '../modules/runB2'
 import { runB3 } from '../modules/runB3'
+import { runB4 } from '../modules/runB4'
+import { runB5 } from '../modules/runB5'
 import { factors } from '../factors'
 
 describe('createDefaultResult', () => {
@@ -133,6 +135,88 @@ describe('runB3', () => {
       'Feltet emissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
       'Andelen af vedvarende energi er begrænset til 100%.',
       'Genindvundet køling overstiger det registrerede forbrug. Nettoforbruget sættes til 0.'
+    ])
+  })
+})
+
+describe('runB4', () => {
+  it('beregner nettoemission med fradrag for genanvendt damp og vedvarende andel', () => {
+    const input: ModuleInput = {
+      B4: {
+        steamConsumptionKwh: 40_000,
+        recoveredSteamKwh: 3_000,
+        emissionFactorKgPerKwh: 0.09,
+        renewableSharePercent: 25
+      }
+    }
+
+    const result = runB4(input)
+
+    expect(result.value).toBe(2.622)
+    expect(result.unit).toBe(factors.b4.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('netSteamConsumptionKwh=37000')
+  })
+
+  it('håndterer ugyldige værdier og advarer om for højt fradrag', () => {
+    const input: ModuleInput = {
+      B4: {
+        steamConsumptionKwh: 1_000,
+        recoveredSteamKwh: 1_500,
+        emissionFactorKgPerKwh: -0.1,
+        renewableSharePercent: 120
+      }
+    }
+
+    const result = runB4(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('emissionFactorKgPerKwh=0')
+    expect(result.warnings).toEqual([
+      'Feltet emissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Andelen af vedvarende energi er begrænset til 100%.',
+      'Genindvundet damp overstiger det registrerede forbrug. Nettoforbruget sættes til 0.'
+    ])
+  })
+})
+
+describe('runB5', () => {
+  it('beregner nettoemission for øvrige energileverancer', () => {
+    const input: ModuleInput = {
+      B5: {
+        otherEnergyConsumptionKwh: 25_000,
+        recoveredEnergyKwh: 2_000,
+        emissionFactorKgPerKwh: 0.07,
+        renewableSharePercent: 35
+      }
+    }
+
+    const result = runB5(input)
+
+    expect(result.value).toBe(1.159)
+    expect(result.unit).toBe(factors.b5.unit)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toContain('netOtherEnergyConsumptionKwh=23000')
+  })
+
+  it('håndterer ugyldige værdier og capper vedvarende andel', () => {
+    const input: ModuleInput = {
+      B5: {
+        otherEnergyConsumptionKwh: 1_000,
+        recoveredEnergyKwh: 1_500,
+        emissionFactorKgPerKwh: -0.2,
+        renewableSharePercent: 140
+      }
+    }
+
+    const result = runB5(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('emissionFactorKgPerKwh=0')
+    expect(result.warnings).toEqual([
+      'Feltet emissionFactorKgPerKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Andelen af vedvarende energi er begrænset til 100%.',
+      'Genindvundet energi overstiger det registrerede forbrug. Nettoforbruget sættes til 0.'
     ])
   })
 })
