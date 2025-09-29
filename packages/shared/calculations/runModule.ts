@@ -33,8 +33,8 @@ import { runC9 } from './modules/runC9'
 
 const moduleTitles: Record<ModuleId, string> = {
   B1: 'B1 – Scope 2 elforbrug',
-  B2: 'Modul B2',
-  B3: 'Modul B3',
+  B2: 'B2 – Scope 2 varmeforbrug',
+  B3: 'B3 – Scope 2 køleforbrug',
   B4: 'Modul B4',
   B5: 'Modul B5',
   B6: 'Modul B6',

@@ -5,7 +5,11 @@ import { readFile } from 'node:fs/promises'
 
 const formulaOverrides: Record<string, string> = {
   B1:
-    'B1 = (electricityConsumptionKwh * emissionFactorKgPerKwh) - (electricityConsumptionKwh * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)'
+    'B1 = (electricityConsumptionKwh * emissionFactorKgPerKwh) - (electricityConsumptionKwh * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)',
+  B2:
+    'B2 = ((heatConsumptionKwh - recoveredHeatKwh) * emissionFactorKgPerKwh) - ((heatConsumptionKwh - recoveredHeatKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)',
+  B3:
+    'B3 = ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh) - ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)'
 }
 
 export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<string, string>> {

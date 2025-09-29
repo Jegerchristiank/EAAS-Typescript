@@ -33,8 +33,8 @@ export type WizardStep = {
 
 export const wizardSteps: WizardStep[] = [
   { id: 'B1', label: 'B1 – Scope 2 elforbrug', component: B1Step },
-  { id: 'B2', label: 'Modul B2', component: B2Step },
-  { id: 'B3', label: 'Modul B3', component: B3Step },
+  { id: 'B2', label: 'B2 – Scope 2 varmeforbrug', component: B2Step },
+  { id: 'B3', label: 'B3 – Scope 2 køleforbrug', component: B3Step },
   { id: 'B4', label: 'Modul B4', component: B4Step },
   { id: 'B5', label: 'Modul B5', component: B5Step },
   { id: 'B6', label: 'Modul B6', component: B6Step },

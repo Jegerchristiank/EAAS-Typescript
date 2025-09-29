@@ -39,8 +39,70 @@ const typeMap: Record<string, unknown> = {
   object: { type: 'object' }
 }
 
+const b2Override = {
+  type: 'object',
+  title: 'B2Input',
+  description: 'Scope 2 varmeforbrug',
+  properties: {
+    heatConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt varmeforbrug fra leverandør (kWh)'
+    },
+    recoveredHeatKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Genindvundet eller egenproduceret varme trukket fra (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for varmeleverancen (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af certificeret vedvarende varme (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
+const b3Override = {
+  type: 'object',
+  title: 'B3Input',
+  description: 'Scope 2 køleforbrug',
+  properties: {
+    coolingConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt køleforbrug fra leverandør (kWh)'
+    },
+    recoveredCoolingKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Genindvundet eller frikøling trukket fra (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for køleleverancen (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af certificeret vedvarende køling (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
 const moduleOverrides: Record<string, unknown> = {
-  B1: b1Override
+  B1: b1Override,
+  B2: b2Override,
+  B3: b3Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

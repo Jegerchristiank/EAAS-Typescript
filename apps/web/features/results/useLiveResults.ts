@@ -13,12 +13,12 @@ export function useLiveResults(): { results: CalculatedModuleResult[] } {
 
   return useMemo(() => {
     const aggregated = aggregateResults(state)
+    const priorityOrder: Record<string, number> = { B1: 0, B2: 1, B3: 2 }
     const sorted = [...aggregated].sort((a, b) => {
-      if (a.moduleId === 'B1' && b.moduleId !== 'B1') {
-        return -1
-      }
-      if (b.moduleId === 'B1' && a.moduleId !== 'B1') {
-        return 1
+      const priorityA = priorityOrder[a.moduleId] ?? Number.POSITIVE_INFINITY
+      const priorityB = priorityOrder[b.moduleId] ?? Number.POSITIVE_INFINITY
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB
       }
       return a.moduleId.localeCompare(b.moduleId)
     })
