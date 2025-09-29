@@ -72,6 +72,7 @@ export const esgInputSchema = z
     B4: b4InputSchema.optional(),
     B5: b5InputSchema.optional(),
     B6: b6InputSchema.optional()
+    B5: b5InputSchema.optional()
   })
   .passthrough()
 

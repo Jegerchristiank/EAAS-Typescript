@@ -197,6 +197,7 @@ const moduleOverrides: Record<string, unknown> = {
   B4: b4Override,
   B5: b5Override,
   B6: b6Override
+  B5: b5Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

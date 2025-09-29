@@ -38,6 +38,7 @@ export const wizardSteps: WizardStep[] = [
   { id: 'B4', label: 'B4 – Scope 2 dampforbrug', component: B4Step },
   { id: 'B5', label: 'B5 – Scope 2 øvrige energileverancer', component: B5Step },
   { id: 'B6', label: 'B6 – Scope 2 nettab i elnettet', component: B6Step },
+  { id: 'B6', label: 'Modul B6', component: B6Step },
   { id: 'B7', label: 'Modul B7', component: B7Step },
   { id: 'B8', label: 'Modul B8', component: B8Step },
   { id: 'B9', label: 'Modul B9', component: B9Step },

@@ -2,6 +2,7 @@
  * Fælles typer for ESG-input, moduler og beregningsresultater.
  */
 import type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input } from './schema'
+import type { B1Input, B2Input, B3Input, B4Input, B5Input } from './schema'
 
 export const moduleIds = [
   'B1',
@@ -56,3 +57,4 @@ export type CalculatedModuleResult = {
 }
 
 export type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input }
+export type { B1Input, B2Input, B3Input, B4Input, B5Input }
