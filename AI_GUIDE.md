@@ -44,6 +44,11 @@ Kvalitetsbarre
 • UI-ændringer kræver 1 Playwright-scenarie.
 • Ingen advarsler i build. 0 lint-fejl. 0 any.
 
+Erfaringer
+• ModuleInput er typet via et index signature. Brug bracket notation (`state['B7']`) fremfor dot-notation for modulnøgler i UI og beregninger for at undgå TypeScript-fejl.
+• Scope 2-reduktioner som B7 må returnere negative værdier; UI bør formidle at negative tal repræsenterer reduktioner fremfor udledninger.
+• B8 fratrækker eksporteret strøm fra egenproduktionen før kvalitetsjustering; informer brugeren hvis eksporten overstiger produktionen.
+
 Fejltyper vi kender
 • SSR og @react-pdf/renderer: løses med dynamic import eller route handler.
 • pnpm publish mod forkert registry: tjek publishConfig og .npmrc i pakke og root.

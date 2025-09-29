@@ -241,6 +241,80 @@
         }
       },
       "additionalProperties": false
+    },
+    "B7": {
+      "type": "object",
+      "title": "B7Input",
+      "description": "Dokumenteret vedvarende el",
+      "properties": {
+        "documentedRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Dokumenteret vedvarende el dækket af certifikater (kWh)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet der forventes godkendt (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "B8": {
+      "type": "object",
+      "title": "B8Input",
+      "description": "Egenproduceret vedvarende el",
+      "properties": {
+        "onSiteRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Produceret vedvarende el på egne anlæg (kWh)"
+        },
+        "exportedRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Andel af egenproduktion eksporteret til nettet (kWh)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet for måling og allokering (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

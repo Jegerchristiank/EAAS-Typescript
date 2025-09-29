@@ -20,12 +20,13 @@ describe('convertCsvToFormulaMap', () => {
     const dir = await mkdtemp(join(tmpdir(), 'tooling-formula-map-'))
     createdPaths.push(dir)
     const csvPath = join(dir, 'modules.csv')
-    await writeFile(csvPath, 'module,value_type\nB4,object\nB4,string\nB7,object')
+    await writeFile(csvPath, 'module,value_type\nB4,object\nB4,string\nB7,object\nB8,number')
 
     const map = await convertCsvToFormulaMap(csvPath)
 
-    expect(map.B4).toContain('steamConsumptionKwh')
-    expect(map.B4).not.toBe('B4 = input')
-    expect(map.B7).toBe('B7 = input')
+    expect(map['B4']).toContain('steamConsumptionKwh')
+    expect(map['B4']).not.toBe('B4 = input')
+    expect(map['B7']).toContain('documentationQualityPercent/100')
+    expect(map['B8']).toContain('onSiteRenewableKwh')
   })
 })
