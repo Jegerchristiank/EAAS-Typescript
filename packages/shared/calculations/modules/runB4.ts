@@ -16,7 +16,7 @@ export function runB4(input: ModuleInput): ModuleResult {
     `Konvertering fra kg til ton: ${factors.b4.kgToTonnes}`
   ]
 
-  const raw = (input.B4 ?? {}) as B4Input
+  const raw = (input['B4'] ?? {}) as B4Input
   const sanitised = normaliseInput(raw, warnings)
 
   const adjustedSteamConsumptionKwh = Math.max(

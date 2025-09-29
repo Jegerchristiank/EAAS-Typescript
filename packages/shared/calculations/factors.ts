@@ -55,5 +55,14 @@ export const factors = {
     maximumGridLossPercent: 20,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  b7: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    qualityMitigationRate: 0.95,
+    maximumDocumentationPercent: 100,
+    minimumEffectiveQualityPercent: 10,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const

@@ -241,6 +241,39 @@
         }
       },
       "additionalProperties": false
+    },
+    "B7": {
+      "type": "object",
+      "title": "B7Input",
+      "description": "Dokumenteret vedvarende el",
+      "properties": {
+        "documentedRenewableKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Dokumenteret vedvarende el dækket af certifikater (kWh)"
+        },
+        "residualEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Residual emissionsfaktor for elmixet (kg CO2e pr. kWh)"
+        },
+        "documentationQualityPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dokumentationskvalitet der forventes godkendt (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

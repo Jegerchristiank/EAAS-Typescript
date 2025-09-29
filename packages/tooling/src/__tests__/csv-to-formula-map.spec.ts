@@ -24,8 +24,8 @@ describe('convertCsvToFormulaMap', () => {
 
     const map = await convertCsvToFormulaMap(csvPath)
 
-    expect(map.B4).toContain('steamConsumptionKwh')
-    expect(map.B4).not.toBe('B4 = input')
-    expect(map.B7).toBe('B7 = input')
+    expect(map['B4']).toContain('steamConsumptionKwh')
+    expect(map['B4']).not.toBe('B4 = input')
+    expect(map['B7']).toContain('documentationQualityPercent/100')
   })
 })

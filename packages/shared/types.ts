@@ -2,7 +2,7 @@
  * Fælles typer for ESG-input, moduler og beregningsresultater.
  */
 
-import type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input } from './schema'
+import type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input, B7Input } from './schema'
 
 
 export const moduleIds = [
@@ -37,6 +37,7 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   B4?: B4Input | null | undefined
   B5?: B5Input | null | undefined
   B6?: B6Input | null | undefined
+  B7?: B7Input | null | undefined
 
 }
 
@@ -58,5 +59,5 @@ export type CalculatedModuleResult = {
   result: ModuleResult
 }
 
-export type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input }
+export type { B1Input, B2Input, B3Input, B4Input, B5Input, B6Input, B7Input }
 
