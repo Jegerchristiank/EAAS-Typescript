@@ -9,7 +9,13 @@ const formulaOverrides: Record<string, string> = {
   B2:
     'B2 = ((heatConsumptionKwh - recoveredHeatKwh) * emissionFactorKgPerKwh) - ((heatConsumptionKwh - recoveredHeatKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)',
   B3:
-    'B3 = ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh) - ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)'
+    'B3 = ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh) - ((coolingConsumptionKwh - recoveredCoolingKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)',
+  B4:
+    'B4 = ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh) - ((steamConsumptionKwh - recoveredSteamKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)',
+  B5:
+    'B5 = ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh) - ((otherEnergyConsumptionKwh - recoveredEnergyKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.8)',
+  B6:
+    'B6 = (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh) - (electricitySuppliedKwh * gridLossPercent/100 * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)'
 }
 
 export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<string, string>> {
@@ -19,11 +25,19 @@ export async function convertCsvToFormulaMap(csvPath: string): Promise<Record<st
 
   return rows.reduce<Record<string, string>>((acc, line) => {
     const [module] = line.split(',')
-    if (module) {
-      const trimmed = module.trim()
-      acc[trimmed] = formulaOverrides[trimmed] ?? `${trimmed} = input`
-      acc[module.trim()] = `${module.trim()} = input`
+    if (!module) {
+      return acc
     }
+
+    const trimmed = module.trim()
+
+    if (trimmed.length === 0 || acc[trimmed] != null) {
+      return acc
+    }
+
+    const override = formulaOverrides[trimmed]
+    acc[trimmed] = override ?? `${trimmed} = input`
+
     return acc
   }, {})
 }

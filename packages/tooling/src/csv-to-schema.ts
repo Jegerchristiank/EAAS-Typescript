@@ -99,10 +99,104 @@ const b3Override = {
   additionalProperties: false
 } as const
 
+const b4Override = {
+  type: 'object',
+  title: 'B4Input',
+  description: 'Scope 2 dampforbrug',
+  properties: {
+    steamConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt dampforbrug fra leverandør (kWh)'
+    },
+    recoveredSteamKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Genindvundet kondensat eller procesdamp trukket fra (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for dampforsyningen (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af certificeret vedvarende damp (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
+const b5Override = {
+  type: 'object',
+  title: 'B5Input',
+  description: 'Scope 2 øvrige energileverancer',
+  properties: {
+    otherEnergyConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt forbrug af den indkøbte energitype (kWh)'
+    },
+    recoveredEnergyKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Genindvundet energi eller procesudnyttelse der reducerer behovet (kWh)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for energileverancen (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel dokumenteret som vedvarende energi (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
+const b6Override = {
+  type: 'object',
+  title: 'B6Input',
+  description: 'Scope 2 nettab i elnettet',
+  properties: {
+    electricitySuppliedKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt elforbrug der danner grundlag for nettab (kWh)'
+    },
+    gridLossPercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Forventet transmissions- og distributionstab (%)'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor for tabt elektricitet (kg CO2e pr. kWh)'
+    },
+    renewableSharePercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Andel af tabet der dækkes af vedvarende energi (%)'
+    }
+  },
+  additionalProperties: false
+} as const
+
 const moduleOverrides: Record<string, unknown> = {
   B1: b1Override,
   B2: b2Override,
-  B3: b3Override
+  B3: b3Override,
+  B4: b4Override,
+  B5: b5Override,
+  B6: b6Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

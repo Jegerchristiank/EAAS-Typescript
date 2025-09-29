@@ -48,4 +48,5 @@ Fejltyper vi kender
 • SSR og @react-pdf/renderer: løses med dynamic import eller route handler.
 • pnpm publish mod forkert registry: tjek publishConfig og .npmrc i pakke og root.
 • NPM-auth: brug env-variabel i CI. Ingen .env indlæsning i npm.
+• Merge-konflikter: GitHub accepterer ikke filer med `<<<<<<<`/`=======`/`>>>>>>>`. Ryd altid markørerne og bekræft med `rg '<<<<<<<'` før commit.
 
