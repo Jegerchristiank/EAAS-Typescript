@@ -1,7 +1,7 @@
 # Planlægningsrunbook – kommende ESG-moduler
 
-Denne runbook beskriver, hvordan de nye planlægningsmoduler (Scope 1 A1–A4, Scope 3 C10–C15 samt governance-modulet D1) bruges
-frem til de fulde beregninger leveres.
+Denne runbook beskriver, hvordan planlægningsmodulerne (Scope 3 C10–C15 samt governance-modulet D1) bruges frem til de fulde
+beregninger leveres.
 
 ## Formål
 
@@ -11,7 +11,7 @@ frem til de fulde beregninger leveres.
 
 ## UI-arbejdsgang
 
-1. Navigér til `/wizard` og vælg det relevante planlægningsmodul i Scope 1-, Scope 3- eller Governance-sektionerne.
+1. Navigér til `/wizard` og vælg det relevante planlægningsmodul i Scope 3- eller Governance-sektionerne.
 2. Udfyld felterne:
    - **Dataansvarlig** – navn eller rolle på det team, der ejer data og governance.
    - **Primære datakilder** – hvilke systemer eller processer der skal integreres.
@@ -23,7 +23,7 @@ frem til de fulde beregninger leveres.
 
 - Planlægningsmoduler returnerer værdien `0` med enheden `n/a` og antagelsen "Stubberegning".
 - PDF-downloaden filtrerer automatisk planlægningsmoduler væk, så de ikke påvirker eksisterende rapporter.
-- Review-siden markerer tydeligt, at Scope 1-, C10–C15- og D1-modulerne endnu ikke har beregningslogik.
+- Review-siden markerer tydeligt, at C10–C15 og D1 endnu ikke har beregningslogik.
 
 ## Dataudtræk og videreudvikling
 

@@ -3,6 +3,36 @@
  */
 export const factors = {
   defaultFactor: 1,
+  a1: {
+    kgToTonnes: 0.001,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
+  a2: {
+    kgToTonnes: 0.001,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
+  a3: {
+    kgToTonnes: 0.001,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
+  a4: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultLeakagePercent: 10,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
   b1: {
     kgToTonnes: 0.001,
     renewableMitigationRate: 0.9,

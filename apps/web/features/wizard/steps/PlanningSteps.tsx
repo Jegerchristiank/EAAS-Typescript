@@ -60,10 +60,6 @@ const FIELD_CONFIG: PlanningFieldConfig[] = [
 ]
 
 type PlanningModuleId =
-  | 'A1'
-  | 'A2'
-  | 'A3'
-  | 'A4'
   | 'C10'
   | 'C11'
   | 'C12'
@@ -184,50 +180,6 @@ export function createPlanningStep(config: PlanningStepConfig): WizardStepCompon
 type PlanningModuleConfigMap = Record<PlanningModuleId, PlanningStepConfig>
 
 const PLANNING_CONFIGS: PlanningModuleConfigMap = {
-  A1: {
-    moduleId: 'A1',
-    title: 'A1 – Scope 1 stationære forbrændingskilder',
-    intro:
-      'Forbered dataindsamlingen til kedler, ovne og andre stationære installationer, så vi kan levere fulde Scope 1-beregninger.',
-    focusPoints: [
-      'Bekræft hvilke anlæg der indgår, og hvordan brændselsdata logges.',
-      'Identificér ejere af brændselsdata og kontroller datakvaliteten.',
-      'Notér eventuelle sikkerheds- eller myndighedskrav til dokumentation.'
-    ]
-  },
-  A2: {
-    moduleId: 'A2',
-    title: 'A2 – Scope 1 mobile forbrændingskilder',
-    intro:
-      'Kortlæg køretøjer, maskiner og øvrige mobile enheder med direkte brændstofforbrug for at accelerere Scope 1-dækningen.',
-    focusPoints: [
-      'Angiv hvilke telematik- eller brændstofkortdata der kan tilgås.',
-      'Notér ansvarlige for flådestyring og kvalitetssikring.',
-      'Beskriv plan for at indsamle historiske forbrugsdata.'
-    ]
-  },
-  A3: {
-    moduleId: 'A3',
-    title: 'A3 – Scope 1 procesemissioner',
-    intro:
-      'Processer som kalkudbrænding, kemiske reaktioner eller industrielle katalysatorer kræver særskilt metodik – planlæg arbejdet her.',
-    focusPoints: [
-      'Kortlæg relevante procestrin og tilhørende dataejere.',
-      'Angiv forventet beregningsmetode eller standarder.',
-      'Dokumentér eventuelle målepunkter eller laboratoriedata.'
-    ]
-  },
-  A4: {
-    moduleId: 'A4',
-    title: 'A4 – Scope 1 flugtige emissioner',
-    intro:
-      'Fokus på lækager af kølemidler og andre gasser. Brug felterne til at samle ansvarlige kontakter og næste skridt.',
-    focusPoints: [
-      'Identificér anlæg og udstyr med potentielle lækager.',
-      'Beskriv registrerings- og vedligeholdelsesprocesser.',
-      'Notér behov for ekstern servicepartner eller lovkrav.'
-    ]
-  },
   C10: {
     moduleId: 'C10',
     title: 'C10 – Scope 3 brug af solgte produkter',
@@ -307,10 +259,6 @@ const PLANNING_CONFIGS: PlanningModuleConfigMap = {
   }
 }
 
-export const A1Step = createPlanningStep(PLANNING_CONFIGS.A1)
-export const A2Step = createPlanningStep(PLANNING_CONFIGS.A2)
-export const A3Step = createPlanningStep(PLANNING_CONFIGS.A3)
-export const A4Step = createPlanningStep(PLANNING_CONFIGS.A4)
 export const C10Step = createPlanningStep(PLANNING_CONFIGS.C10)
 export const C11Step = createPlanningStep(PLANNING_CONFIGS.C11)
 export const C12Step = createPlanningStep(PLANNING_CONFIGS.C12)

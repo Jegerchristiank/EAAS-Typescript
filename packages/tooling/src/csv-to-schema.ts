@@ -72,6 +72,195 @@ function createPlanningOverride(title: string, description: string) {
   } as const
 }
 
+const a1Override = {
+  type: 'object',
+  title: 'A1Input',
+  description: 'Scope 1 stationære forbrændingskilder',
+  properties: {
+    fuelConsumptions: {
+      type: 'array',
+      description: 'Brændselslinjer for kedler, ovne og generatorer.',
+      maxItems: 12,
+      items: {
+        type: 'object',
+        properties: {
+          fuelType: {
+            type: 'string',
+            enum: ['naturgas', 'diesel', 'fyringsolie', 'biogas'],
+            description: 'Brændstoftype for linjen.'
+          },
+          unit: {
+            type: 'string',
+            enum: ['liter', 'Nm³', 'kg'],
+            description: 'Måleenhed for brændselsmængden.'
+          },
+          quantity: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Mængde brændsel i valgt enhed.'
+          },
+          emissionFactorKgPerUnit: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Emissionsfaktor i kg CO2e pr. enhed.'
+          },
+          documentationQualityPercent: {
+            type: ['number', 'null'],
+            minimum: 0,
+            maximum: 100,
+            description: 'Dokumentationskvalitet i procent.'
+          }
+        },
+        required: ['fuelType', 'unit'],
+        additionalProperties: false
+      }
+    }
+  },
+  additionalProperties: false
+} as const
+
+const a2Override = {
+  type: 'object',
+  title: 'A2Input',
+  description: 'Scope 1 mobile forbrændingskilder',
+  properties: {
+    vehicleConsumptions: {
+      type: 'array',
+      description: 'Brændselslinjer for bilpark, trucks og entreprenørmaskiner.',
+      maxItems: 20,
+      items: {
+        type: 'object',
+        properties: {
+          fuelType: {
+            type: 'string',
+            enum: ['benzin', 'diesel', 'biodiesel', 'cng'],
+            description: 'Brændstoftype for køretøjet eller maskinen.'
+          },
+          unit: {
+            type: 'string',
+            enum: ['liter', 'kg'],
+            description: 'Måleenhed for brændselsforbruget.'
+          },
+          quantity: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Mængde brændsel i valgt enhed.'
+          },
+          emissionFactorKgPerUnit: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Emissionsfaktor i kg CO2e pr. enhed.'
+          },
+          distanceKm: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Evt. kørt distance i kilometer for linjen.'
+          },
+          documentationQualityPercent: {
+            type: ['number', 'null'],
+            minimum: 0,
+            maximum: 100,
+            description: 'Dokumentationskvalitet i procent.'
+          }
+        },
+        required: ['fuelType', 'unit'],
+        additionalProperties: false
+      }
+    }
+  },
+  additionalProperties: false
+} as const
+
+const a3Override = {
+  type: 'object',
+  title: 'A3Input',
+  description: 'Scope 1 procesemissioner',
+  properties: {
+    processLines: {
+      type: 'array',
+      description: 'Proceslinjer for industrielle emissioner (cement, kemikalier, metaller).',
+      maxItems: 20,
+      items: {
+        type: 'object',
+        properties: {
+          processType: {
+            type: 'string',
+            enum: ['cementClinker', 'limeCalcination', 'ammoniaProduction', 'aluminiumSmelting'],
+            description: 'Proces- eller kemisk aktivitet.'
+          },
+          outputQuantityTon: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Produceret mængde i ton for processen.'
+          },
+          emissionFactorKgPerTon: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Emissionsfaktor i kg CO2e pr. ton output.'
+          },
+          documentationQualityPercent: {
+            type: ['number', 'null'],
+            minimum: 0,
+            maximum: 100,
+            description: 'Dokumentationskvalitet i procent.'
+          }
+        },
+        required: ['processType'],
+        additionalProperties: false
+      }
+    }
+  },
+  additionalProperties: false
+} as const
+
+const a4Override = {
+  type: 'object',
+  title: 'A4Input',
+  description: 'Scope 1 flugtige emissioner',
+  properties: {
+    refrigerantLines: {
+      type: 'array',
+      description: 'Kølemidler og andre gasser med årlig lækage og GWP100.',
+      maxItems: 20,
+      items: {
+        type: 'object',
+        properties: {
+          refrigerantType: {
+            type: 'string',
+            enum: ['hfc134a', 'hfc125', 'hfc32', 'r410a', 'r407c', 'sf6'],
+            description: 'Valgt kølemiddel eller gas.'
+          },
+          systemChargeKg: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Fyldning eller beholdning (kg).'
+          },
+          leakagePercent: {
+            type: ['number', 'null'],
+            minimum: 0,
+            maximum: 100,
+            description: 'Årlig lækageandel (%)'
+          },
+          gwp100: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'GWP100-værdi for kølemidlet.'
+          },
+          documentationQualityPercent: {
+            type: ['number', 'null'],
+            minimum: 0,
+            maximum: 100,
+            description: 'Dokumentationskvalitet i procent.'
+          }
+        },
+        required: ['refrigerantType'],
+        additionalProperties: false
+      }
+    }
+  },
+  additionalProperties: false
+} as const
+
 const b2Override = {
   type: 'object',
   title: 'B2Input',
@@ -225,10 +414,10 @@ const b6Override = {
 
 
 const moduleOverrides: Record<string, unknown> = {
-  A1: createPlanningOverride('A1Input', 'Scope 1 stationære forbrændingskilder (planlægning)'),
-  A2: createPlanningOverride('A2Input', 'Scope 1 mobile forbrændingskilder (planlægning)'),
-  A3: createPlanningOverride('A3Input', 'Scope 1 procesemissioner (planlægning)'),
-  A4: createPlanningOverride('A4Input', 'Scope 1 flugtige emissioner (planlægning)'),
+  A1: a1Override,
+  A2: a2Override,
+  A3: a3Override,
+  A4: a4Override,
   B1: b1Override,
   B2: b2Override,
   B3: b3Override,

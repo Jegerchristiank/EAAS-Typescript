@@ -6,39 +6,66 @@
     "A1": {
       "type": "object",
       "title": "A1Input",
-      "description": "Scope 1 stationære forbrændingskilder (planlægning)",
+      "description": "Scope 1 stationære forbrændingskilder",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "fuelConsumptions": {
+          "type": "array",
+          "description": "Brændselslinjer for kedler, ovne og generatorer.",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "properties": {
+              "fuelType": {
+                "type": "string",
+                "enum": [
+                  "naturgas",
+                  "diesel",
+                  "fyringsolie",
+                  "biogas"
+                ],
+                "description": "Brændstoftype for linjen."
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "liter",
+                  "Nm³",
+                  "kg"
+                ],
+                "description": "Måleenhed for brændselsmængden."
+              },
+              "quantity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Mængde brændsel i valgt enhed."
+              },
+              "emissionFactorKgPerUnit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor i kg CO₂e per enhed."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "fuelType",
+              "unit"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -46,39 +73,73 @@
     "A2": {
       "type": "object",
       "title": "A2Input",
-      "description": "Scope 1 mobile forbrændingskilder (planlægning)",
+      "description": "Scope 1 mobile forbrændingskilder",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "vehicleConsumptions": {
+          "type": "array",
+          "description": "Brændselslinjer for bilpark, trucks og entreprenørmaskiner.",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "fuelType": {
+                "type": "string",
+                "enum": [
+                  "benzin",
+                  "diesel",
+                  "biodiesel",
+                  "cng"
+                ],
+                "description": "Brændstoftype for køretøjet eller maskinen."
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "liter",
+                  "kg"
+                ],
+                "description": "Måleenhed for brændselsforbruget."
+              },
+              "quantity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Mængde brændsel i valgt enhed."
+              },
+              "emissionFactorKgPerUnit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor i kg CO₂e per enhed."
+              },
+              "distanceKm": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Evt. kørt distance i kilometer for linjen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "fuelType",
+              "unit"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -86,39 +147,56 @@
     "A3": {
       "type": "object",
       "title": "A3Input",
-      "description": "Scope 1 procesemissioner (planlægning)",
+      "description": "Scope 1 procesemissioner",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "processLines": {
+          "type": "array",
+          "description": "Proceslinjer for industrielle emissioner (cement, kemikalier, metaller).",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "processType": {
+                "type": "string",
+                "enum": [
+                  "cementClinker",
+                  "limeCalcination",
+                  "ammoniaProduction",
+                  "aluminiumSmelting"
+                ],
+                "description": "Proces- eller kemisk aktivitet."
+              },
+              "outputQuantityTon": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Produceret mængde i ton for processen."
+              },
+              "emissionFactorKgPerTon": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor i kg CO₂e per ton output."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "processType"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -126,39 +204,67 @@
     "A4": {
       "type": "object",
       "title": "A4Input",
-      "description": "Scope 1 flugtige emissioner (planlægning)",
+      "description": "Scope 1 flugtige emissioner",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "refrigerantLines": {
+          "type": "array",
+          "description": "Kølemiddel- og gaslinjer med årlig lækage og GWP100.",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "refrigerantType": {
+                "type": "string",
+                "enum": [
+                  "hfc134a",
+                  "hfc125",
+                  "hfc32",
+                  "r410a",
+                  "r407c",
+                  "sf6"
+                ],
+                "description": "Valgt kølemiddel eller gas."
+              },
+              "systemChargeKg": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Fyldning eller beholdning (kg)."
+              },
+              "leakagePercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Årlig lækageandel i procent."
+              },
+              "gwp100": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "GWP100-værdi for kølemidlet."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "refrigerantType"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

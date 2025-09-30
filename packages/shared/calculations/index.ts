@@ -2,6 +2,10 @@
  * Eksporterer beregnings-API for modulerne.
  */
 export { aggregateResults, createDefaultResult, runModule, moduleCalculators } from './runModule'
+export * from './modules/runA1'
+export * from './modules/runA2'
+export * from './modules/runA3'
+export * from './modules/runA4'
 export * from './modules/runB1'
 export * from './modules/runB2'
 export * from './modules/runB3'
