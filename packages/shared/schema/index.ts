@@ -367,8 +367,83 @@ export const c13InputSchema = z
     investmentLines: z.array(c13InvestmentLineSchema).max(30).optional()
   })
   .strict()
-export const c14InputSchema = planningInputSchema
-export const c15InputSchema = planningInputSchema
+const c14TreatmentTypes = ['recycling', 'incineration', 'landfill'] as const
+
+const c14EmissionFactorKeys = [
+  'recyclingConservative',
+  'recyclingOptimised',
+  'incinerationEnergyRecovery',
+  'incinerationNoRecovery',
+  'landfillManaged',
+  'landfillUnmanaged'
+] as const
+
+const c14TreatmentLineSchema = z
+  .object({
+    treatmentType: z.enum(c14TreatmentTypes).nullable(),
+    tonnesTreated: z.number().min(0).nullable(),
+    emissionFactorKey: z.enum(c14EmissionFactorKeys).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c14InputSchema = z
+  .object({
+    treatmentLines: z.array(c14TreatmentLineSchema).max(30).optional()
+  })
+  .strict()
+const c15Categories = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+  '13',
+  '14',
+  '15'
+] as const
+
+const c15EmissionFactorKeys = [
+  'category1Spend',
+  'category2Spend',
+  'category3Energy',
+  'category4Logistics',
+  'category5Waste',
+  'category6Travel',
+  'category7Commuting',
+  'category8LeasedAssets',
+  'category9DownstreamTransport',
+  'category10Processing',
+  'category11UsePhase',
+  'category12EndOfLife',
+  'category13LeasedAssetsDownstream',
+  'category14Franchises',
+  'category15Investments'
+] as const
+
+const c15ScreeningLineSchema = z
+  .object({
+    category: z.enum(c15Categories).nullable(),
+    description: z.string().max(240).nullable(),
+    quantityUnit: z.string().max(32).nullable(),
+    estimatedQuantity: z.number().min(0).nullable(),
+    emissionFactorKey: z.enum(c15EmissionFactorKeys).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c15InputSchema = z
+  .object({
+    screeningLines: z.array(c15ScreeningLineSchema).max(40).optional()
+  })
+  .strict()
 
 export const d1InputSchema = planningInputSchema
 

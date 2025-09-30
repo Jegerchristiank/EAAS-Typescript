@@ -32,6 +32,8 @@ import { runC10 } from '../modules/runC10'
 import { runC11 } from '../modules/runC11'
 import { runC12 } from '../modules/runC12'
 import { runC13 } from '../modules/runC13'
+import { runC14 } from '../modules/runC14'
+import { runC15 } from '../modules/runC15'
 import { runA1 } from '../modules/runA1'
 
 describe('createDefaultResult', () => {
@@ -560,6 +562,161 @@ describe('runC13', () => {
         'Dokumentationskvalitet er begrænset til 100% på linje 2.',
         'Emissionsfaktor mangler på linje 3. Standard (Børsnoterede aktier) anvendes.',
         'Dokumentationskvalitet mangler på linje 3. Standard (100%) anvendes.'
+      ])
+    )
+  })
+})
+
+describe('runC14', () => {
+  it('beregner behandling af solgte produkter og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      C14: {
+        treatmentLines: [
+          {
+            treatmentType: 'recycling',
+            tonnesTreated: 120,
+            emissionFactorKey: 'recyclingOptimised',
+            documentationQualityPercent: 65
+          },
+          {
+            treatmentType: 'incineration',
+            tonnesTreated: 75,
+            emissionFactorKey: 'incinerationNoRecovery',
+            documentationQualityPercent: 55
+          }
+        ]
+      }
+    }
+
+    const result = runC14(input)
+
+    expect(result.value).toBe(81.9)
+    expect(result.unit).toBe(factors.c14.unit)
+    expect(result.trace).toContain('line[0].treatedTonnage=120')
+    expect(result.trace).toContain('line[1].emissionFactorKey=incinerationNoRecovery')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Forbrænding uden energiudnyttelse på linje 2 er kun 55%. Overvej at forbedre grundlaget.'
+    )
+  })
+
+  it('håndterer negative værdier, ukendte typer og manglende faktorer', () => {
+    const input: ModuleInput = {
+      C14: {
+        treatmentLines: [
+          {
+            treatmentType: 'recycling',
+            tonnesTreated: -10,
+            emissionFactorKey: 'recyclingConservative',
+            documentationQualityPercent: 50
+          },
+          {
+            treatmentType: 'ukendt' as never,
+            tonnesTreated: 40,
+            emissionFactorKey: 'incinerationEnergyRecovery',
+            documentationQualityPercent: 120
+          },
+          {
+            treatmentType: 'landfill',
+            tonnesTreated: 20,
+            emissionFactorKey: null,
+            documentationQualityPercent: null
+          }
+        ]
+      }
+    }
+
+    const result = runC14(input)
+
+    expect(result.value).toBe(28)
+    expect(result.trace).toContain('line[0].treatmentType=recycling')
+    expect(result.trace).toContain('line[1].emissionFactorKey=landfillManaged')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Feltet tonnesTreated kan ikke være negativt på linje 1. 0 anvendes i stedet.',
+        'Linje 1 mangler tonnage og udelades fra beregningen.',
+        'Ukendt behandlingstype på linje 2. Genanvendelse anvendes som standard.',
+        'Valgt emissionsfaktor passer ikke til behandlingen på linje 2. Standard (Genanvendelse – blandet fraktion) anvendes.',
+        'Dokumentationskvalitet er begrænset til 100% på linje 2.',
+        'Emissionsfaktor mangler på linje 3. Standard (Deponi – kontrolleret anlæg) anvendes.',
+        'Dokumentationskvalitet mangler på linje 3. Standard (100%) anvendes.'
+      ])
+    )
+  })
+})
+
+describe('runC15', () => {
+  it('beregner screening for øvrige kategorier og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      C15: {
+        screeningLines: [
+          {
+            category: '14',
+            description: 'Franchisefilialer',
+            quantityUnit: 'DKK',
+            estimatedQuantity: 1_200_000,
+            emissionFactorKey: 'category14Franchises',
+            documentationQualityPercent: 55
+          },
+          {
+            category: '5',
+            description: 'Restaffald',
+            quantityUnit: 'ton',
+            estimatedQuantity: 18,
+            emissionFactorKey: 'category5Waste',
+            documentationQualityPercent: 92
+          }
+        ]
+      }
+    }
+
+    const result = runC15(input)
+
+    expect(result.value).toBe(293.76)
+    expect(result.unit).toBe(factors.c15.unit)
+    expect(result.trace).toContain('line[0].category=14')
+    expect(result.trace).toContain('line[1].quantityUnit=ton')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Kategori 14 – Franchises på linje 1 er kun 55%. Overvej at forbedre datagrundlaget.'
+    )
+  })
+
+  it('håndterer ugyldige kategorier, negative mængder og manglende faktorer', () => {
+    const input: ModuleInput = {
+      C15: {
+        screeningLines: [
+          {
+            category: '99' as never,
+            description: 'Ugyldig kategori',
+            quantityUnit: 'km',
+            estimatedQuantity: -10,
+            emissionFactorKey: 'ukendt' as never,
+            documentationQualityPercent: 150
+          },
+          {
+            category: '3',
+            description: null,
+            quantityUnit: null,
+            estimatedQuantity: null,
+            emissionFactorKey: null,
+            documentationQualityPercent: null
+          }
+        ]
+      }
+    }
+
+    const result = runC15(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('line[0].category=1')
+    expect(result.trace).toContain('line[1].emissionFactorKey=category3Energy')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Ukendt kategori på linje 1. Kategori 1 – Indkøbte varer og services anvendes som standard.',
+        'Estimeret mængde kan ikke være negativ på linje 1. 0 anvendes i stedet.',
+        'Ugyldig emissionsfaktor valgt på linje 1. Standard for Kategori 1 – Indkøbte varer og services anvendes.',
+        'Dokumentationskvalitet er begrænset til 100% på linje 1.',
+        'Emissionsfaktor mangler på linje 2. Standardfaktor for Kategori 3 – Brændstof- og energirelaterede emissioner (upstream) anvendes.',
+        'Dokumentationskvalitet mangler på linje 2. Standard (100%) anvendes.'
       ])
     )
   })

@@ -9,7 +9,7 @@ import { A1Step } from './A1'
 import { A2Step } from './A2'
 import { A3Step } from './A3'
 import { A4Step } from './A4'
-import { C14Step, C15Step, D1Step } from './PlanningSteps'
+import { D1Step } from './PlanningSteps'
 import { B1Step } from './B1'
 import { B2Step } from './B2'
 import { B3Step } from './B3'
@@ -34,6 +34,8 @@ import { C10Step } from './C10'
 import { C11Step } from './C11'
 import { C12Step } from './C12'
 import { C13Step } from './C13'
+import { C14Step } from './C14'
+import { C15Step } from './C15'
 
 export type WizardStep = {
   id: ModuleId
@@ -76,7 +78,7 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C11', label: 'C11 – Downstream leasede aktiver', component: C11Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C12', label: 'C12 – Franchising og downstream services', component: C12Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'ready' },
-  { id: 'C14', label: 'C14 – Øvrige downstream aktiviteter', component: C14Step, scope: 'Scope 3', status: 'planned' },
-  { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C14', label: 'C14 – Behandling af solgte produkter', component: C14Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'ready' },
   { id: 'D1', label: 'D1 – CSRD/ESRS governance-krav', component: D1Step, scope: 'Governance', status: 'planned' }
 ]

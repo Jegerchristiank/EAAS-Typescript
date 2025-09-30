@@ -1709,39 +1709,64 @@
     "C14": {
       "type": "object",
       "title": "C14Input",
-      "description": "Scope 3 øvrige downstream aktiviteter (planlægning)",
+      "description": "Scope 3 behandling af solgte produkter",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "treatmentLines": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "Linjer for solgte produkter og deres efterfølgende behandling.",
+          "items": {
+            "type": "object",
+            "title": "TreatmentLine",
+            "properties": {
+              "treatmentType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "recycling",
+                  "incineration",
+                  "landfill"
+                ],
+                "description": "Behandlingstype for den solgte vare (genanvendelse, forbrænding eller deponi)."
+              },
+              "tonnesTreated": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Tonnage (ton) der behandles via den valgte metode."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "recyclingConservative",
+                  "recyclingOptimised",
+                  "incinerationEnergyRecovery",
+                  "incinerationNoRecovery",
+                  "landfillManaged",
+                  "landfillUnmanaged"
+                ],
+                "description": "Valgt emissionsfaktor (kg CO2e/ton) for den konkrete behandling."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent for behandlingslinjen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -1749,39 +1774,101 @@
     "C15": {
       "type": "object",
       "title": "C15Input",
-      "description": "Scope 3 øvrige kategorioplysninger (planlægning)",
+      "description": "Scope 3 screening af øvrige kategorioplysninger",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "screeningLines": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Linjer for screening af resterende Scope 3-kategorier.",
+          "items": {
+            "type": "object",
+            "title": "ScreeningLine",
+            "properties": {
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "8",
+                  "9",
+                  "10",
+                  "11",
+                  "12",
+                  "13",
+                  "14",
+                  "15"
+                ],
+                "description": "Scope 3-kategorien (1-15) der screenes."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 240,
+                "description": "Kort beskrivelse af aktivitet eller metode."
+              },
+              "quantityUnit": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 32,
+                "description": "Enhed for den estimerede mængde (fx DKK, ton, km)."
+              },
+              "estimatedQuantity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Estimeret mængde i den valgte enhed."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "category1Spend",
+                  "category2Spend",
+                  "category3Energy",
+                  "category4Logistics",
+                  "category5Waste",
+                  "category6Travel",
+                  "category7Commuting",
+                  "category8LeasedAssets",
+                  "category9DownstreamTransport",
+                  "category10Processing",
+                  "category11UsePhase",
+                  "category12EndOfLife",
+                  "category13LeasedAssetsDownstream",
+                  "category14Franchises",
+                  "category15Investments"
+                ],
+                "description": "Valgt emissionsfaktor for screeningen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent for screeningen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

@@ -59,7 +59,7 @@ const FIELD_CONFIG: PlanningFieldConfig[] = [
   }
 ]
 
-type PlanningModuleId = 'C14' | 'C15' | 'D1'
+type PlanningModuleId = 'D1'
 
 type PlanningStepConfig = {
   moduleId: Extract<ModuleId, PlanningModuleId>
@@ -173,28 +173,6 @@ export function createPlanningStep(config: PlanningStepConfig): WizardStepCompon
 type PlanningModuleConfigMap = Record<PlanningModuleId, PlanningStepConfig>
 
 const PLANNING_CONFIGS: PlanningModuleConfigMap = {
-  C14: {
-    moduleId: 'C14',
-    title: 'C14 – Scope 3 øvrige downstream aktiviteter',
-    intro:
-      'Samle oplysninger om øvrige downstream aktiviteter, som ikke dækkes af de øvrige kategorier.',
-    focusPoints: [
-      'Definér hvilke aktiviteter der indgår i denne kategori.',
-      'Notér mulige datakilder og ansvarlige personer.',
-      'Beskriv risici for datamangel eller antagelser.'
-    ]
-  },
-  C15: {
-    moduleId: 'C15',
-    title: 'C15 – Scope 3 øvrige kategorioplysninger',
-    intro:
-      'Reservér plads til fremtidige kategoriudvidelser og noter governance-behovene.',
-    focusPoints: [
-      'Dokumentér potentielle nye kategorier eller use cases.',
-      'Beskriv relevante stakeholders og kontaktpersoner.',
-      'Angiv hvilke analyser der kræves for at aktivere modulet.'
-    ]
-  },
   D1: {
     moduleId: 'D1',
     title: 'D1 – CSRD/ESRS governance-krav',
@@ -208,6 +186,4 @@ const PLANNING_CONFIGS: PlanningModuleConfigMap = {
   }
 }
 
-export const C14Step = createPlanningStep(PLANNING_CONFIGS.C14)
-export const C15Step = createPlanningStep(PLANNING_CONFIGS.C15)
 export const D1Step = createPlanningStep(PLANNING_CONFIGS.D1)

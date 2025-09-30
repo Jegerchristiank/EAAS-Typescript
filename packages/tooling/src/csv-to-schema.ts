@@ -491,6 +491,42 @@ const franchiseLineOverride = {
   additionalProperties: false
 } as const
 
+const treatmentLineOverride = {
+  type: 'object',
+  title: 'TreatmentLine',
+  properties: {
+    treatmentType: {
+      type: ['string', 'null'],
+      enum: ['recycling', 'incineration', 'landfill'],
+      description: 'Behandlingstype for den solgte vare (genanvendelse, forbrænding eller deponi).'
+    },
+    tonnesTreated: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Tonnage (ton) der behandles via den valgte metode.'
+    },
+    emissionFactorKey: {
+      type: ['string', 'null'],
+      enum: [
+        'recyclingConservative',
+        'recyclingOptimised',
+        'incinerationEnergyRecovery',
+        'incinerationNoRecovery',
+        'landfillManaged',
+        'landfillUnmanaged'
+      ],
+      description: 'Valgt emissionsfaktor (kg CO2e/ton) for den konkrete behandling.'
+    },
+    documentationQualityPercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Dokumentationskvalitet i procent for behandlingslinjen.'
+    }
+  },
+  additionalProperties: false
+} as const
+
 const investmentLineOverride = {
   type: 'object',
   title: 'InvestmentLine',
@@ -586,6 +622,90 @@ const c13Override = {
   additionalProperties: false
 } as const
 
+const c14Override = {
+  type: 'object',
+  title: 'C14Input',
+  description: 'Scope 3 behandling af solgte produkter',
+  properties: {
+    treatmentLines: {
+      type: 'array',
+      maxItems: 30,
+      description: 'Linjer for solgte produkter og deres efterfølgende behandling.',
+      items: treatmentLineOverride
+    }
+  },
+  additionalProperties: false
+} as const
+
+const c15Override = {
+  type: 'object',
+  title: 'C15Input',
+  description: 'Scope 3 screening af øvrige kategorioplysninger',
+  properties: {
+    screeningLines: {
+      type: 'array',
+      maxItems: 40,
+      description: 'Linjer for screening af resterende Scope 3-kategorier.',
+      items: {
+        type: 'object',
+        title: 'ScreeningLine',
+        properties: {
+          category: {
+            type: ['string', 'null'],
+            enum: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'],
+            description: 'Scope 3-kategorien (1-15) der screenes.'
+          },
+          description: {
+            type: ['string', 'null'],
+            maxLength: 240,
+            description: 'Kort beskrivelse af aktivitet eller metode.'
+          },
+          quantityUnit: {
+            type: ['string', 'null'],
+            maxLength: 32,
+            description: 'Enhed for den estimerede mængde (fx DKK, ton, km).'
+          },
+          estimatedQuantity: {
+            type: ['number', 'null'],
+            minimum: 0,
+            description: 'Estimeret mængde i den valgte enhed.'
+          },
+          emissionFactorKey: {
+            type: ['string', 'null'],
+            enum: [
+              'category1Spend',
+              'category2Spend',
+              'category3Energy',
+              'category4Logistics',
+              'category5Waste',
+              'category6Travel',
+              'category7Commuting',
+              'category8LeasedAssets',
+              'category9DownstreamTransport',
+              'category10Processing',
+              'category11UsePhase',
+              'category12EndOfLife',
+              'category13LeasedAssetsDownstream',
+              'category14Franchises',
+              'category15Investments'
+            ],
+            description: 'Valgt emissionsfaktor for screeningen.'
+          },
+          documentationQualityPercent: {
+            type: ['number', 'null'],
+            minimum: 0,
+            maximum: 100,
+            description: 'Dokumentationskvalitet i procent for screeningen.'
+          }
+        },
+        required: [],
+        additionalProperties: false
+      }
+    }
+  },
+  additionalProperties: false
+} as const
+
 const moduleOverrides: Record<string, unknown> = {
   A1: a1Override,
   A2: a2Override,
@@ -601,8 +721,8 @@ const moduleOverrides: Record<string, unknown> = {
   C11: c11Override,
   C12: c12Override,
   C13: c13Override,
-  C14: createPlanningOverride('C14Input', 'Scope 3 øvrige downstream aktiviteter (planlægning)'),
-  C15: createPlanningOverride('C15Input', 'Scope 3 øvrige kategorioplysninger (planlægning)'),
+  C14: c14Override,
+  C15: c15Override,
   D1: createPlanningOverride('D1Input', 'CSRD/ESRS governance-krav (planlægning)')
 }
 

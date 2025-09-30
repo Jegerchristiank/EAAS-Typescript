@@ -27,7 +27,7 @@
   "C11": "Scope 3 downstream leasede aktiver: energi fra indtastet kWh eller areal × standardintensitet multipliceres med emissionsfaktoren for den valgte energitype.",
   "C12": "Scope 3 franchising: Σ (omsætning × kg CO₂e/DKK eller energiforbrug × kg CO₂e/kWh) konverteret til ton CO₂e.",
   "C13": "Scope 3 investeringer: Σ (investeret beløb × emissionsintensitet i kg CO₂e/DKK) konverteret til ton CO₂e.",
-  "C14": "Planlagt modul – Scope 3 øvrige downstream aktiviteter samles her.",
-  "C15": "Planlagt modul – Scope 3 øvrige kategorioplysninger beskrives fremadrettet.",
+  "C14": "C14 = \u2211 (tonnage * emissionsfaktor (kg CO2e/ton)) / 1000 med standardværdier for genanvendelse, forbrænding og deponi.",
+  "C15": "Scope 3 screening: Σ (estimeret mængde × valgt emissionsfaktor) / 1000 for de relevante kategorier.",
   "D1": "Planlagt modul – CSRD/ESRS governance-krav dokumenteres og beregnes senere."
 }

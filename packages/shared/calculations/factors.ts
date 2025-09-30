@@ -263,5 +263,19 @@ export const factors = {
     lowDocumentationQualityThresholdPercent: 60,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  c14: {
+    kgToTonnes: 0.001,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c15: {
+    kgToTonnes: 0.001,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const
