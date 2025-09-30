@@ -185,6 +185,49 @@ export const c6InputSchema = z
   })
   .strict()
 
+export const c7InputSchema = z
+  .object({
+    roadTonnesKm: z.number().min(0).nullable(),
+    roadEmissionFactorKgPerTonneKm: z.number().min(0).nullable(),
+    railTonnesKm: z.number().min(0).nullable(),
+    railEmissionFactorKgPerTonneKm: z.number().min(0).nullable(),
+    seaTonnesKm: z.number().min(0).nullable(),
+    seaEmissionFactorKgPerTonneKm: z.number().min(0).nullable(),
+    airTonnesKm: z.number().min(0).nullable(),
+    airEmissionFactorKgPerTonneKm: z.number().min(0).nullable(),
+    warehousingEnergyKwh: z.number().min(0).nullable(),
+    warehousingEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    lowEmissionVehicleSharePercent: z.number().min(0).max(100).nullable(),
+    renewableWarehousingSharePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c8InputSchema = z
+  .object({
+    leasedFloorAreaSqm: z.number().min(0).nullable(),
+    electricityIntensityKwhPerSqm: z.number().min(0).nullable(),
+    heatIntensityKwhPerSqm: z.number().min(0).nullable(),
+    occupancySharePercent: z.number().min(0).max(100).nullable(),
+    landlordEnergySharePercent: z.number().min(0).max(100).nullable(),
+    energyEfficiencyImprovementPercent: z.number().min(0).max(70).nullable(),
+    electricityEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    heatEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    renewableElectricitySharePercent: z.number().min(0).max(100).nullable(),
+    renewableHeatSharePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c9InputSchema = z
+  .object({
+    processedOutputTonnes: z.number().min(0).nullable(),
+    processingEnergyIntensityKwhPerTonne: z.number().min(0).nullable(),
+    processingEmissionFactorKgPerKwh: z.number().min(0).nullable(),
+    processEfficiencyImprovementPercent: z.number().min(0).max(60).nullable(),
+    secondaryMaterialSharePercent: z.number().min(0).max(80).nullable(),
+    renewableEnergySharePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
@@ -202,6 +245,9 @@ export type C3Input = z.infer<typeof c3InputSchema>
 export type C4Input = z.infer<typeof c4InputSchema>
 export type C5Input = z.infer<typeof c5InputSchema>
 export type C6Input = z.infer<typeof c6InputSchema>
+export type C7Input = z.infer<typeof c7InputSchema>
+export type C8Input = z.infer<typeof c8InputSchema>
+export type C9Input = z.infer<typeof c9InputSchema>
 
 
 export const esgInputSchema = z
@@ -222,7 +268,10 @@ export const esgInputSchema = z
     C3: c3InputSchema.optional(),
     C4: c4InputSchema.optional(),
     C5: c5InputSchema.optional(),
-    C6: c6InputSchema.optional()
+    C6: c6InputSchema.optional(),
+    C7: c7InputSchema.optional(),
+    C8: c8InputSchema.optional(),
+    C9: c9InputSchema.optional()
   })
   .passthrough()
 

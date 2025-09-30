@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt C4-modul for Scope 3 upstream transport og distribution med schema, beregning, UI og tests.
 - Fuldt C5-modul for Scope 3 affald fra drift (upstream) med schema, beregning, UI og tests.
 - Fuldt C6-modul for Scope 3 udlejede aktiver (upstream) med schema, beregning, UI og tests.
+- Fuldt C7-modul for Scope 3 downstream transport og distribution med schema, beregning, UI og tests.
+- Fuldt C8-modul for Scope 3 udlejede aktiver (downstream) med schema, beregning, UI og tests.
+- Fuldt C9-modul for Scope 3 forarbejdning af solgte produkter med schema, beregning, UI og tests.
 
 
 ### Changed

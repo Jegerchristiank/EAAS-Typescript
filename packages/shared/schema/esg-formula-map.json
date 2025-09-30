@@ -15,5 +15,8 @@
   "C3": "C3 = (((el kWh * el upstream faktor) * (1 + nettab% / 100) * (1 - vedvarende% / 100 * 0.8)) + (brændstof kWh * brændstof upstream faktor)) / 1000",
   "C4": "C4 = ((vej tkm * vej faktor) + (bane tkm * bane faktor) + (sø tkm * sø faktor) + (luft tkm * luft faktor)) * (1 - (konsolidering% / 100 * 0.6 + lavemission% / 100 * 0.75)) / 1000",
   "C5": "C5 = ((deponi ton * deponi faktor) + (forbrænding ton * forbrænding faktor) + (kompost ton * kompost faktor) + (genanvendelse ton * genanvendelse faktor)) * (1 - (genvinding% / 100 * 0.7 + genbrugsandel% / 100 * 0.8)) / 1000",
-  "C6": "C6 = (((areal * el-intensitet) * lejer% / 100 * (1 - fælles% / 100) * el faktor * (1 - vedvarende el% / 100 * 0.75)) + ((areal * varme-intensitet) * lejer% / 100 * (1 - fælles% / 100) * varme faktor * (1 - vedvarende varme% / 100 * 0.6))) / 1000"
+  "C6": "C6 = (((areal * el-intensitet) * lejer% / 100 * (1 - fælles% / 100) * el faktor * (1 - vedvarende el% / 100 * 0.75)) + ((areal * varme-intensitet) * lejer% / 100 * (1 - fælles% / 100) * varme faktor * (1 - vedvarende varme% / 100 * 0.6))) / 1000",
+  "C7": "C7 = (((vej tkm * vej faktor) * (1 - lavemissionsandel% / 100 * 0.7)) + (bane tkm * bane faktor) + (sø tkm * sø faktor) + (luft tkm * luft faktor) + (lager kWh * lager faktor * (1 - vedvarende lager% / 100 * 0.85))) / 1000",
+  "C8": "C8 = (((areal * el-intensitet) * udnyttelse% / 100 * udlejeransvar% / 100 * (1 - effektivisering% / 100 * 0.9) * el faktor * (1 - vedvarende el% / 100 * 0.85)) + ((areal * varme-intensitet) * udnyttelse% / 100 * udlejeransvar% / 100 * (1 - effektivisering% / 100 * 0.9) * varme faktor * (1 - vedvarende varme% / 100 * 0.85))) / 1000",
+  "C9": "C9 = (tonnage * energiintensitet * (1 - effektivisering% / 100 * 0.85) * (1 - sekundært materiale% / 100 * 0.6) * emissionsfaktor * (1 - vedvarende energi% / 100 * 0.9)) / 1000"
 }

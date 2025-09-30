@@ -49,7 +49,7 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C4', label: 'C4 – Transport og distribution (upstream)', component: C4Step },
   { id: 'C5', label: 'C5 – Affald fra drift (upstream)', component: C5Step },
   { id: 'C6', label: 'C6 – Udlejede aktiver (upstream)', component: C6Step },
-  { id: 'C7', label: 'Modul C7', component: C7Step },
-  { id: 'C8', label: 'Modul C8', component: C8Step },
-  { id: 'C9', label: 'Modul C9', component: C9Step }
+  { id: 'C7', label: 'C7 – Transport og distribution (downstream)', component: C7Step },
+  { id: 'C8', label: 'C8 – Udlejede aktiver (downstream)', component: C8Step },
+  { id: 'C9', label: 'C9 – Forarbejdning af solgte produkter', component: C9Step }
 ]

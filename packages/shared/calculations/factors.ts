@@ -162,5 +162,37 @@ export const factors = {
     maximumRenewableSharePercent: 100,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  c7: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    lowEmissionVehicleMitigationRate: 0.7,
+    renewableWarehousingMitigationRate: 0.85,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c8: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    efficiencyMitigationRate: 0.9,
+    renewableMitigationRate: 0.85,
+    defaultOccupancyPercent: 100,
+    defaultLandlordSharePercent: 100,
+    maximumEfficiencyPercent: 70,
+    maximumRenewableSharePercent: 100,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c9: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    efficiencyMitigationRate: 0.85,
+    secondaryMaterialMitigationRate: 0.6,
+    renewableMitigationRate: 0.9,
+    maximumEfficiencyPercent: 60,
+    maximumSecondaryMaterialPercent: 80,
+    maximumRenewableSharePercent: 100,
+    resultPrecision: 3,
+    unit: 't CO2e'
   }
 } as const
