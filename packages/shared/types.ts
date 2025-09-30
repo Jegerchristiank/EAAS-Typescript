@@ -19,7 +19,10 @@ import type {
   C3Input,
   C4Input,
   C5Input,
-  C6Input
+  C6Input,
+  C7Input,
+  C8Input,
+  C9Input
 } from './schema'
 
 
@@ -66,6 +69,9 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   C4?: C4Input | null | undefined
   C5?: C5Input | null | undefined
   C6?: C6Input | null | undefined
+  C7?: C7Input | null | undefined
+  C8?: C8Input | null | undefined
+  C9?: C9Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
@@ -103,6 +109,9 @@ export type {
   C3Input,
   C4Input,
   C5Input,
-  C6Input
+  C6Input,
+  C7Input,
+  C8Input,
+  C9Input
 }
 
