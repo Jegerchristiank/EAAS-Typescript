@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import type { ModuleInput } from '../../types'
-import { createDefaultResult, runModule } from '../runModule'
+import { createDefaultResult } from '../runModule'
 import { runA2 } from '../modules/runA2'
 import { runA3 } from '../modules/runA3'
 import { runA4 } from '../modules/runA4'

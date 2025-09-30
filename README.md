@@ -9,6 +9,7 @@ ESG-as-a-Service (ESG reporting platform)
 - [Migrations](docs/migrations)
 - [Runbooks](docs/runbooks)
 - [Changelog](CHANGELOG.md)
+- [Scope 1 modulreference](docs/modules/scope-1.md)
 
 ## Development quickstart
 

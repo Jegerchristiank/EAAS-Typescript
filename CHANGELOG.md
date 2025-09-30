@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt C8-modul for Scope 3 udlejede aktiver (downstream) med schema, beregning, UI og tests.
 - Fuldt C9-modul for Scope 3 forarbejdning af solgte produkter med schema, beregning, UI og tests.
 - Planlægningsramme for Scope 3 (C10–C15) og governance-modulet D1 med schemaer, stubberegninger, UI og dokumentation.
+- Scope 1 modulreference der dokumenterer input, standardfaktorer og beregningslogik for A1–A4.
 
 
 ### Changed
