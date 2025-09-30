@@ -10,6 +10,10 @@ import {
   type ModuleResult
 } from '../types'
 import { factors } from './factors'
+import { runA1 } from './modules/runA1'
+import { runA2 } from './modules/runA2'
+import { runA3 } from './modules/runA3'
+import { runA4 } from './modules/runA4'
 import { runB1 } from './modules/runB1'
 import { runB2 } from './modules/runB2'
 import { runB3 } from './modules/runB3'
@@ -30,8 +34,19 @@ import { runC6 } from './modules/runC6'
 import { runC7 } from './modules/runC7'
 import { runC8 } from './modules/runC8'
 import { runC9 } from './modules/runC9'
+import { runC10 } from './modules/runC10'
+import { runC11 } from './modules/runC11'
+import { runC12 } from './modules/runC12'
+import { runC13 } from './modules/runC13'
+import { runC14 } from './modules/runC14'
+import { runC15 } from './modules/runC15'
+import { runD1 } from './modules/runD1'
 
 const moduleTitles: Record<ModuleId, string> = {
+  A1: 'A1 – Scope 1 stationære forbrændingskilder',
+  A2: 'A2 – Scope 1 mobile forbrændingskilder',
+  A3: 'A3 – Scope 1 procesemissioner',
+  A4: 'A4 – Scope 1 flugtige emissioner',
   B1: 'B1 – Scope 2 elforbrug',
   B2: 'B2 – Scope 2 varmeforbrug',
   B3: 'B3 – Scope 2 køleforbrug',
@@ -51,10 +66,21 @@ const moduleTitles: Record<ModuleId, string> = {
   C6: 'C6 – Udlejede aktiver (upstream)',
   C7: 'C7 – Transport og distribution (downstream)',
   C8: 'C8 – Udlejede aktiver (downstream)',
-  C9: 'C9 – Forarbejdning af solgte produkter'
+  C9: 'C9 – Forarbejdning af solgte produkter',
+  C10: 'C10 – Upstream leasede aktiver',
+  C11: 'C11 – Downstream leasede aktiver',
+  C12: 'C12 – Franchising og downstream services',
+  C13: 'C13 – Investeringer og finansielle aktiviteter',
+  C14: 'C14 – Behandling af solgte produkter',
+  C15: 'C15 – Øvrige kategorioplysninger',
+  D1: 'D1 – Metode & governance'
 }
 
 export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
+  A1: runA1,
+  A2: runA2,
+  A3: runA3,
+  A4: runA4,
   B1: runB1,
   B2: runB2,
   B3: runB3,
@@ -74,7 +100,14 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C6: runC6,
   C7: runC7,
   C8: runC8,
-  C9: runC9
+  C9: runC9,
+  C10: runC10,
+  C11: runC11,
+  C12: runC12,
+  C13: runC13,
+  C14: runC14,
+  C15: runC15,
+  D1: runD1
 }
 
 export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): ModuleResult {

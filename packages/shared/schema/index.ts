@@ -4,6 +4,72 @@
 import { z } from 'zod'
 import schema from './esg-input-schema.json'
 
+const d1BoundaryOptions = ['equityShare', 'financialControl', 'operationalControl'] as const
+const d1Scope2MethodOptions = ['locationBased', 'marketBased'] as const
+const d1DataQualityOptions = ['primary', 'secondary', 'proxy'] as const
+
+const a1FuelConsumptionSchema = z
+  .object({
+    fuelType: z.enum(['naturgas', 'diesel', 'fyringsolie', 'biogas']),
+    unit: z.enum(['liter', 'Nm³', 'kg']),
+    quantity: z.number().min(0).nullable(),
+    emissionFactorKgPerUnit: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a1InputSchema = z
+  .object({
+    fuelConsumptions: z.array(a1FuelConsumptionSchema).max(12).optional()
+  })
+  .strict()
+const a2FuelConsumptionSchema = z
+  .object({
+    fuelType: z.enum(['benzin', 'diesel', 'biodiesel', 'cng']),
+    unit: z.enum(['liter', 'kg']),
+    quantity: z.number().min(0).nullable(),
+    emissionFactorKgPerUnit: z.number().min(0).nullable(),
+    distanceKm: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a2InputSchema = z
+  .object({
+    vehicleConsumptions: z.array(a2FuelConsumptionSchema).max(20).optional()
+  })
+  .strict()
+const a3ProcessLineSchema = z
+  .object({
+    processType: z.enum(['cementClinker', 'limeCalcination', 'ammoniaProduction', 'aluminiumSmelting']),
+    outputQuantityTon: z.number().min(0).nullable(),
+    emissionFactorKgPerTon: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a3InputSchema = z
+  .object({
+    processLines: z.array(a3ProcessLineSchema).max(20).optional()
+  })
+  .strict()
+
+const a4RefrigerantLineSchema = z
+  .object({
+    refrigerantType: z.enum(['hfc134a', 'hfc125', 'hfc32', 'r410a', 'r407c', 'sf6']),
+    systemChargeKg: z.number().min(0).nullable(),
+    leakagePercent: z.number().min(0).max(100).nullable(),
+    gwp100: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a4InputSchema = z
+  .object({
+    refrigerantLines: z.array(a4RefrigerantLineSchema).max(20).optional()
+  })
+  .strict()
+
 export const b1InputSchema = z
   .object({
     electricityConsumptionKwh: z.number().min(0).nullable(),
@@ -228,6 +294,166 @@ export const c9InputSchema = z
   })
   .strict()
 
+const leasedEnergyLineSchema = z
+  .object({
+    floorAreaSqm: z.number().min(0).nullable(),
+    energyConsumptionKwh: z.number().min(0).nullable(),
+    energyType: z.enum(['electricity', 'heat']),
+    emissionFactorKgPerKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+const franchiseLineSchema = z
+  .object({
+    activityBasis: z.enum(['revenue', 'energy']),
+    revenueDkk: z.number().min(0).nullable(),
+    energyConsumptionKwh: z.number().min(0).nullable(),
+    emissionFactorKey: z
+      .enum([
+        'retailRevenue',
+        'foodServiceRevenue',
+        'hospitalityRevenue',
+        'genericRevenue',
+        'electricityEnergy',
+        'districtHeatEnergy',
+        'mixedEnergy'
+      ])
+      .nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c10InputSchema = z
+  .object({
+    leasedAssetLines: z.array(leasedEnergyLineSchema).max(20).optional()
+  })
+  .strict()
+export const c11InputSchema = z
+  .object({
+    leasedAssetLines: z.array(leasedEnergyLineSchema).max(20).optional()
+  })
+  .strict()
+export const c12InputSchema = z
+  .object({
+    franchiseLines: z.array(franchiseLineSchema).max(20).optional()
+  })
+  .strict()
+const c13EmissionFactorKeys = [
+  'listedEquity',
+  'corporateBonds',
+  'sovereignBonds',
+  'privateEquity',
+  'realEstate',
+  'infrastructure',
+  'diversifiedPortfolio'
+] as const
+
+const c13InvestmentLineSchema = z
+  .object({
+    investedAmountDkk: z.number().min(0).nullable(),
+    emissionFactorKey: z.enum(c13EmissionFactorKeys).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c13InputSchema = z
+  .object({
+    investmentLines: z.array(c13InvestmentLineSchema).max(30).optional()
+  })
+  .strict()
+const c14TreatmentTypes = ['recycling', 'incineration', 'landfill'] as const
+
+const c14EmissionFactorKeys = [
+  'recyclingConservative',
+  'recyclingOptimised',
+  'incinerationEnergyRecovery',
+  'incinerationNoRecovery',
+  'landfillManaged',
+  'landfillUnmanaged'
+] as const
+
+const c14TreatmentLineSchema = z
+  .object({
+    treatmentType: z.enum(c14TreatmentTypes).nullable(),
+    tonnesTreated: z.number().min(0).nullable(),
+    emissionFactorKey: z.enum(c14EmissionFactorKeys).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c14InputSchema = z
+  .object({
+    treatmentLines: z.array(c14TreatmentLineSchema).max(30).optional()
+  })
+  .strict()
+const c15Categories = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12',
+  '13',
+  '14',
+  '15'
+] as const
+
+const c15EmissionFactorKeys = [
+  'category1Spend',
+  'category2Spend',
+  'category3Energy',
+  'category4Logistics',
+  'category5Waste',
+  'category6Travel',
+  'category7Commuting',
+  'category8LeasedAssets',
+  'category9DownstreamTransport',
+  'category10Processing',
+  'category11UsePhase',
+  'category12EndOfLife',
+  'category13LeasedAssetsDownstream',
+  'category14Franchises',
+  'category15Investments'
+] as const
+
+const c15ScreeningLineSchema = z
+  .object({
+    category: z.enum(c15Categories).nullable(),
+    description: z.string().max(240).nullable(),
+    quantityUnit: z.string().max(32).nullable(),
+    estimatedQuantity: z.number().min(0).nullable(),
+    emissionFactorKey: z.enum(c15EmissionFactorKeys).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c15InputSchema = z
+  .object({
+    screeningLines: z.array(c15ScreeningLineSchema).max(40).optional()
+  })
+  .strict()
+
+export const d1InputSchema = z
+  .object({
+    organizationalBoundary: z.enum(d1BoundaryOptions).nullable(),
+    scope2Method: z.enum(d1Scope2MethodOptions).nullable(),
+    scope3ScreeningCompleted: z.boolean().nullable(),
+    dataQuality: z.enum(d1DataQualityOptions).nullable(),
+    materialityAssessmentDescription: z.string().max(2000).nullable(),
+    strategyDescription: z.string().max(2000).nullable()
+  })
+  .strict()
+export type A1Input = z.infer<typeof a1InputSchema>
+export type A2Input = z.infer<typeof a2InputSchema>
+export type A3Input = z.infer<typeof a3InputSchema>
+export type A4Input = z.infer<typeof a4InputSchema>
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
@@ -248,10 +474,22 @@ export type C6Input = z.infer<typeof c6InputSchema>
 export type C7Input = z.infer<typeof c7InputSchema>
 export type C8Input = z.infer<typeof c8InputSchema>
 export type C9Input = z.infer<typeof c9InputSchema>
+export type C10Input = z.infer<typeof c10InputSchema>
+export type C11Input = z.infer<typeof c11InputSchema>
+export type C12Input = z.infer<typeof c12InputSchema>
+export type C13Input = z.infer<typeof c13InputSchema>
+export type C14Input = z.infer<typeof c14InputSchema>
+export type C15Input = z.infer<typeof c15InputSchema>
+
+export type D1Input = z.infer<typeof d1InputSchema>
 
 
 export const esgInputSchema = z
   .object({
+    A1: a1InputSchema.optional(),
+    A2: a2InputSchema.optional(),
+    A3: a3InputSchema.optional(),
+    A4: a4InputSchema.optional(),
     B1: b1InputSchema.optional(),
     B2: b2InputSchema.optional(),
     B3: b3InputSchema.optional(),
@@ -271,7 +509,14 @@ export const esgInputSchema = z
     C6: c6InputSchema.optional(),
     C7: c7InputSchema.optional(),
     C8: c8InputSchema.optional(),
-    C9: c9InputSchema.optional()
+    C9: c9InputSchema.optional(),
+    C10: c10InputSchema.optional(),
+    C11: c11InputSchema.optional(),
+    C12: c12InputSchema.optional(),
+    C13: c13InputSchema.optional(),
+    C14: c14InputSchema.optional(),
+    C15: c15InputSchema.optional(),
+    D1: d1InputSchema.optional()
   })
   .passthrough()
 

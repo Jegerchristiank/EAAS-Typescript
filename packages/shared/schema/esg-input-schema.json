@@ -3,6 +3,272 @@
   "title": "ESGInput",
   "type": "object",
   "properties": {
+    "A1": {
+      "type": "object",
+      "title": "A1Input",
+      "description": "Scope 1 stationære forbrændingskilder",
+      "properties": {
+        "fuelConsumptions": {
+          "type": "array",
+          "description": "Brændselslinjer for kedler, ovne og generatorer.",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "properties": {
+              "fuelType": {
+                "type": "string",
+                "enum": [
+                  "naturgas",
+                  "diesel",
+                  "fyringsolie",
+                  "biogas"
+                ],
+                "description": "Brændstoftype for linjen."
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "liter",
+                  "Nm³",
+                  "kg"
+                ],
+                "description": "Måleenhed for brændselsmængden."
+              },
+              "quantity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Mængde brændsel i valgt enhed."
+              },
+              "emissionFactorKgPerUnit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor i kg CO₂e per enhed."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "fuelType",
+              "unit"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "A2": {
+      "type": "object",
+      "title": "A2Input",
+      "description": "Scope 1 mobile forbrændingskilder",
+      "properties": {
+        "vehicleConsumptions": {
+          "type": "array",
+          "description": "Brændselslinjer for bilpark, trucks og entreprenørmaskiner.",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "fuelType": {
+                "type": "string",
+                "enum": [
+                  "benzin",
+                  "diesel",
+                  "biodiesel",
+                  "cng"
+                ],
+                "description": "Brændstoftype for køretøjet eller maskinen."
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "liter",
+                  "kg"
+                ],
+                "description": "Måleenhed for brændselsforbruget."
+              },
+              "quantity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Mængde brændsel i valgt enhed."
+              },
+              "emissionFactorKgPerUnit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor i kg CO₂e per enhed."
+              },
+              "distanceKm": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Evt. kørt distance i kilometer for linjen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "fuelType",
+              "unit"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "A3": {
+      "type": "object",
+      "title": "A3Input",
+      "description": "Scope 1 procesemissioner",
+      "properties": {
+        "processLines": {
+          "type": "array",
+          "description": "Proceslinjer for industrielle emissioner (cement, kemikalier, metaller).",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "processType": {
+                "type": "string",
+                "enum": [
+                  "cementClinker",
+                  "limeCalcination",
+                  "ammoniaProduction",
+                  "aluminiumSmelting"
+                ],
+                "description": "Proces- eller kemisk aktivitet."
+              },
+              "outputQuantityTon": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Produceret mængde i ton for processen."
+              },
+              "emissionFactorKgPerTon": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor i kg CO₂e per ton output."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "processType"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "A4": {
+      "type": "object",
+      "title": "A4Input",
+      "description": "Scope 1 flugtige emissioner",
+      "properties": {
+        "refrigerantLines": {
+          "type": "array",
+          "description": "Kølemiddel- og gaslinjer med årlig lækage og GWP100.",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "refrigerantType": {
+                "type": "string",
+                "enum": [
+                  "hfc134a",
+                  "hfc125",
+                  "hfc32",
+                  "r410a",
+                  "r407c",
+                  "sf6"
+                ],
+                "description": "Valgt kølemiddel eller gas."
+              },
+              "systemChargeKg": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Fyldning eller beholdning (kg)."
+              },
+              "leakagePercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Årlig lækageandel i procent."
+              },
+              "gwp100": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "GWP100-værdi for kølemidlet."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent."
+              }
+            },
+            "required": [
+              "refrigerantType"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "B1": {
       "type": "object",
       "title": "B1Input",
@@ -1182,6 +1448,496 @@
           "minimum": 0,
           "maximum": 100,
           "description": "Andel dokumenteret vedvarende energi i processen (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C10": {
+      "type": "object",
+      "title": "C10Input",
+      "description": "Scope 3 upstream leasede aktiver",
+      "properties": {
+        "leasedAssetLines": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Linjer for upstream-leasede aktiver med enten målt energi eller areal til estimat.",
+          "items": {
+            "type": "object",
+            "title": "LeasedAssetLine",
+            "properties": {
+              "floorAreaSqm": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Lejet areal (m²) brugt til at estimere energi, hvis forbrug mangler."
+              },
+              "energyConsumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årligt energiforbrug for linjen (kWh). Hvis udfyldt anvendes værdien direkte."
+              },
+              "energyType": {
+                "type": "string",
+                "enum": [
+                  "electricity",
+                  "heat"
+                ],
+                "description": "Energitype der bestemmer standardintensitet og emissionsfaktor."
+              },
+              "emissionFactorKgPerKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor (kg CO2e/kWh). Mangler den anvendes standard for energitypen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet (%) for linjen. Værdier under tærsklen markeres."
+              }
+            },
+            "required": [
+              "energyType"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "C11": {
+      "type": "object",
+      "title": "C11Input",
+      "description": "Scope 3 downstream leasede aktiver",
+      "properties": {
+        "leasedAssetLines": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Linjer for downstream-leasede aktiver med enten målt energi eller areal til estimat.",
+          "items": {
+            "type": "object",
+            "title": "LeasedAssetLine",
+            "properties": {
+              "floorAreaSqm": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Udlejet areal (m²) der bruges til at estimere energi, hvis forbrug mangler."
+              },
+              "energyConsumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årligt energiforbrug for linjen (kWh). Hvis udfyldt anvendes værdien direkte."
+              },
+              "energyType": {
+                "type": "string",
+                "enum": [
+                  "electricity",
+                  "heat"
+                ],
+                "description": "Energitype der bestemmer standardintensitet og emissionsfaktor."
+              },
+              "emissionFactorKgPerKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor (kg CO2e/kWh). Mangler den anvendes standard for energitypen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet (%) for linjen. Værdier under tærsklen markeres."
+              }
+            },
+            "required": [
+              "energyType"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "C12": {
+      "type": "object",
+      "title": "C12Input",
+      "description": "Scope 3 franchising og downstream services",
+      "properties": {
+        "franchiseLines": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Linjer for franchiser eller downstream services baseret på omsætning eller energiforbrug.",
+          "items": {
+            "type": "object",
+            "title": "FranchiseLine",
+            "properties": {
+              "activityBasis": {
+                "type": "string",
+                "enum": [
+                  "revenue",
+                  "energy"
+                ],
+                "description": "Angiver om linjen baseres på omsætning eller energiforbrug."
+              },
+              "revenueDkk": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årlig franchiseomsætning (DKK) hvis basis er omsætning."
+              },
+              "energyConsumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årligt energiforbrug (kWh) hvis basis er energi."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "retailRevenue",
+                  "foodServiceRevenue",
+                  "hospitalityRevenue",
+                  "genericRevenue",
+                  "electricityEnergy",
+                  "districtHeatEnergy",
+                  "mixedEnergy"
+                ],
+                "description": "Valgt branchespecifik emissionsfaktor (kg CO2e/DKK eller kg CO2e/kWh)."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent for linjen."
+              }
+            },
+            "required": [
+              "activityBasis"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "C13": {
+      "type": "object",
+      "title": "C13Input",
+      "description": "Scope 3 investeringer og finansielle aktiviteter",
+      "properties": {
+        "investmentLines": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "Investeringer med beløb i DKK og tilhørende emissionsintensitet.",
+          "items": {
+            "type": "object",
+            "title": "InvestmentLine",
+            "properties": {
+              "investedAmountDkk": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Beløb investeret i porteføljen (DKK)."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "listedEquity",
+                  "corporateBonds",
+                  "sovereignBonds",
+                  "privateEquity",
+                  "realEstate",
+                  "infrastructure",
+                  "diversifiedPortfolio"
+                ],
+                "description": "Valgt emissionsintensitet (kg CO2e/DKK) for investeringen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet for data i procent."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "C14": {
+      "type": "object",
+      "title": "C14Input",
+      "description": "Scope 3 behandling af solgte produkter",
+      "properties": {
+        "treatmentLines": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "Linjer for solgte produkter og deres efterfølgende behandling.",
+          "items": {
+            "type": "object",
+            "title": "TreatmentLine",
+            "properties": {
+              "treatmentType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "recycling",
+                  "incineration",
+                  "landfill"
+                ],
+                "description": "Behandlingstype for den solgte vare (genanvendelse, forbrænding eller deponi)."
+              },
+              "tonnesTreated": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Tonnage (ton) der behandles via den valgte metode."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "recyclingConservative",
+                  "recyclingOptimised",
+                  "incinerationEnergyRecovery",
+                  "incinerationNoRecovery",
+                  "landfillManaged",
+                  "landfillUnmanaged"
+                ],
+                "description": "Valgt emissionsfaktor (kg CO2e/ton) for den konkrete behandling."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent for behandlingslinjen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "C15": {
+      "type": "object",
+      "title": "C15Input",
+      "description": "Scope 3 screening af øvrige kategorioplysninger",
+      "properties": {
+        "screeningLines": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Linjer for screening af resterende Scope 3-kategorier.",
+          "items": {
+            "type": "object",
+            "title": "ScreeningLine",
+            "properties": {
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "8",
+                  "9",
+                  "10",
+                  "11",
+                  "12",
+                  "13",
+                  "14",
+                  "15"
+                ],
+                "description": "Scope 3-kategorien (1-15) der screenes."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 240,
+                "description": "Kort beskrivelse af aktivitet eller metode."
+              },
+              "quantityUnit": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 32,
+                "description": "Enhed for den estimerede mængde (fx DKK, ton, km)."
+              },
+              "estimatedQuantity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Estimeret mængde i den valgte enhed."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "category1Spend",
+                  "category2Spend",
+                  "category3Energy",
+                  "category4Logistics",
+                  "category5Waste",
+                  "category6Travel",
+                  "category7Commuting",
+                  "category8LeasedAssets",
+                  "category9DownstreamTransport",
+                  "category10Processing",
+                  "category11UsePhase",
+                  "category12EndOfLife",
+                  "category13LeasedAssetsDownstream",
+                  "category14Franchises",
+                  "category15Investments"
+                ],
+                "description": "Valgt emissionsfaktor for screeningen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent for screeningen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "D1": {
+      "type": "object",
+      "title": "D1Input",
+      "description": "Metode & governance",
+      "properties": {
+        "organizationalBoundary": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "equityShare",
+            "financialControl",
+            "operationalControl",
+            null
+          ],
+          "description": "Valgt konsolideringsprincip for rapportering."
+        },
+        "scope2Method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "locationBased",
+            "marketBased",
+            null
+          ],
+          "description": "Primær metode til Scope 2-rapportering."
+        },
+        "scope3ScreeningCompleted": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Angiver om Scope 3 screening er gennemført."
+        },
+        "dataQuality": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "primary",
+            "secondary",
+            "proxy",
+            null
+          ],
+          "description": "Dominerende datakvalitet for ESG-rapporteringen."
+        },
+        "materialityAssessmentDescription": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Opsummering af væsentlighedsvurderingen og konklusioner."
+        },
+        "strategyDescription": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Strategi, målsætninger og politikker for ESG-governance."
         }
       },
       "additionalProperties": false

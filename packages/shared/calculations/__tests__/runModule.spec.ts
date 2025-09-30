@@ -4,6 +4,9 @@
 import { describe, expect, it } from 'vitest'
 import type { ModuleInput } from '../../types'
 import { createDefaultResult } from '../runModule'
+import { runA2 } from '../modules/runA2'
+import { runA3 } from '../modules/runA3'
+import { runA4 } from '../modules/runA4'
 import { runB1 } from '../modules/runB1'
 import { runB2 } from '../modules/runB2'
 import { runB3 } from '../modules/runB3'
@@ -25,11 +28,738 @@ import { runC6 } from '../modules/runC6'
 import { runC7 } from '../modules/runC7'
 import { runC8 } from '../modules/runC8'
 import { runC9 } from '../modules/runC9'
+import { runC10 } from '../modules/runC10'
+import { runC11 } from '../modules/runC11'
+import { runC12 } from '../modules/runC12'
+import { runC13 } from '../modules/runC13'
+import { runC14 } from '../modules/runC14'
+import { runC15 } from '../modules/runC15'
+import { runA1 } from '../modules/runA1'
+import { runD1 } from '../modules/runD1'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
     const result = createDefaultResult('B2', { B2: 42 } as ModuleInput)
     expect(result).toMatchSnapshot()
+  })
+})
+
+describe('runA2', () => {
+  it('summerer mobile kilder og beregner intensitet', () => {
+    const input: ModuleInput = {
+      A2: {
+        vehicleConsumptions: [
+          {
+            fuelType: 'diesel',
+            unit: 'liter',
+            quantity: 1_500,
+            emissionFactorKgPerUnit: null,
+            distanceKm: 42_000,
+            documentationQualityPercent: 58
+          },
+          {
+            fuelType: 'biodiesel',
+            unit: 'liter',
+            quantity: 600,
+            emissionFactorKgPerUnit: 1.2,
+            distanceKm: null,
+            documentationQualityPercent: 90
+          }
+        ]
+      }
+    }
+
+    const result = runA2(input)
+
+    expect(result.value).toBe(4.74)
+    expect(result.unit).toBe(factors.a2.unit)
+    expect(result.trace).toContain('totalEmissionsKg=4740')
+    expect(result.trace).toContain('fleetEmissionsKgPerKm=0.11285714285714285')
+    expect(result.assumptions).toContain(
+      'Standardfaktor for Diesel: 2.68 kg CO2e/liter.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Diesel anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Diesel er kun 58%. Overvej at forbedre dokumentation eller anvende konservative antagelser.'
+    )
+  })
+
+  it('filtrerer ugyldige rækker og informerer brugeren', () => {
+    const input: ModuleInput = {
+      A2: {
+        vehicleConsumptions: [
+          {
+            fuelType: 'ukendt' as never,
+            unit: 'gallon' as never,
+            quantity: -10,
+            emissionFactorKgPerUnit: -1,
+            distanceKm: -500,
+            documentationQualityPercent: 150
+          }
+        ]
+      }
+    }
+
+    const result = runA2(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toEqual([
+      'totalEmissionsKg=0',
+      'totalEmissionsTonnes=0',
+      'totalDistanceKm=0'
+    ])
+    expect(result.warnings).toEqual([
+      'Ukendt brændstoftype på linje 1. Standard (Diesel) anvendes.',
+      'Ugyldig enhed på linje 1. liter anvendes i stedet.',
+      'Mængden på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Emissionsfaktoren på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Distance kan ikke være negativ på linje 1. 0 km anvendes i stedet.',
+      'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
+      'Ingen gyldige mobile linjer kunne beregnes. Kontrollér indtastningerne.'
+    ])
+  })
+})
+
+describe('runA3', () => {
+  it('beregner procesemissioner og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      A3: {
+        processLines: [
+          {
+            processType: 'cementClinker',
+            outputQuantityTon: 1_000,
+            emissionFactorKgPerTon: null,
+            documentationQualityPercent: 78
+          },
+          {
+            processType: 'aluminiumSmelting',
+            outputQuantityTon: 200,
+            emissionFactorKgPerTon: 1_700,
+            documentationQualityPercent: 55
+          }
+        ]
+      }
+    }
+
+    const result = runA3(input)
+
+    expect(result.value).toBe(850)
+    expect(result.unit).toBe(factors.a3.unit)
+    expect(result.trace).toContain('totalEmissionsKg=850000')
+    expect(result.assumptions).toContain(
+      'Standardfaktor for Cementklinker (CaCO₃ → CaO): 510 kg CO2e/ton.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Cementklinker (CaCO₃ → CaO) anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Primær aluminiumselektrolyse er kun 55%. Overvej at forbedre dokumentation eller anvende konservative antagelser.'
+    )
+  })
+
+  it('filtrerer ugyldige proceslinjer', () => {
+    const input: ModuleInput = {
+      A3: {
+        processLines: [
+          {
+            processType: 'ukendt' as never,
+            outputQuantityTon: -4,
+            emissionFactorKgPerTon: -10,
+            documentationQualityPercent: 140
+          }
+        ]
+      }
+    }
+
+    const result = runA3(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toEqual(['totalEmissionsKg=0', 'totalEmissionsTonnes=0'])
+    expect(result.warnings).toEqual([
+      'Ukendt proces på linje 1. Standard (Cementklinker (CaCO₃ → CaO)) anvendes.',
+      'Outputmængden på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Emissionsfaktoren på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
+      'Ingen gyldige proceslinjer kunne beregnes. Kontrollér indtastningerne.'
+    ])
+  })
+})
+
+describe('runA4', () => {
+  it('beregner lækageemissioner med standardværdier og advarsler', () => {
+    const input: ModuleInput = {
+      A4: {
+        refrigerantLines: [
+          {
+            refrigerantType: 'hfc134a',
+            systemChargeKg: 200,
+            leakagePercent: null,
+            gwp100: null,
+            documentationQualityPercent: 82
+          },
+          {
+            refrigerantType: 'sf6',
+            systemChargeKg: 50,
+            leakagePercent: 5,
+            gwp100: 23_000,
+            documentationQualityPercent: 40
+          }
+        ]
+      }
+    }
+
+    const result = runA4(input)
+
+    expect(result.value).toBe(86.1)
+    expect(result.unit).toBe(factors.a4.unit)
+    expect(result.trace).toContain('totalEmissionsKg=86100')
+    expect(result.assumptions).toContain(
+      'Standard lækageandel for HFC-134a (R-134a): 10%.'
+    )
+    expect(result.assumptions).toContain(
+      'Standard GWP100 for HFC-134a (R-134a): 1430.'
+    )
+    expect(result.warnings).toContain(
+      'Lækageandel mangler på linje 1. Standard på 10% anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'GWP100 mangler på linje 1. Standardværdi for HFC-134a (R-134a) anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for SF₆ (svovlhexafluorid) er kun 40%. Overvej at forbedre lækagekontrol, logning eller anvende konservative antagelser.'
+    )
+  })
+
+  it('filtrerer ugyldige kølemiddellinjer', () => {
+    const input: ModuleInput = {
+      A4: {
+        refrigerantLines: [
+          {
+            refrigerantType: 'ukendt' as never,
+            systemChargeKg: -25,
+            leakagePercent: 140,
+            gwp100: -5,
+            documentationQualityPercent: 150
+          }
+        ]
+      }
+    }
+
+    const result = runA4(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toEqual(['totalEmissionsKg=0', 'totalEmissionsTonnes=0'])
+    expect(result.warnings).toEqual([
+      'Ukendt kølemiddel på linje 1. Standard (HFC-134a (R-134a)) anvendes.',
+      'Fyldningen på linje 1 kan ikke være negativ. 0 kg anvendes i stedet.',
+      'Lækageandelen på linje 1 er begrænset til 100%.',
+      'GWP100 på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
+      'Ingen gyldige kølemiddellinjer kunne beregnes. Kontrollér indtastningerne.'
+    ])
+  })
+})
+
+describe('runC10', () => {
+  it('beregner upstream leasede aktiver med arealestimat og dokumentationsadvarsler', () => {
+    const input: ModuleInput = {
+      C10: {
+        leasedAssetLines: [
+          {
+            energyType: 'electricity',
+            floorAreaSqm: 1_500,
+            energyConsumptionKwh: null,
+            emissionFactorKgPerKwh: null,
+            documentationQualityPercent: 55
+          },
+          {
+            energyType: 'heat',
+            floorAreaSqm: null,
+            energyConsumptionKwh: 42_000,
+            emissionFactorKgPerKwh: 0.09,
+            documentationQualityPercent: 90
+          }
+        ]
+      }
+    }
+
+    const result = runC10(input)
+
+    expect(result.value).toBe(29.43)
+    expect(result.unit).toBe(factors.c10.unit)
+    expect(result.trace).toContain('line[0].energyBasis=areaDerived')
+    expect(result.trace).toContain('line[1].energyBasis=reported')
+    expect(result.warnings).toContain(
+      'Feltet energyConsumptionKwh mangler på linje 1 og behandles som 0.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Elektricitet anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Elektricitet på linje 1 er kun 55%. Overvej at forbedre grundlaget.'
+    )
+  })
+
+  it('filtrerer linjer uden gyldigt input og informerer brugeren', () => {
+    const input: ModuleInput = {
+      C10: {
+        leasedAssetLines: [
+          {
+            energyType: 'heat',
+            floorAreaSqm: -10,
+            energyConsumptionKwh: -5,
+            emissionFactorKgPerKwh: -0.2,
+            documentationQualityPercent: 150
+          }
+        ]
+      }
+    }
+
+    const result = runC10(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toContain(
+      'Feltet floorAreaSqm kan ikke være negativt på linje 1. 0 anvendes i stedet.'
+    )
+    expect(result.warnings).toContain(
+      'Feltet energyConsumptionKwh kan ikke være negativt på linje 1. 0 anvendes i stedet.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktoren kan ikke være negativ på linje 1. 0 anvendes i stedet.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet er begrænset til 100% på linje 1.'
+    )
+    expect(result.warnings).toContain(
+      'Linje 1 mangler både areal og energiforbrug og udelades fra beregningen.'
+    )
+    expect(result.warnings).toContain(
+      'Ingen gyldige leasede aktiver kunne beregnes. Kontrollér indtastningerne.'
+    )
+  })
+})
+
+describe('runC11', () => {
+  it('beregner downstream leasede aktiver med blandet input og warns ved lav dokumentation', () => {
+    const input: ModuleInput = {
+      C11: {
+        leasedAssetLines: [
+          {
+            energyType: 'heat',
+            floorAreaSqm: 900,
+            energyConsumptionKwh: null,
+            emissionFactorKgPerKwh: null,
+            documentationQualityPercent: 45
+          },
+          {
+            energyType: 'electricity',
+            floorAreaSqm: null,
+            energyConsumptionKwh: 12_500,
+            emissionFactorKgPerKwh: 0.2,
+            documentationQualityPercent: 100
+          }
+        ]
+      }
+    }
+
+    const result = runC11(input)
+
+    expect(result.value).toBe(7.54)
+    expect(result.unit).toBe(factors.c11.unit)
+    expect(result.trace).toContain('line[0].energyBasis=areaDerived')
+    expect(result.trace).toContain('line[1].energyBasis=reported')
+    expect(result.warnings).toContain(
+      'Feltet energyConsumptionKwh mangler på linje 1 og behandles som 0.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Varme anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Varme på linje 1 er kun 45%. Overvej at forbedre grundlaget.'
+    )
+  })
+
+  it('udelader ugyldige linjer og informerer brugeren', () => {
+    const input: ModuleInput = {
+      C11: {
+        leasedAssetLines: [
+          {
+            energyType: 'ukendt' as never,
+            floorAreaSqm: -120,
+            energyConsumptionKwh: -2_000,
+            emissionFactorKgPerKwh: -0.5,
+            documentationQualityPercent: 120
+          }
+        ]
+      }
+    }
+
+    const result = runC11(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toContain(
+      'Ukendt energitype på linje 1. Standard (Elektricitet) anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Feltet floorAreaSqm kan ikke være negativt på linje 1. 0 anvendes i stedet.'
+    )
+    expect(result.warnings).toContain(
+      'Feltet energyConsumptionKwh kan ikke være negativt på linje 1. 0 anvendes i stedet.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktoren kan ikke være negativ på linje 1. 0 anvendes i stedet.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet er begrænset til 100% på linje 1.'
+    )
+    expect(result.warnings).toContain(
+      'Linje 1 mangler både areal og energiforbrug og udelades fra beregningen.'
+    )
+    expect(result.warnings).toContain(
+      'Ingen gyldige leasede aktiver kunne beregnes. Kontrollér indtastningerne.'
+    )
+  })
+})
+
+describe('runC12', () => {
+  it('beregner franchiselinjer for omsætning og energi og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      C12: {
+        franchiseLines: [
+          {
+            activityBasis: 'revenue',
+            revenueDkk: 12_000_000,
+            energyConsumptionKwh: null,
+            emissionFactorKey: 'foodServiceRevenue',
+            documentationQualityPercent: 55
+          },
+          {
+            activityBasis: 'energy',
+            revenueDkk: null,
+            energyConsumptionKwh: 80_000,
+            emissionFactorKey: 'districtHeatEnergy',
+            documentationQualityPercent: 85
+          }
+        ]
+      }
+    }
+
+    const result = runC12(input)
+
+    expect(result.value).toBe(11.84)
+    expect(result.unit).toBe(factors.c12.unit)
+    expect(result.trace).toContain('line[0].activityBasis=revenue')
+    expect(result.trace).toContain('line[1].activityBasis=energy')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Fødevare- og servicefranchises – omsætning på linje 1 er kun 55%. Overvej at forbedre grundlaget.'
+    )
+  })
+
+  it('håndterer ugyldig basis, manglende emissionsfaktor og capper dokumentationskvalitet', () => {
+    const input: ModuleInput = {
+      C12: {
+        franchiseLines: [
+          {
+            activityBasis: 'ukendt' as never,
+            revenueDkk: 2_000,
+            energyConsumptionKwh: 4_000,
+            emissionFactorKey: 'electricityEnergy' as never,
+            documentationQualityPercent: 130
+          },
+          {
+            activityBasis: 'energy',
+            revenueDkk: null,
+            energyConsumptionKwh: 5_000,
+            emissionFactorKey: null,
+            documentationQualityPercent: null
+          }
+        ]
+      }
+    }
+
+    const result = runC12(input)
+
+    expect(result.value).toBe(0.901)
+    expect(result.trace).toContain('line[0].emissionFactorKey=retailRevenue')
+    expect(result.trace).toContain('line[1].emissionFactorKey=electricityEnergy')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Ukendt aktivitetsbasis på linje 1. Omsætning anvendes som standard.',
+        'Emissionsfaktor på linje 1 passer ikke til omsætning. Standard (Detailhandel – omsætning) anvendes.',
+        'Dokumentationskvalitet er begrænset til 100% på linje 1.',
+        'Feltet revenueDkk mangler på linje 2 og behandles som 0.',
+        'Emissionsfaktor mangler på linje 2. Standardfaktor for Elektricitet – energiforbrug anvendes.',
+        'Dokumentationskvalitet mangler på linje 2. Standard (100%) anvendes.'
+      ])
+    )
+  })
+})
+
+describe('runC13', () => {
+  it('beregner investeringslinjer og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      C13: {
+        investmentLines: [
+          {
+            investedAmountDkk: 25_000_000,
+            emissionFactorKey: 'listedEquity',
+            documentationQualityPercent: 55
+          },
+          {
+            investedAmountDkk: 5_000_000,
+            emissionFactorKey: 'privateEquity',
+            documentationQualityPercent: 85
+          }
+        ]
+      }
+    }
+
+    const result = runC13(input)
+
+    expect(result.value).toBe(9.25)
+    expect(result.unit).toBe(factors.c13.unit)
+    expect(result.trace).toContain('line[0].investedAmountDkk=25000000')
+    expect(result.trace).toContain('line[1].emissionFactorKey=privateEquity')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Børsnoterede aktier på linje 1 er kun 55%. Overvej at forbedre grundlaget.'
+    )
+  })
+
+  it('håndterer negative beløb, manglende faktorer og begrænser dokumentationskvalitet', () => {
+    const input: ModuleInput = {
+      C13: {
+        investmentLines: [
+          {
+            investedAmountDkk: -5_000,
+            emissionFactorKey: 'corporateBonds',
+            documentationQualityPercent: 40
+          },
+          {
+            investedAmountDkk: 200_000,
+            emissionFactorKey: 'ukendt' as never,
+            documentationQualityPercent: 150
+          },
+          {
+            investedAmountDkk: 100_000,
+            emissionFactorKey: null,
+            documentationQualityPercent: null
+          }
+        ]
+      }
+    }
+
+    const result = runC13(input)
+
+    expect(result.value).toBe(0.084)
+    expect(result.trace).toContain('line[0].emissionFactorKey=listedEquity')
+    expect(result.trace).toContain('line[1].emissionFactorKey=listedEquity')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Feltet investedAmountDkk kan ikke være negativt på linje 1. 0 anvendes i stedet.',
+        'Linje 1 mangler investeret beløb og udelades fra beregningen.',
+        'Ukendt emissionsfaktor på linje 2. Standard (Børsnoterede aktier) anvendes.',
+        'Dokumentationskvalitet er begrænset til 100% på linje 2.',
+        'Emissionsfaktor mangler på linje 3. Standard (Børsnoterede aktier) anvendes.',
+        'Dokumentationskvalitet mangler på linje 3. Standard (100%) anvendes.'
+      ])
+    )
+  })
+})
+
+describe('runC14', () => {
+  it('beregner behandling af solgte produkter og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      C14: {
+        treatmentLines: [
+          {
+            treatmentType: 'recycling',
+            tonnesTreated: 120,
+            emissionFactorKey: 'recyclingOptimised',
+            documentationQualityPercent: 65
+          },
+          {
+            treatmentType: 'incineration',
+            tonnesTreated: 75,
+            emissionFactorKey: 'incinerationNoRecovery',
+            documentationQualityPercent: 55
+          }
+        ]
+      }
+    }
+
+    const result = runC14(input)
+
+    expect(result.value).toBe(81.9)
+    expect(result.unit).toBe(factors.c14.unit)
+    expect(result.trace).toContain('line[0].treatedTonnage=120')
+    expect(result.trace).toContain('line[1].emissionFactorKey=incinerationNoRecovery')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Forbrænding uden energiudnyttelse på linje 2 er kun 55%. Overvej at forbedre grundlaget.'
+    )
+  })
+
+  it('håndterer negative værdier, ukendte typer og manglende faktorer', () => {
+    const input: ModuleInput = {
+      C14: {
+        treatmentLines: [
+          {
+            treatmentType: 'recycling',
+            tonnesTreated: -10,
+            emissionFactorKey: 'recyclingConservative',
+            documentationQualityPercent: 50
+          },
+          {
+            treatmentType: 'ukendt' as never,
+            tonnesTreated: 40,
+            emissionFactorKey: 'incinerationEnergyRecovery',
+            documentationQualityPercent: 120
+          },
+          {
+            treatmentType: 'landfill',
+            tonnesTreated: 20,
+            emissionFactorKey: null,
+            documentationQualityPercent: null
+          }
+        ]
+      }
+    }
+
+    const result = runC14(input)
+
+    expect(result.value).toBe(28)
+    expect(result.trace).toContain('line[0].treatmentType=recycling')
+    expect(result.trace).toContain('line[1].emissionFactorKey=landfillManaged')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Feltet tonnesTreated kan ikke være negativt på linje 1. 0 anvendes i stedet.',
+        'Linje 1 mangler tonnage og udelades fra beregningen.',
+        'Ukendt behandlingstype på linje 2. Genanvendelse anvendes som standard.',
+        'Valgt emissionsfaktor passer ikke til behandlingen på linje 2. Standard (Genanvendelse – blandet fraktion) anvendes.',
+        'Dokumentationskvalitet er begrænset til 100% på linje 2.',
+        'Emissionsfaktor mangler på linje 3. Standard (Deponi – kontrolleret anlæg) anvendes.',
+        'Dokumentationskvalitet mangler på linje 3. Standard (100%) anvendes.'
+      ])
+    )
+  })
+})
+
+describe('runC15', () => {
+  it('beregner screening for øvrige kategorier og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      C15: {
+        screeningLines: [
+          {
+            category: '14',
+            description: 'Franchisefilialer',
+            quantityUnit: 'DKK',
+            estimatedQuantity: 1_200_000,
+            emissionFactorKey: 'category14Franchises',
+            documentationQualityPercent: 55
+          },
+          {
+            category: '5',
+            description: 'Restaffald',
+            quantityUnit: 'ton',
+            estimatedQuantity: 18,
+            emissionFactorKey: 'category5Waste',
+            documentationQualityPercent: 92
+          }
+        ]
+      }
+    }
+
+    const result = runC15(input)
+
+    expect(result.value).toBe(293.76)
+    expect(result.unit).toBe(factors.c15.unit)
+    expect(result.trace).toContain('line[0].category=14')
+    expect(result.trace).toContain('line[1].quantityUnit=ton')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Kategori 14 – Franchises på linje 1 er kun 55%. Overvej at forbedre datagrundlaget.'
+    )
+  })
+
+  it('håndterer ugyldige kategorier, negative mængder og manglende faktorer', () => {
+    const input: ModuleInput = {
+      C15: {
+        screeningLines: [
+          {
+            category: '99' as never,
+            description: 'Ugyldig kategori',
+            quantityUnit: 'km',
+            estimatedQuantity: -10,
+            emissionFactorKey: 'ukendt' as never,
+            documentationQualityPercent: 150
+          },
+          {
+            category: '3',
+            description: null,
+            quantityUnit: null,
+            estimatedQuantity: null,
+            emissionFactorKey: null,
+            documentationQualityPercent: null
+          }
+        ]
+      }
+    }
+
+    const result = runC15(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toContain('line[0].category=1')
+    expect(result.trace).toContain('line[1].emissionFactorKey=category3Energy')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Ukendt kategori på linje 1. Kategori 1 – Indkøbte varer og services anvendes som standard.',
+        'Estimeret mængde kan ikke være negativ på linje 1. 0 anvendes i stedet.',
+        'Ugyldig emissionsfaktor valgt på linje 1. Standard for Kategori 1 – Indkøbte varer og services anvendes.',
+        'Dokumentationskvalitet er begrænset til 100% på linje 1.',
+        'Emissionsfaktor mangler på linje 2. Standardfaktor for Kategori 3 – Brændstof- og energirelaterede emissioner (upstream) anvendes.',
+        'Dokumentationskvalitet mangler på linje 2. Standard (100%) anvendes.'
+      ])
+    )
+  })
+})
+
+describe('runA1', () => {
+  it('summerer brændsler med standardfaktorer og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      A1: {
+        fuelConsumptions: [
+          {
+            fuelType: 'naturgas',
+            unit: 'Nm³',
+            quantity: 1_200,
+            emissionFactorKgPerUnit: null,
+            documentationQualityPercent: 85
+          },
+          {
+            fuelType: 'diesel',
+            unit: 'liter',
+            quantity: 500,
+            emissionFactorKgPerUnit: 2.68,
+            documentationQualityPercent: 55
+          }
+        ]
+      }
+    }
+
+    const result = runA1(input)
+
+    expect(result.value).toBe(3.8)
+    expect(result.unit).toBe(factors.a1.unit)
+    expect(result.trace).toContain('totalEmissionsKg=3800')
+    expect(result.assumptions).toContain(
+      'Standardfaktor for Naturgas: 2.05 kg CO2e/Nm³.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Naturgas anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Diesel er kun 55%. Overvej at forbedre dokumentation eller anvende konservative antagelser.'
+    )
   })
 })
 
@@ -1033,5 +1763,63 @@ describe('runC9', () => {
       'Feltet secondaryMaterialSharePercent er begrænset til 80%.',
       'Feltet renewableEnergySharePercent mangler og behandles som 0%.'
     ])
+  })
+})
+
+describe('runD1', () => {
+  it('returnerer 0 og neutral antagelse uden input', () => {
+    const result = runD1({} as ModuleInput)
+
+    expect(result.value).toBe(0)
+    expect(result.unit).toBe(factors.d1.unit)
+    expect(result.assumptions).toContain('Udfyld governance-felterne for at beregne en D1-score.')
+    expect(result.warnings).toHaveLength(0)
+    expect(result.trace).toContain('organizationalBoundary=null')
+  })
+
+  it('scorer governance-dimensionerne og fremhæver mangler', () => {
+    const input: ModuleInput = {
+      D1: {
+        organizationalBoundary: 'financialControl',
+        scope2Method: 'locationBased',
+        scope3ScreeningCompleted: false,
+        dataQuality: 'proxy',
+        materialityAssessmentDescription: 'Kort note om væsentlighed',
+        strategyDescription: null
+      }
+    }
+
+    const result = runD1(input)
+
+    expect(result.value).toBe(50)
+    expect(result.assumptions[0]).toContain('Governance-scoren er gennemsnittet')
+    expect(result.warnings).toContain(
+      'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
+    )
+    expect(result.warnings).toContain('Uddyb væsentlighedsvurderingen med centrale risici og muligheder.')
+    expect(result.warnings).toContain('Beskriv strategi, målsætninger og politikker for ESG-governance.')
+    expect(result.warnings).toContain('Markér screening som gennemført, når scope 3 kategorier er vurderet.')
+    expect(result.trace).toContain('materialityAssessmentScore=0.6')
+  })
+
+  it('giver fuld score ved best practice governance', () => {
+    const detailedText = 'Detaljeret beskrivelse af processer og kontroller. '.repeat(8)
+    const strategyText = 'Strategi og politikker for hele organisationen med klare mål. '.repeat(8)
+    const input: ModuleInput = {
+      D1: {
+        organizationalBoundary: 'operationalControl',
+        scope2Method: 'marketBased',
+        scope3ScreeningCompleted: true,
+        dataQuality: 'primary',
+        materialityAssessmentDescription: detailedText,
+        strategyDescription: strategyText
+      }
+    }
+
+    const result = runD1(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toHaveLength(0)
+    expect(result.trace).toContain('strategyScore=1')
   })
 })

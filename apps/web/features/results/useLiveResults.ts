@@ -4,7 +4,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { aggregateResults } from '@org/shared'
+import { aggregateResults, moduleIds } from '@org/shared'
 import type { CalculatedModuleResult } from '@org/shared'
 import { useWizard } from '../wizard/useWizard'
 
@@ -13,10 +13,10 @@ export function useLiveResults(): { results: CalculatedModuleResult[] } {
 
   return useMemo(() => {
     const aggregated = aggregateResults(state)
-    const priorityOrder: Record<string, number> = { B1: 0, B2: 1, B3: 2, B4: 3, B5: 4, B6: 5 }
+    const priorityOrder = new Map(moduleIds.map((moduleId, index) => [moduleId, index]))
     const sorted = [...aggregated].sort((a, b) => {
-      const priorityA = priorityOrder[a.moduleId] ?? Number.POSITIVE_INFINITY
-      const priorityB = priorityOrder[b.moduleId] ?? Number.POSITIVE_INFINITY
+      const priorityA = priorityOrder.get(a.moduleId) ?? Number.POSITIVE_INFINITY
+      const priorityB = priorityOrder.get(b.moduleId) ?? Number.POSITIVE_INFINITY
       if (priorityA !== priorityB) {
         return priorityA - priorityB
       }

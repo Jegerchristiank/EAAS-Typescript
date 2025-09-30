@@ -47,7 +47,8 @@ export default function ReviewPage(): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h1>Review og download</h1>
         <p style={{ maxWidth: '48rem' }}>
-          Et overblik over de vigtigste Scope 2-moduler. Eksporter rapporten som PDF for at dele den med resten af organisationen.
+          Et overblik over beregnede Scope 1-, Scope 3- og governance-resultater. D1-modulet leverer en samlet score for metode
+          og governance og følger med i PDF-downloaden.
         </p>
       </header>
 
@@ -65,7 +66,7 @@ export default function ReviewPage(): JSX.Element {
         <section style={{ display: 'grid', gap: '1rem' }}>
           <h2>Andre moduler</h2>
           <p style={{ margin: 0, color: '#555' }}>
-            De øvrige moduler er endnu ikke konfigureret. De vises her, når deres beregninger er klar.
+            De øvrige moduler inkluderer både Scope 3-kategorier og governance-scoren fra D1 – Metode &amp; governance.
           </p>
         </section>
       )}
@@ -136,7 +137,8 @@ function EmptyCard(): JSX.Element {
     <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
-        Når du udfylder modulerne B1, B2, B3, B4, B5 eller B6 i wizardens første trin, vises resultaterne her.
+        Når du udfylder de beregningsklare Scope 1- og Scope 3-moduler vises resultaterne her. Governance-modulet D1 beregner en
+        samlet score for metode, screening og politikker.
 
       </p>
     </section>

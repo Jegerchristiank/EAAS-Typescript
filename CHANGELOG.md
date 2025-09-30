@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B9-modul for fysiske PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B10-modul for virtuelle PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B11-modul for time-matchede certifikatporteføljer med schema, beregning, UI og tests.
+- Fuldt A1-modul for Scope 1 stationær forbrænding med schema, beregning, UI og tests.
+- Fuldt A2-modul for Scope 1 mobile kilder med schema, beregning, UI og tests.
+- Fuldt A3-modul for Scope 1 procesemissioner med schema, beregning, UI og tests.
+- Fuldt A4-modul for Scope 1 flugtige emissioner med schema, beregning, UI og tests.
 - Fuldt C1-modul for Scope 3 medarbejderpendling med schema, beregning, UI og tests.
 - Fuldt C2-modul for Scope 3 forretningsrejser med schema, beregning, UI og tests.
 - Fuldt C3-modul for Scope 3 brændstof- og energirelaterede aktiviteter med schema, beregning, UI og tests.
@@ -37,6 +41,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt C7-modul for Scope 3 downstream transport og distribution med schema, beregning, UI og tests.
 - Fuldt C8-modul for Scope 3 udlejede aktiver (downstream) med schema, beregning, UI og tests.
 - Fuldt C9-modul for Scope 3 forarbejdning af solgte produkter med schema, beregning, UI og tests.
+- Fuldt C10-modul for Scope 3 upstream leasede aktiver med schema, beregning, UI og tests.
+- Fuldt C11-modul for Scope 3 downstream leasede aktiver med schema, beregning, UI og tests.
+- Fuldt C12-modul for Scope 3 franchising og downstream services med schema, beregning, UI og tests.
+- Fuldt C13-modul for Scope 3 investeringer og finansielle aktiviteter med schema, beregning, UI og tests.
+- Fuldt C14-modul for Scope 3 behandling af solgte produkter med schema, beregning, UI og tests.
+- Fuldt C15-modul for Scope 3 screening af øvrige kategorier med schema, beregning, UI og tests.
 
 
 ### Changed

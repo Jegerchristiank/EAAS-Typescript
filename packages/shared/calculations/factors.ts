@@ -3,6 +3,36 @@
  */
 export const factors = {
   defaultFactor: 1,
+  a1: {
+    kgToTonnes: 0.001,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
+  a2: {
+    kgToTonnes: 0.001,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
+  a3: {
+    kgToTonnes: 0.001,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
+  a4: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    resultPrecision: 3,
+    unit: 't CO2e',
+    defaultLeakagePercent: 10,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60
+  },
   b1: {
     kgToTonnes: 0.001,
     renewableMitigationRate: 0.9,
@@ -194,5 +224,65 @@ export const factors = {
     maximumRenewableSharePercent: 100,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  c10: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    defaultElectricityIntensityKwhPerSqm: 95,
+    defaultHeatIntensityKwhPerSqm: 80,
+    defaultElectricityEmissionFactorKgPerKwh: 0.18,
+    defaultHeatEmissionFactorKgPerKwh: 0.07,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c11: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    defaultElectricityIntensityKwhPerSqm: 95,
+    defaultHeatIntensityKwhPerSqm: 80,
+    defaultElectricityEmissionFactorKgPerKwh: 0.18,
+    defaultHeatEmissionFactorKgPerKwh: 0.07,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c12: {
+    kgToTonnes: 0.001,
+    percentToRatio: 0.01,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c13: {
+    kgToTonnes: 0.001,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c14: {
+    kgToTonnes: 0.001,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  c15: {
+    kgToTonnes: 0.001,
+    defaultDocumentationQualityPercent: 100,
+    lowDocumentationQualityThresholdPercent: 60,
+    resultPrecision: 3,
+    unit: 't CO2e'
+  },
+  d1: {
+    unit: 'governance score',
+    maxScore: 100,
+    resultPrecision: 1,
+    partialTextLength: 120,
+    detailedTextLength: 240
   }
 } as const
