@@ -35,6 +35,7 @@ import { runC13 } from '../modules/runC13'
 import { runC14 } from '../modules/runC14'
 import { runC15 } from '../modules/runC15'
 import { runA1 } from '../modules/runA1'
+import { runD1 } from '../modules/runD1'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -1762,5 +1763,63 @@ describe('runC9', () => {
       'Feltet secondaryMaterialSharePercent er begrænset til 80%.',
       'Feltet renewableEnergySharePercent mangler og behandles som 0%.'
     ])
+  })
+})
+
+describe('runD1', () => {
+  it('returnerer 0 og neutral antagelse uden input', () => {
+    const result = runD1({} as ModuleInput)
+
+    expect(result.value).toBe(0)
+    expect(result.unit).toBe(factors.d1.unit)
+    expect(result.assumptions).toContain('Udfyld governance-felterne for at beregne en D1-score.')
+    expect(result.warnings).toHaveLength(0)
+    expect(result.trace).toContain('organizationalBoundary=null')
+  })
+
+  it('scorer governance-dimensionerne og fremhæver mangler', () => {
+    const input: ModuleInput = {
+      D1: {
+        organizationalBoundary: 'financialControl',
+        scope2Method: 'locationBased',
+        scope3ScreeningCompleted: false,
+        dataQuality: 'proxy',
+        materialityAssessmentDescription: 'Kort note om væsentlighed',
+        strategyDescription: null
+      }
+    }
+
+    const result = runD1(input)
+
+    expect(result.value).toBe(50)
+    expect(result.assumptions[0]).toContain('Governance-scoren er gennemsnittet')
+    expect(result.warnings).toContain(
+      'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
+    )
+    expect(result.warnings).toContain('Uddyb væsentlighedsvurderingen med centrale risici og muligheder.')
+    expect(result.warnings).toContain('Beskriv strategi, målsætninger og politikker for ESG-governance.')
+    expect(result.warnings).toContain('Markér screening som gennemført, når scope 3 kategorier er vurderet.')
+    expect(result.trace).toContain('materialityAssessmentScore=0.6')
+  })
+
+  it('giver fuld score ved best practice governance', () => {
+    const detailedText = 'Detaljeret beskrivelse af processer og kontroller. '.repeat(8)
+    const strategyText = 'Strategi og politikker for hele organisationen med klare mål. '.repeat(8)
+    const input: ModuleInput = {
+      D1: {
+        organizationalBoundary: 'operationalControl',
+        scope2Method: 'marketBased',
+        scope3ScreeningCompleted: true,
+        dataQuality: 'primary',
+        materialityAssessmentDescription: detailedText,
+        strategyDescription: strategyText
+      }
+    }
+
+    const result = runD1(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toHaveLength(0)
+    expect(result.trace).toContain('strategyScore=1')
   })
 })

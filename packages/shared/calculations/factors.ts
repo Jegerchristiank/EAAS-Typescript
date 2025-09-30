@@ -277,5 +277,12 @@ export const factors = {
     lowDocumentationQualityThresholdPercent: 60,
     resultPrecision: 3,
     unit: 't CO2e'
+  },
+  d1: {
+    unit: 'governance score',
+    maxScore: 100,
+    resultPrecision: 1,
+    partialTextLength: 120,
+    detailedTextLength: 240
   }
 } as const

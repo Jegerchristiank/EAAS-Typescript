@@ -39,38 +39,43 @@ const typeMap: Record<string, unknown> = {
   object: { type: 'object' }
 }
 
-const planningProperties = {
-  dataOwner: {
-    type: ['string', 'null'],
-    maxLength: 120,
-    description: 'Navn eller rolle for dataansvarlig.'
+const d1Override = {
+  type: 'object',
+  title: 'D1Input',
+  description: 'Metode & governance',
+  properties: {
+    organizationalBoundary: {
+      type: ['string', 'null'],
+      enum: ['equityShare', 'financialControl', 'operationalControl', null],
+      description: 'Valgt konsolideringsprincip for rapportering.'
+    },
+    scope2Method: {
+      type: ['string', 'null'],
+      enum: ['locationBased', 'marketBased', null],
+      description: 'Primær metode til Scope 2-rapportering.'
+    },
+    scope3ScreeningCompleted: {
+      type: ['boolean', 'null'],
+      description: 'Angiver om Scope 3 screening er gennemført.'
+    },
+    dataQuality: {
+      type: ['string', 'null'],
+      enum: ['primary', 'secondary', 'proxy', null],
+      description: 'Dominerende datakvalitet for ESG-rapporteringen.'
+    },
+    materialityAssessmentDescription: {
+      type: ['string', 'null'],
+      maxLength: 2000,
+      description: 'Opsummering af væsentlighedsvurderingen og konklusioner.'
+    },
+    strategyDescription: {
+      type: ['string', 'null'],
+      maxLength: 2000,
+      description: 'Strategi, målsætninger og politikker for ESG-governance.'
+    }
   },
-  dataSource: {
-    type: ['string', 'null'],
-    maxLength: 240,
-    description: 'Primære systemer eller processer hvor data hentes.'
-  },
-  targetGoLiveQuarter: {
-    type: ['string', 'null'],
-    maxLength: 32,
-    description: 'Planlagt kvartal for fuld integration (fx Q1 2026).'
-  },
-  notes: {
-    type: ['string', 'null'],
-    maxLength: 2000,
-    description: 'Supplerende noter om datakvalitet, antagelser eller governance.'
-  }
+  additionalProperties: false
 } as const
-
-function createPlanningOverride(title: string, description: string) {
-  return {
-    type: 'object',
-    title,
-    description,
-    properties: planningProperties,
-    additionalProperties: false
-  } as const
-}
 
 const a1Override = {
   type: 'object',
@@ -723,7 +728,7 @@ const moduleOverrides: Record<string, unknown> = {
   C13: c13Override,
   C14: c14Override,
   C15: c15Override,
-  D1: createPlanningOverride('D1Input', 'CSRD/ESRS governance-krav (planlægning)')
+  D1: d1Override
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {

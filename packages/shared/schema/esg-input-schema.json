@@ -1876,39 +1876,68 @@
     "D1": {
       "type": "object",
       "title": "D1Input",
-      "description": "CSRD/ESRS governance-krav (planlægning)",
+      "description": "Metode & governance",
       "properties": {
-        "dataOwner": {
+        "organizationalBoundary": {
           "type": [
             "string",
             "null"
           ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
+          "enum": [
+            "equityShare",
+            "financialControl",
+            "operationalControl",
+            null
+          ],
+          "description": "Valgt konsolideringsprincip for rapportering."
         },
-        "dataSource": {
+        "scope2Method": {
           "type": [
             "string",
             "null"
           ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
+          "enum": [
+            "locationBased",
+            "marketBased",
+            null
+          ],
+          "description": "Primær metode til Scope 2-rapportering."
         },
-        "targetGoLiveQuarter": {
+        "scope3ScreeningCompleted": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Angiver om Scope 3 screening er gennemført."
+        },
+        "dataQuality": {
           "type": [
             "string",
             "null"
           ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+          "enum": [
+            "primary",
+            "secondary",
+            "proxy",
+            null
+          ],
+          "description": "Dominerende datakvalitet for ESG-rapporteringen."
         },
-        "notes": {
+        "materialityAssessmentDescription": {
           "type": [
             "string",
             "null"
           ],
           "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+          "description": "Opsummering af væsentlighedsvurderingen og konklusioner."
+        },
+        "strategyDescription": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Strategi, målsætninger og politikker for ESG-governance."
         }
       },
       "additionalProperties": false

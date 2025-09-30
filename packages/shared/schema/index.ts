@@ -4,14 +4,9 @@
 import { z } from 'zod'
 import schema from './esg-input-schema.json'
 
-const planningInputSchema = z
-  .object({
-    dataOwner: z.string().max(120).nullable(),
-    dataSource: z.string().max(240).nullable(),
-    targetGoLiveQuarter: z.string().max(32).nullable(),
-    notes: z.string().max(2000).nullable()
-  })
-  .strict()
+const d1BoundaryOptions = ['equityShare', 'financialControl', 'operationalControl'] as const
+const d1Scope2MethodOptions = ['locationBased', 'marketBased'] as const
+const d1DataQualityOptions = ['primary', 'secondary', 'proxy'] as const
 
 const a1FuelConsumptionSchema = z
   .object({
@@ -445,9 +440,16 @@ export const c15InputSchema = z
   })
   .strict()
 
-export const d1InputSchema = planningInputSchema
-
-export type PlanningModuleInput = z.infer<typeof planningInputSchema>
+export const d1InputSchema = z
+  .object({
+    organizationalBoundary: z.enum(d1BoundaryOptions).nullable(),
+    scope2Method: z.enum(d1Scope2MethodOptions).nullable(),
+    scope3ScreeningCompleted: z.boolean().nullable(),
+    dataQuality: z.enum(d1DataQualityOptions).nullable(),
+    materialityAssessmentDescription: z.string().max(2000).nullable(),
+    strategyDescription: z.string().max(2000).nullable()
+  })
+  .strict()
 export type A1Input = z.infer<typeof a1InputSchema>
 export type A2Input = z.infer<typeof a2InputSchema>
 export type A3Input = z.infer<typeof a3InputSchema>
