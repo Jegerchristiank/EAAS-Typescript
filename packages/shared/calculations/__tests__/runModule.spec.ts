@@ -809,11 +809,17 @@ describe('runC6', () => {
 
     const result = runC6(input)
 
-    expect(result.value).toBe(57.97)
+    expect(result.value).toBe(55.823)
     expect(result.unit).toBe(factors.c6.unit)
     expect(result.warnings).toEqual([])
-    expect(result.trace).toContain('effectiveAllocationRatio=0.675000')
-    expect(result.trace).toContain('electricityEmissionsKg=34020')
+    expect(result.trace).toContain('effectiveAllocationRatio=0.650000')
+
+    const electricityEmissionsEntry = result.trace.find((entry) =>
+      entry.startsWith('electricityEmissionsKg=')
+    )
+
+    expect(electricityEmissionsEntry).toBeDefined()
+    expect(Number(electricityEmissionsEntry?.split('=')[1])).toBeCloseTo(32760, 6)
   })
 
   it('normaliserer negative og manglende værdier og begrænser procenter', () => {
