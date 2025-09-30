@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated TypeScript and ESLint configs to consume workspace presets.
 - ADR 0002 documenting the enforcement of strict lint/type settings and CI gates.
 - Publish runbook describing safe GitHub Packages authentication for releases.
+- Fuldt B1-modul for Scope 2 elforbrug med schema, beregning, UI og tests.
+- Fuldt B2-modul for Scope 2 varmeforbrug med schema, beregning, UI og tests.
+- Fuldt B3-modul for Scope 2 køleforbrug med schema, beregning, UI og tests.
 - Fuldt B4-modul for Scope 2 dampforbrug med schema, beregning, UI og tests.
 - Fuldt B5-modul for øvrige Scope 2-energileverancer med schema, beregning, UI og tests.
 - Fuldt B6-modul for Scope 2 nettab i elnettet med schema, beregning, UI og tests.
