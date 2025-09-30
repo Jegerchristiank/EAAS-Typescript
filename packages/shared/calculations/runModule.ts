@@ -157,7 +157,8 @@ function createPlanningStubResult(moduleId: PlannedModuleId, input: ModuleInput)
     value: 0,
     unit: 'n/a',
     assumptions: [
-      'Stubberegning – modul er planlagt og afventer fuld beregning.',
+      'Stubberegning',
+      'Modul er planlagt og afventer fuld beregning.',
       plannedModuleMessages[moduleId]
     ],
     trace: [`Stub(${moduleId})=${tracePayload}`],
