@@ -1,4 +1,8 @@
 {
+  "A1": "Planlagt modul – Scope 1 stationære forbrændingskilder implementeres i næste iteration.",
+  "A2": "Planlagt modul – Scope 1 mobile forbrændingskilder forberedes.",
+  "A3": "Planlagt modul – Scope 1 procesemissioner afventer metodevalg.",
+  "A4": "Planlagt modul – Scope 1 flugtige emissioner (kølemidler m.m.) tilføjes senere.",
   "B1": "B1 = (el-forbrug * emissionsfaktor) - (el-forbrug * emissionsfaktor * (vedvarende% / 100) * 0.9)",
   "B2": "B2 = ((varmeforbrug - genindvinding) * emissionsfaktor) - ((varmeforbrug - genindvinding) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
   "B3": "B3 = ((køleforbrug - frikøling) * emissionsfaktor) - ((køleforbrug - frikøling) * emissionsfaktor * (vedvarende% / 100) * 0.9)",
@@ -18,5 +22,12 @@
   "C6": "C6 = (((areal * el-intensitet) * lejer% / 100 * (1 - fælles% / 100) * el faktor * (1 - vedvarende el% / 100 * 0.75)) + ((areal * varme-intensitet) * lejer% / 100 * (1 - fælles% / 100) * varme faktor * (1 - vedvarende varme% / 100 * 0.6))) / 1000",
   "C7": "C7 = (((vej tkm * vej faktor) * (1 - lavemissionsandel% / 100 * 0.7)) + (bane tkm * bane faktor) + (sø tkm * sø faktor) + (luft tkm * luft faktor) + (lager kWh * lager faktor * (1 - vedvarende lager% / 100 * 0.85))) / 1000",
   "C8": "C8 = (((areal * el-intensitet) * udnyttelse% / 100 * udlejeransvar% / 100 * (1 - effektivisering% / 100 * 0.9) * el faktor * (1 - vedvarende el% / 100 * 0.85)) + ((areal * varme-intensitet) * udnyttelse% / 100 * udlejeransvar% / 100 * (1 - effektivisering% / 100 * 0.9) * varme faktor * (1 - vedvarende varme% / 100 * 0.85))) / 1000",
-  "C9": "C9 = (tonnage * energiintensitet * (1 - effektivisering% / 100 * 0.85) * (1 - sekundært materiale% / 100 * 0.6) * emissionsfaktor * (1 - vedvarende energi% / 100 * 0.9)) / 1000"
+  "C9": "C9 = (tonnage * energiintensitet * (1 - effektivisering% / 100 * 0.85) * (1 - sekundært materiale% / 100 * 0.6) * emissionsfaktor * (1 - vedvarende energi% / 100 * 0.9)) / 1000",
+  "C10": "Planlagt modul – Scope 3 brug af solgte produkter får beregning i kommende release.",
+  "C11": "Planlagt modul – Scope 3 slutbehandling af solgte produkter bliver understøttet senere.",
+  "C12": "Planlagt modul – Scope 3 franchising og downstream services udbygges.",
+  "C13": "Planlagt modul – Scope 3 investeringer og finansielle aktiviteter modelleres i næste fase.",
+  "C14": "Planlagt modul – Scope 3 øvrige downstream aktiviteter samles her.",
+  "C15": "Planlagt modul – Scope 3 øvrige kategorioplysninger beskrives fremadrettet.",
+  "D1": "Planlagt modul – CSRD/ESRS governance-krav dokumenteres og beregnes senere."
 }

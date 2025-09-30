@@ -47,7 +47,9 @@ export default function ReviewPage(): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h1>Review og download</h1>
         <p style={{ maxWidth: '48rem' }}>
-          Et overblik over de vigtigste Scope 2-moduler. Eksporter rapporten som PDF for at dele den med resten af organisationen.
+          Et overblik over beregnede Scope 2-resultater og planlagte udvidelser. Scope 1-modulerne (A1–A4), Scope 3-udvidelserne
+          (C10–C15) og governance-modulet D1 er klar til planlægningsinput og udelades automatisk fra PDF, indtil beregningerne
+          er implementeret.
         </p>
       </header>
 
@@ -65,7 +67,8 @@ export default function ReviewPage(): JSX.Element {
         <section style={{ display: 'grid', gap: '1rem' }}>
           <h2>Andre moduler</h2>
           <p style={{ margin: 0, color: '#555' }}>
-            De øvrige moduler er endnu ikke konfigureret. De vises her, når deres beregninger er klar.
+            De øvrige moduler inkluderer både eksisterende Scope 3-beregninger og de nye planlagte Scope 1-, Scope 3- og
+            governance-moduler. Planlagte moduler vises som stubberegninger, indtil deres logik er klar.
           </p>
         </section>
       )}
@@ -136,7 +139,8 @@ function EmptyCard(): JSX.Element {
     <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
-        Når du udfylder modulerne B1, B2, B3, B4, B5 eller B6 i wizardens første trin, vises resultaterne her.
+        Når du udfylder de beregningsklare Scope 2-moduler (B1–B6), vises resultaterne her. Planlægningsmodulerne for Scope 1,
+        Scope 3 (C10–C15) og D1 registrerer governance- og dataejere men genererer ikke emissionsresultater endnu.
 
       </p>
     </section>

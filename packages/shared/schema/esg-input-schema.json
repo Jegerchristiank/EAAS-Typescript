@@ -3,6 +3,166 @@
   "title": "ESGInput",
   "type": "object",
   "properties": {
+    "A1": {
+      "type": "object",
+      "title": "A1Input",
+      "description": "Scope 1 stationære forbrændingskilder (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "A2": {
+      "type": "object",
+      "title": "A2Input",
+      "description": "Scope 1 mobile forbrændingskilder (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "A3": {
+      "type": "object",
+      "title": "A3Input",
+      "description": "Scope 1 procesemissioner (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "A4": {
+      "type": "object",
+      "title": "A4Input",
+      "description": "Scope 1 flugtige emissioner (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
     "B1": {
       "type": "object",
       "title": "B1Input",
@@ -1182,6 +1342,286 @@
           "minimum": 0,
           "maximum": 100,
           "description": "Andel dokumenteret vedvarende energi i processen (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C10": {
+      "type": "object",
+      "title": "C10Input",
+      "description": "Scope 3 brug af solgte produkter (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "C11": {
+      "type": "object",
+      "title": "C11Input",
+      "description": "Scope 3 slutbehandling af solgte produkter (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "C12": {
+      "type": "object",
+      "title": "C12Input",
+      "description": "Scope 3 franchising og downstream services (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "C13": {
+      "type": "object",
+      "title": "C13Input",
+      "description": "Scope 3 investeringer og finansielle aktiviteter (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "C14": {
+      "type": "object",
+      "title": "C14Input",
+      "description": "Scope 3 øvrige downstream aktiviteter (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "C15": {
+      "type": "object",
+      "title": "C15Input",
+      "description": "Scope 3 øvrige kategorioplysninger (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        }
+      },
+      "additionalProperties": false
+    },
+    "D1": {
+      "type": "object",
+      "title": "D1Input",
+      "description": "CSRD/ESRS governance-krav (planlægning)",
+      "properties": {
+        "dataOwner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120,
+          "description": "Navn eller rolle for dataansvarlig."
+        },
+        "dataSource": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 240,
+          "description": "Primære systemer eller processer hvor data hentes."
+        },
+        "targetGoLiveQuarter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
         }
       },
       "additionalProperties": false

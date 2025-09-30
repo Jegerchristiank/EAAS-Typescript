@@ -19,9 +19,11 @@ type WizardHook = {
 }
 
 const AUTOSAVE_INTERVAL = 500
+const DEFAULT_STEP_INDEX = wizardSteps.findIndex((step) => step.status === 'ready')
+const INITIAL_STEP = DEFAULT_STEP_INDEX === -1 ? 0 : DEFAULT_STEP_INDEX
 
 export function useWizard(): WizardHook {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(INITIAL_STEP)
   const [state, setState] = useState<WizardState>(() => loadWizardState())
 
   useEffect(() => {

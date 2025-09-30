@@ -4,6 +4,20 @@
 import { z } from 'zod'
 import schema from './esg-input-schema.json'
 
+const planningInputSchema = z
+  .object({
+    dataOwner: z.string().max(120).nullable(),
+    dataSource: z.string().max(240).nullable(),
+    targetGoLiveQuarter: z.string().max(32).nullable(),
+    notes: z.string().max(2000).nullable()
+  })
+  .strict()
+
+export const a1InputSchema = planningInputSchema
+export const a2InputSchema = planningInputSchema
+export const a3InputSchema = planningInputSchema
+export const a4InputSchema = planningInputSchema
+
 export const b1InputSchema = z
   .object({
     electricityConsumptionKwh: z.number().min(0).nullable(),
@@ -228,6 +242,20 @@ export const c9InputSchema = z
   })
   .strict()
 
+export const c10InputSchema = planningInputSchema
+export const c11InputSchema = planningInputSchema
+export const c12InputSchema = planningInputSchema
+export const c13InputSchema = planningInputSchema
+export const c14InputSchema = planningInputSchema
+export const c15InputSchema = planningInputSchema
+
+export const d1InputSchema = planningInputSchema
+
+export type PlanningModuleInput = z.infer<typeof planningInputSchema>
+export type A1Input = z.infer<typeof a1InputSchema>
+export type A2Input = z.infer<typeof a2InputSchema>
+export type A3Input = z.infer<typeof a3InputSchema>
+export type A4Input = z.infer<typeof a4InputSchema>
 export type B1Input = z.infer<typeof b1InputSchema>
 export type B2Input = z.infer<typeof b2InputSchema>
 export type B3Input = z.infer<typeof b3InputSchema>
@@ -248,10 +276,22 @@ export type C6Input = z.infer<typeof c6InputSchema>
 export type C7Input = z.infer<typeof c7InputSchema>
 export type C8Input = z.infer<typeof c8InputSchema>
 export type C9Input = z.infer<typeof c9InputSchema>
+export type C10Input = z.infer<typeof c10InputSchema>
+export type C11Input = z.infer<typeof c11InputSchema>
+export type C12Input = z.infer<typeof c12InputSchema>
+export type C13Input = z.infer<typeof c13InputSchema>
+export type C14Input = z.infer<typeof c14InputSchema>
+export type C15Input = z.infer<typeof c15InputSchema>
+
+export type D1Input = z.infer<typeof d1InputSchema>
 
 
 export const esgInputSchema = z
   .object({
+    A1: a1InputSchema.optional(),
+    A2: a2InputSchema.optional(),
+    A3: a3InputSchema.optional(),
+    A4: a4InputSchema.optional(),
     B1: b1InputSchema.optional(),
     B2: b2InputSchema.optional(),
     B3: b3InputSchema.optional(),
@@ -271,7 +311,14 @@ export const esgInputSchema = z
     C6: c6InputSchema.optional(),
     C7: c7InputSchema.optional(),
     C8: c8InputSchema.optional(),
-    C9: c9InputSchema.optional()
+    C9: c9InputSchema.optional(),
+    C10: c10InputSchema.optional(),
+    C11: c11InputSchema.optional(),
+    C12: c12InputSchema.optional(),
+    C13: c13InputSchema.optional(),
+    C14: c14InputSchema.optional(),
+    C15: c15InputSchema.optional(),
+    D1: d1InputSchema.optional()
   })
   .passthrough()
 

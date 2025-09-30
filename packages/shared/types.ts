@@ -3,6 +3,10 @@
  */
 
 import type {
+  A1Input,
+  A2Input,
+  A3Input,
+  A4Input,
   B1Input,
   B2Input,
   B3Input,
@@ -22,11 +26,23 @@ import type {
   C6Input,
   C7Input,
   C8Input,
-  C9Input
+  C9Input,
+  C10Input,
+  C11Input,
+  C12Input,
+  C13Input,
+  C14Input,
+  C15Input,
+  D1Input,
+  PlanningModuleInput
 } from './schema'
 
 
 export const moduleIds = [
+  'A1',
+  'A2',
+  'A3',
+  'A4',
   'B1',
   'B2',
   'B3',
@@ -46,12 +62,23 @@ export const moduleIds = [
   'C6',
   'C7',
   'C8',
-  'C9'
+  'C9',
+  'C10',
+  'C11',
+  'C12',
+  'C13',
+  'C14',
+  'C15',
+  'D1'
 ] as const
 
 export type ModuleId = (typeof moduleIds)[number]
 
 type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
+  A1?: A1Input | null | undefined
+  A2?: A2Input | null | undefined
+  A3?: A3Input | null | undefined
+  A4?: A4Input | null | undefined
   B1?: B1Input | null | undefined
   B2?: B2Input | null | undefined
   B3?: B3Input | null | undefined
@@ -72,6 +99,13 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   C7?: C7Input | null | undefined
   C8?: C8Input | null | undefined
   C9?: C9Input | null | undefined
+  C10?: C10Input | null | undefined
+  C11?: C11Input | null | undefined
+  C12?: C12Input | null | undefined
+  C13?: C13Input | null | undefined
+  C14?: C14Input | null | undefined
+  C15?: C15Input | null | undefined
+  D1?: D1Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
@@ -93,6 +127,11 @@ export type CalculatedModuleResult = {
 }
 
 export type {
+  PlanningModuleInput,
+  A1Input,
+  A2Input,
+  A3Input,
+  A4Input,
   B1Input,
   B2Input,
   B3Input,
@@ -112,6 +151,13 @@ export type {
   C6Input,
   C7Input,
   C8Input,
-  C9Input
+  C9Input,
+  C10Input,
+  C11Input,
+  C12Input,
+  C13Input,
+  C14Input,
+  C15Input,
+  D1Input
 }
 

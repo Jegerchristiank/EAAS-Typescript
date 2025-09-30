@@ -10,7 +10,10 @@ export default function HomePage(): JSX.Element {
     <main style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
       <section style={{ textAlign: 'center' }}>
         <h1>ESG-rapportering</h1>
-        <p>Start beregning for at udfylde de nødvendige ESG-moduler.</p>
+        <p>
+          Start beregning for at udfylde de tilgængelige Scope 2-moduler og planlægge de kommende Scope 1-, Scope 3- og
+          governancekrav.
+        </p>
         <PrimaryButton as={Link} href="/wizard">
           Start beregning
         </PrimaryButton>
