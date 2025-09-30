@@ -48,6 +48,7 @@ Erfaringer
 • ModuleInput er typet via et index signature. Brug bracket notation (`state['B7']`) fremfor dot-notation for modulnøgler i UI og beregninger for at undgå TypeScript-fejl.
 • Scope 2-reduktioner som B7 må returnere negative værdier; UI bør formidle at negative tal repræsenterer reduktioner fremfor udledninger.
 • B8 fratrækker eksporteret strøm fra egenproduktionen før kvalitetsjustering; informer brugeren hvis eksporten overstiger produktionen.
+• README-links til modulreferencer skal enten dække alle aktive moduler eller pege på oversigtsmappen (`docs/modules`) for at undgå ufuldstændige lister.
 
 
 Fejltyper vi kender

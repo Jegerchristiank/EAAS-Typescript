@@ -299,10 +299,74 @@ export const c9InputSchema = z
   })
   .strict()
 
-export const c10InputSchema = planningInputSchema
-export const c11InputSchema = planningInputSchema
-export const c12InputSchema = planningInputSchema
-export const c13InputSchema = planningInputSchema
+const leasedEnergyLineSchema = z
+  .object({
+    floorAreaSqm: z.number().min(0).nullable(),
+    energyConsumptionKwh: z.number().min(0).nullable(),
+    energyType: z.enum(['electricity', 'heat']),
+    emissionFactorKgPerKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+const franchiseLineSchema = z
+  .object({
+    activityBasis: z.enum(['revenue', 'energy']),
+    revenueDkk: z.number().min(0).nullable(),
+    energyConsumptionKwh: z.number().min(0).nullable(),
+    emissionFactorKey: z
+      .enum([
+        'retailRevenue',
+        'foodServiceRevenue',
+        'hospitalityRevenue',
+        'genericRevenue',
+        'electricityEnergy',
+        'districtHeatEnergy',
+        'mixedEnergy'
+      ])
+      .nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c10InputSchema = z
+  .object({
+    leasedAssetLines: z.array(leasedEnergyLineSchema).max(20).optional()
+  })
+  .strict()
+export const c11InputSchema = z
+  .object({
+    leasedAssetLines: z.array(leasedEnergyLineSchema).max(20).optional()
+  })
+  .strict()
+export const c12InputSchema = z
+  .object({
+    franchiseLines: z.array(franchiseLineSchema).max(20).optional()
+  })
+  .strict()
+const c13EmissionFactorKeys = [
+  'listedEquity',
+  'corporateBonds',
+  'sovereignBonds',
+  'privateEquity',
+  'realEstate',
+  'infrastructure',
+  'diversifiedPortfolio'
+] as const
+
+const c13InvestmentLineSchema = z
+  .object({
+    investedAmountDkk: z.number().min(0).nullable(),
+    emissionFactorKey: z.enum(c13EmissionFactorKeys).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const c13InputSchema = z
+  .object({
+    investmentLines: z.array(c13InvestmentLineSchema).max(30).optional()
+  })
+  .strict()
 export const c14InputSchema = planningInputSchema
 export const c15InputSchema = planningInputSchema
 

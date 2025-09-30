@@ -1455,39 +1455,63 @@
     "C10": {
       "type": "object",
       "title": "C10Input",
-      "description": "Scope 3 brug af solgte produkter (planlægning)",
+      "description": "Scope 3 upstream leasede aktiver",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "leasedAssetLines": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Linjer for upstream-leasede aktiver med enten målt energi eller areal til estimat.",
+          "items": {
+            "type": "object",
+            "title": "LeasedAssetLine",
+            "properties": {
+              "floorAreaSqm": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Lejet areal (m²) brugt til at estimere energi, hvis forbrug mangler."
+              },
+              "energyConsumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årligt energiforbrug for linjen (kWh). Hvis udfyldt anvendes værdien direkte."
+              },
+              "energyType": {
+                "type": "string",
+                "enum": [
+                  "electricity",
+                  "heat"
+                ],
+                "description": "Energitype der bestemmer standardintensitet og emissionsfaktor."
+              },
+              "emissionFactorKgPerKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor (kg CO2e/kWh). Mangler den anvendes standard for energitypen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet (%) for linjen. Værdier under tærsklen markeres."
+              }
+            },
+            "required": [
+              "energyType"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -1495,39 +1519,63 @@
     "C11": {
       "type": "object",
       "title": "C11Input",
-      "description": "Scope 3 slutbehandling af solgte produkter (planlægning)",
+      "description": "Scope 3 downstream leasede aktiver",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "leasedAssetLines": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Linjer for downstream-leasede aktiver med enten målt energi eller areal til estimat.",
+          "items": {
+            "type": "object",
+            "title": "LeasedAssetLine",
+            "properties": {
+              "floorAreaSqm": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Udlejet areal (m²) der bruges til at estimere energi, hvis forbrug mangler."
+              },
+              "energyConsumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årligt energiforbrug for linjen (kWh). Hvis udfyldt anvendes værdien direkte."
+              },
+              "energyType": {
+                "type": "string",
+                "enum": [
+                  "electricity",
+                  "heat"
+                ],
+                "description": "Energitype der bestemmer standardintensitet og emissionsfaktor."
+              },
+              "emissionFactorKgPerKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissionsfaktor (kg CO2e/kWh). Mangler den anvendes standard for energitypen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet (%) for linjen. Værdier under tærsklen markeres."
+              }
+            },
+            "required": [
+              "energyType"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -1535,39 +1583,71 @@
     "C12": {
       "type": "object",
       "title": "C12Input",
-      "description": "Scope 3 franchising og downstream services (planlægning)",
+      "description": "Scope 3 franchising og downstream services",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "franchiseLines": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Linjer for franchiser eller downstream services baseret på omsætning eller energiforbrug.",
+          "items": {
+            "type": "object",
+            "title": "FranchiseLine",
+            "properties": {
+              "activityBasis": {
+                "type": "string",
+                "enum": [
+                  "revenue",
+                  "energy"
+                ],
+                "description": "Angiver om linjen baseres på omsætning eller energiforbrug."
+              },
+              "revenueDkk": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årlig franchiseomsætning (DKK) hvis basis er omsætning."
+              },
+              "energyConsumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Årligt energiforbrug (kWh) hvis basis er energi."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "retailRevenue",
+                  "foodServiceRevenue",
+                  "hospitalityRevenue",
+                  "genericRevenue",
+                  "electricityEnergy",
+                  "districtHeatEnergy",
+                  "mixedEnergy"
+                ],
+                "description": "Valgt branchespecifik emissionsfaktor (kg CO2e/DKK eller kg CO2e/kWh)."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet i procent for linjen."
+              }
+            },
+            "required": [
+              "activityBasis"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -1575,39 +1655,53 @@
     "C13": {
       "type": "object",
       "title": "C13Input",
-      "description": "Scope 3 investeringer og finansielle aktiviteter (planlægning)",
+      "description": "Scope 3 investeringer og finansielle aktiviteter",
       "properties": {
-        "dataOwner": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 120,
-          "description": "Navn eller rolle for dataansvarlig."
-        },
-        "dataSource": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 240,
-          "description": "Primære systemer eller processer hvor data hentes."
-        },
-        "targetGoLiveQuarter": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 32,
-          "description": "Planlagt kvartal for fuld integration (fx Q1 2026)."
-        },
-        "notes": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 2000,
-          "description": "Supplerende noter om datakvalitet, antagelser eller governance."
+        "investmentLines": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "Investeringer med beløb i DKK og tilhørende emissionsintensitet.",
+          "items": {
+            "type": "object",
+            "title": "InvestmentLine",
+            "properties": {
+              "investedAmountDkk": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Beløb investeret i porteføljen (DKK)."
+              },
+              "emissionFactorKey": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "listedEquity",
+                  "corporateBonds",
+                  "sovereignBonds",
+                  "privateEquity",
+                  "realEstate",
+                  "infrastructure",
+                  "diversifiedPortfolio"
+                ],
+                "description": "Valgt emissionsintensitet (kg CO2e/DKK) for investeringen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet for data i procent."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

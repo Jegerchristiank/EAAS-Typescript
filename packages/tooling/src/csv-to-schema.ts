@@ -413,6 +413,179 @@ const b6Override = {
 } as const
 
 
+const leasedEnergyLineOverride = {
+  type: 'object',
+  title: 'LeasedAssetLine',
+  properties: {
+    floorAreaSqm: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Lejet areal (m²) der bruges til at estimere energiforbruget ved manglende data.'
+    },
+    energyConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt energiforbrug for linjen (kWh). Har forrang frem for arealberegnet energi.'
+    },
+    energyType: {
+      type: 'string',
+      enum: ['electricity', 'heat'],
+      description: 'Energitype for linjen, der afgør standardintensitet og emissionsfaktor.'
+    },
+    emissionFactorKgPerKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Emissionsfaktor (kg CO2e/kWh). Hvis tom anvendes standardværdien for energitypen.'
+    },
+    documentationQualityPercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Dokumentationskvalitet for linjen (%). Værdier under tærsklen flagges i UI.'
+    }
+  },
+  required: ['energyType'],
+  additionalProperties: false
+} as const
+
+const franchiseLineOverride = {
+  type: 'object',
+  title: 'FranchiseLine',
+  properties: {
+    activityBasis: {
+      type: 'string',
+      enum: ['revenue', 'energy'],
+      description: 'Angiver om linjen baseres på omsætning eller energiforbrug.'
+    },
+    revenueDkk: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årlig franchiseomsætning (DKK) hvis basis er omsætning.'
+    },
+    energyConsumptionKwh: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Årligt energiforbrug (kWh) hvis basis er energi.'
+    },
+    emissionFactorKey: {
+      type: ['string', 'null'],
+      enum: [
+        'retailRevenue',
+        'foodServiceRevenue',
+        'hospitalityRevenue',
+        'genericRevenue',
+        'electricityEnergy',
+        'districtHeatEnergy',
+        'mixedEnergy'
+      ],
+      description: 'Valgt branchespecifik emissionsfaktor (kg CO2e/DKK eller kg CO2e/kWh).'
+    },
+    documentationQualityPercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Dokumentationskvalitet i procent for linjen.'
+    }
+  },
+  required: ['activityBasis'],
+  additionalProperties: false
+} as const
+
+const investmentLineOverride = {
+  type: 'object',
+  title: 'InvestmentLine',
+  properties: {
+    investedAmountDkk: {
+      type: ['number', 'null'],
+      minimum: 0,
+      description: 'Beløb investeret i porteføljen (DKK).'
+    },
+    emissionFactorKey: {
+      type: ['string', 'null'],
+      enum: [
+        'listedEquity',
+        'corporateBonds',
+        'sovereignBonds',
+        'privateEquity',
+        'realEstate',
+        'infrastructure',
+        'diversifiedPortfolio'
+      ],
+      description: 'Valgt emissionsintensitet (kg CO2e/DKK) for investeringen.'
+    },
+    documentationQualityPercent: {
+      type: ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+      description: 'Dokumentationskvalitet for linjen (%).'
+    }
+  },
+  additionalProperties: false
+} as const
+
+const c10Override = {
+  type: 'object',
+  title: 'C10Input',
+  description: 'Scope 3 upstream leasede aktiver',
+  properties: {
+    leasedAssetLines: {
+      type: 'array',
+      maxItems: 20,
+      description:
+        'Linjer for upstream-leasede aktiver med enten målt energiforbrug eller arealbaseret estimat.',
+      items: leasedEnergyLineOverride
+    }
+  },
+  additionalProperties: false
+} as const
+
+const c11Override = {
+  type: 'object',
+  title: 'C11Input',
+  description: 'Scope 3 downstream leasede aktiver',
+  properties: {
+    leasedAssetLines: {
+      type: 'array',
+      maxItems: 20,
+      description:
+        'Linjer for leasede aktiver udlejet til kunder downstream med målt energi eller arealbaseret estimat.',
+      items: leasedEnergyLineOverride
+    }
+  },
+  additionalProperties: false
+} as const
+
+const c12Override = {
+  type: 'object',
+  title: 'C12Input',
+  description: 'Scope 3 franchising og downstream services',
+  properties: {
+    franchiseLines: {
+      type: 'array',
+      maxItems: 20,
+      description:
+        'Linjer for franchiser eller downstream services baseret på omsætning eller energiforbrug.',
+      items: franchiseLineOverride
+    }
+  },
+  additionalProperties: false
+} as const
+
+const c13Override = {
+  type: 'object',
+  title: 'C13Input',
+  description: 'Scope 3 investeringer og finansielle aktiviteter',
+  properties: {
+    investmentLines: {
+      type: 'array',
+      maxItems: 30,
+      description: 'Investeringer med beløb og emissionsintensitet (kg CO2e/DKK).',
+      items: investmentLineOverride
+    }
+  },
+  additionalProperties: false
+} as const
+
 const moduleOverrides: Record<string, unknown> = {
   A1: a1Override,
   A2: a2Override,
@@ -424,10 +597,10 @@ const moduleOverrides: Record<string, unknown> = {
   B4: b4Override,
   B5: b5Override,
   B6: b6Override,
-  C10: createPlanningOverride('C10Input', 'Scope 3 brug af solgte produkter (planlægning)'),
-  C11: createPlanningOverride('C11Input', 'Scope 3 slutbehandling af solgte produkter (planlægning)'),
-  C12: createPlanningOverride('C12Input', 'Scope 3 franchising og downstream services (planlægning)'),
-  C13: createPlanningOverride('C13Input', 'Scope 3 investeringer og finansielle aktiviteter (planlægning)'),
+  C10: c10Override,
+  C11: c11Override,
+  C12: c12Override,
+  C13: c13Override,
   C14: createPlanningOverride('C14Input', 'Scope 3 øvrige downstream aktiviteter (planlægning)'),
   C15: createPlanningOverride('C15Input', 'Scope 3 øvrige kategorioplysninger (planlægning)'),
   D1: createPlanningOverride('D1Input', 'CSRD/ESRS governance-krav (planlægning)')

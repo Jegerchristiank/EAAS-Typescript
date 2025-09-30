@@ -59,14 +59,7 @@ const FIELD_CONFIG: PlanningFieldConfig[] = [
   }
 ]
 
-type PlanningModuleId =
-  | 'C10'
-  | 'C11'
-  | 'C12'
-  | 'C13'
-  | 'C14'
-  | 'C15'
-  | 'D1'
+type PlanningModuleId = 'C14' | 'C15' | 'D1'
 
 type PlanningStepConfig = {
   moduleId: Extract<ModuleId, PlanningModuleId>
@@ -180,50 +173,6 @@ export function createPlanningStep(config: PlanningStepConfig): WizardStepCompon
 type PlanningModuleConfigMap = Record<PlanningModuleId, PlanningStepConfig>
 
 const PLANNING_CONFIGS: PlanningModuleConfigMap = {
-  C10: {
-    moduleId: 'C10',
-    title: 'C10 – Scope 3 brug af solgte produkter',
-    intro:
-      'Planlæg hvordan data for brugen af solgte produkter kan indsamles, så downstream emissioner kan kvantificeres.',
-    focusPoints: [
-      'Kortlæg hvilke produktgrupper der skal dækkes.',
-      'Angiv interne eller eksterne datakilder for brugsprofiler.',
-      'Notér eventuelle antagelser eller behov for scenarier.'
-    ]
-  },
-  C11: {
-    moduleId: 'C11',
-    title: 'C11 – Scope 3 slutbehandling af solgte produkter',
-    intro:
-      'Forbered dokumentation for affalds- og genanvendelsesforløb efter produktets levetid.',
-    focusPoints: [
-      'Identificér samarbejdspartnere og data for bortskaffelse.',
-      'Beskriv nuværende datakvalitet og potentielle huller.',
-      'Angiv governance for opdatering af antagelser.'
-    ]
-  },
-  C12: {
-    moduleId: 'C12',
-    title: 'C12 – Scope 3 franchising og downstream services',
-    intro:
-      'Franchise- og serviceaktiviteter kræver særskilt governance for dataadgang. Sammel oplysningerne her.',
-    focusPoints: [
-      'Notér hvilke partnere der skal levere data.',
-      'Angiv juridiske eller kontraktuelle hensyn.',
-      'Planlæg proces for løbende kvalitetssikring.'
-    ]
-  },
-  C13: {
-    moduleId: 'C13',
-    title: 'C13 – Scope 3 investeringer og finansielle aktiviteter',
-    intro:
-      'Forbered dokumentation for porteføljer og investeringsdata for at understøtte finansielle Scope 3-emissioner.',
-    focusPoints: [
-      'Identificér centrale finansielle systemer og datateam.',
-      'Notér hvilke metodestandarder der skal anvendes.',
-      'Beskriv governance for rapportering til investorer.'
-    ]
-  },
   C14: {
     moduleId: 'C14',
     title: 'C14 – Scope 3 øvrige downstream aktiviteter',
@@ -259,10 +208,6 @@ const PLANNING_CONFIGS: PlanningModuleConfigMap = {
   }
 }
 
-export const C10Step = createPlanningStep(PLANNING_CONFIGS.C10)
-export const C11Step = createPlanningStep(PLANNING_CONFIGS.C11)
-export const C12Step = createPlanningStep(PLANNING_CONFIGS.C12)
-export const C13Step = createPlanningStep(PLANNING_CONFIGS.C13)
 export const C14Step = createPlanningStep(PLANNING_CONFIGS.C14)
 export const C15Step = createPlanningStep(PLANNING_CONFIGS.C15)
 export const D1Step = createPlanningStep(PLANNING_CONFIGS.D1)
