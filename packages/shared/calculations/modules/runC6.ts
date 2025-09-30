@@ -16,7 +16,7 @@ export function runC6(input: ModuleInput): ModuleResult {
 
   const occupancyRatio = sanitised.occupancySharePercent * factors.c6.percentToRatio
   const sharedServiceRatio = sanitised.sharedServicesAllocationPercent * factors.c6.percentToRatio
-  const effectiveAllocationRatio = Math.max(0, Math.min(1, occupancyRatio * (1 - sharedServiceRatio)))
+  const effectiveAllocationRatio = Math.max(0, Math.min(1, occupancyRatio - sharedServiceRatio))
 
   const electricityDemandKwh = sanitised.leasedFloorAreaSqm * sanitised.electricityIntensityKwhPerSqm
   const heatDemandKwh = sanitised.leasedFloorAreaSqm * sanitised.heatIntensityKwhPerSqm
