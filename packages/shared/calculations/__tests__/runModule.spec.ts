@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import type { ModuleInput } from '../../types'
-import { createDefaultResult } from '../runModule'
+import { createDefaultResult, runModule } from '../runModule'
 import { runB1 } from '../modules/runB1'
 import { runB2 } from '../modules/runB2'
 import { runB3 } from '../modules/runB3'
@@ -30,6 +30,27 @@ describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
     const result = createDefaultResult('B2', { B2: 42 } as ModuleInput)
     expect(result).toMatchSnapshot()
+  })
+})
+
+describe('planned modules', () => {
+  it('markerer A1 som stub og bevarer planlægningsdata', () => {
+    const input: ModuleInput = {
+      A1: {
+        dataOwner: 'ESG-team',
+        dataSource: 'Energi-logger',
+        targetGoLiveQuarter: 'Q4 2025',
+        notes: 'Afventer metodik fra rådgiver.'
+      }
+    }
+
+    const result = runModule('A1', input)
+
+    expect(result.value).toBe(0)
+    expect(result.unit).toBe('n/a')
+    expect(result.assumptions[0]).toContain('Stubberegning')
+    expect(result.trace[0]).toContain('ESG-team')
+    expect(result.warnings).toHaveLength(1)
   })
 })
 

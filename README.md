@@ -17,6 +17,12 @@ ESG-as-a-Service (ESG reporting platform)
 - Format code with `pnpm run format` (or check via `pnpm run format:check`).
 - CI kører de samme kvalitetskontroller på hver pull request.
 
+## Moduloverblik
+
+- Scope 2-modulerne B1–B11 er fuldt implementeret med beregninger, UI og tests.
+- Scope 1-modulerne (A1–A4), Scope 3-udvidelserne (C10–C15) og governance-modulet D1 er tilføjet som planlægningssteps med
+  schemaer, stubberegninger og UI, så dataejere og go-live-planer kan registreres inden beregningslogik leveres.
+
 ## Publishing
 
 - Se [publish-runbooken](docs/runbooks/publishing.md) for hvordan du genererer en midlertidig `~/.npmrc`, når du skal udgive pakker.

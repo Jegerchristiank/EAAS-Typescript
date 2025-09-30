@@ -3,7 +3,9 @@
  */
 'use client'
 
+import type { ModuleId } from '@org/shared'
 import type { WizardStepComponent } from './StepTemplate'
+import { A1Step, A2Step, A3Step, A4Step, C10Step, C11Step, C12Step, C13Step, C14Step, C15Step, D1Step } from './PlanningSteps'
 import { B1Step } from './B1'
 import { B2Step } from './B2'
 import { B3Step } from './B3'
@@ -26,30 +28,47 @@ import { C8Step } from './C8'
 import { C9Step } from './C9'
 
 export type WizardStep = {
-  id: string
+  id: ModuleId
   label: string
   component: WizardStepComponent
+  scope: WizardScope
+  status: WizardStepStatus
 }
 
+export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Governance'
+
+export type WizardStepStatus = 'ready' | 'planned'
+
 export const wizardSteps: WizardStep[] = [
-  { id: 'B1', label: 'B1 – Scope 2 elforbrug', component: B1Step },
-  { id: 'B2', label: 'B2 – Scope 2 varmeforbrug', component: B2Step },
-  { id: 'B3', label: 'B3 – Scope 2 køleforbrug', component: B3Step },
-  { id: 'B4', label: 'B4 – Scope 2 dampforbrug', component: B4Step },
-  { id: 'B5', label: 'B5 – Scope 2 øvrige energileverancer', component: B5Step },
-  { id: 'B6', label: 'B6 – Scope 2 nettab i elnettet', component: B6Step },
-  { id: 'B7', label: 'B7 – Dokumenteret vedvarende el', component: B7Step },
-  { id: 'B8', label: 'B8 – Egenproduceret vedvarende el', component: B8Step },
-  { id: 'B9', label: 'B9 – Fysisk PPA for vedvarende el', component: B9Step },
-  { id: 'B10', label: 'B10 – Virtuel PPA for vedvarende el', component: B10Step },
-  { id: 'B11', label: 'B11 – Time-matchede certifikater for vedvarende el', component: B11Step },
-  { id: 'C1', label: 'C1 – Medarbejderpendling', component: C1Step },
-  { id: 'C2', label: 'C2 – Forretningsrejser', component: C2Step },
-  { id: 'C3', label: 'C3 – Brændstof- og energirelaterede aktiviteter', component: C3Step },
-  { id: 'C4', label: 'C4 – Transport og distribution (upstream)', component: C4Step },
-  { id: 'C5', label: 'C5 – Affald fra drift (upstream)', component: C5Step },
-  { id: 'C6', label: 'C6 – Udlejede aktiver (upstream)', component: C6Step },
-  { id: 'C7', label: 'C7 – Transport og distribution (downstream)', component: C7Step },
-  { id: 'C8', label: 'C8 – Udlejede aktiver (downstream)', component: C8Step },
-  { id: 'C9', label: 'C9 – Forarbejdning af solgte produkter', component: C9Step }
+  { id: 'B1', label: 'B1 – Scope 2 elforbrug', component: B1Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B2', label: 'B2 – Scope 2 varmeforbrug', component: B2Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B3', label: 'B3 – Scope 2 køleforbrug', component: B3Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B4', label: 'B4 – Scope 2 dampforbrug', component: B4Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B5', label: 'B5 – Scope 2 øvrige energileverancer', component: B5Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B6', label: 'B6 – Scope 2 nettab i elnettet', component: B6Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B7', label: 'B7 – Dokumenteret vedvarende el', component: B7Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B8', label: 'B8 – Egenproduceret vedvarende el', component: B8Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B9', label: 'B9 – Fysisk PPA for vedvarende el', component: B9Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B10', label: 'B10 – Virtuel PPA for vedvarende el', component: B10Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'B11', label: 'B11 – Time-matchede certifikater for vedvarende el', component: B11Step, scope: 'Scope 2', status: 'ready' },
+  { id: 'A1', label: 'A1 – Scope 1 stationære forbrændingskilder', component: A1Step, scope: 'Scope 1', status: 'planned' },
+  { id: 'A2', label: 'A2 – Scope 1 mobile forbrændingskilder', component: A2Step, scope: 'Scope 1', status: 'planned' },
+  { id: 'A3', label: 'A3 – Scope 1 procesemissioner', component: A3Step, scope: 'Scope 1', status: 'planned' },
+  { id: 'A4', label: 'A4 – Scope 1 flugtige emissioner', component: A4Step, scope: 'Scope 1', status: 'planned' },
+  { id: 'C1', label: 'C1 – Medarbejderpendling', component: C1Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C2', label: 'C2 – Forretningsrejser', component: C2Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C3', label: 'C3 – Brændstof- og energirelaterede aktiviteter', component: C3Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C4', label: 'C4 – Transport og distribution (upstream)', component: C4Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C5', label: 'C5 – Affald fra drift (upstream)', component: C5Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C6', label: 'C6 – Udlejede aktiver (upstream)', component: C6Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C7', label: 'C7 – Transport og distribution (downstream)', component: C7Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C8', label: 'C8 – Udlejede aktiver (downstream)', component: C8Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C9', label: 'C9 – Forarbejdning af solgte produkter', component: C9Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C10', label: 'C10 – Brug af solgte produkter', component: C10Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C11', label: 'C11 – Slutbehandling af solgte produkter', component: C11Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C12', label: 'C12 – Franchising og downstream services', component: C12Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C14', label: 'C14 – Øvrige downstream aktiviteter', component: C14Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'D1', label: 'D1 – CSRD/ESRS governance-krav', component: D1Step, scope: 'Governance', status: 'planned' }
 ]

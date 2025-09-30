@@ -39,6 +39,39 @@ const typeMap: Record<string, unknown> = {
   object: { type: 'object' }
 }
 
+const planningProperties = {
+  dataOwner: {
+    type: ['string', 'null'],
+    maxLength: 120,
+    description: 'Navn eller rolle for dataansvarlig.'
+  },
+  dataSource: {
+    type: ['string', 'null'],
+    maxLength: 240,
+    description: 'Primære systemer eller processer hvor data hentes.'
+  },
+  targetGoLiveQuarter: {
+    type: ['string', 'null'],
+    maxLength: 32,
+    description: 'Planlagt kvartal for fuld integration (fx Q1 2026).'
+  },
+  notes: {
+    type: ['string', 'null'],
+    maxLength: 2000,
+    description: 'Supplerende noter om datakvalitet, antagelser eller governance.'
+  }
+} as const
+
+function createPlanningOverride(title: string, description: string) {
+  return {
+    type: 'object',
+    title,
+    description,
+    properties: planningProperties,
+    additionalProperties: false
+  } as const
+}
+
 const b2Override = {
   type: 'object',
   title: 'B2Input',
@@ -192,12 +225,23 @@ const b6Override = {
 
 
 const moduleOverrides: Record<string, unknown> = {
+  A1: createPlanningOverride('A1Input', 'Scope 1 stationære forbrændingskilder (planlægning)'),
+  A2: createPlanningOverride('A2Input', 'Scope 1 mobile forbrændingskilder (planlægning)'),
+  A3: createPlanningOverride('A3Input', 'Scope 1 procesemissioner (planlægning)'),
+  A4: createPlanningOverride('A4Input', 'Scope 1 flugtige emissioner (planlægning)'),
   B1: b1Override,
   B2: b2Override,
   B3: b3Override,
   B4: b4Override,
   B5: b5Override,
-  B6: b6Override
+  B6: b6Override,
+  C10: createPlanningOverride('C10Input', 'Scope 3 brug af solgte produkter (planlægning)'),
+  C11: createPlanningOverride('C11Input', 'Scope 3 slutbehandling af solgte produkter (planlægning)'),
+  C12: createPlanningOverride('C12Input', 'Scope 3 franchising og downstream services (planlægning)'),
+  C13: createPlanningOverride('C13Input', 'Scope 3 investeringer og finansielle aktiviteter (planlægning)'),
+  C14: createPlanningOverride('C14Input', 'Scope 3 øvrige downstream aktiviteter (planlægning)'),
+  C15: createPlanningOverride('C15Input', 'Scope 3 øvrige kategorioplysninger (planlægning)'),
+  D1: createPlanningOverride('D1Input', 'CSRD/ESRS governance-krav (planlægning)')
 }
 
 export async function convertCsvToSchema(csvPath: string): Promise<Record<string, unknown>> {
