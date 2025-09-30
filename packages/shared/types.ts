@@ -33,8 +33,7 @@ import type {
   C13Input,
   C14Input,
   C15Input,
-  D1Input,
-  PlanningModuleInput
+  D1Input
 } from './schema'
 
 
@@ -127,7 +126,6 @@ export type CalculatedModuleResult = {
 }
 
 export type {
-  PlanningModuleInput,
   A1Input,
   A2Input,
   A3Input,

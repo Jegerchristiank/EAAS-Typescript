@@ -40,13 +40,7 @@ import { runC12 } from './modules/runC12'
 import { runC13 } from './modules/runC13'
 import { runC14 } from './modules/runC14'
 import { runC15 } from './modules/runC15'
-
-type PlannedModuleId = 'D1'
-
-const plannedModuleMessages: Record<PlannedModuleId, string> = {
-
-  D1: 'CSRD/ESRS governance-kravet afventer komplet metode. Indtast kontaktpunkter og status for policies.'
-}
+import { runD1 } from './modules/runD1'
 
 const moduleTitles: Record<ModuleId, string> = {
   A1: 'A1 – Scope 1 stationære forbrændingskilder',
@@ -79,7 +73,7 @@ const moduleTitles: Record<ModuleId, string> = {
   C13: 'C13 – Investeringer og finansielle aktiviteter',
   C14: 'C14 – Behandling af solgte produkter',
   C15: 'C15 – Øvrige kategorioplysninger',
-  D1: 'D1 – CSRD/ESRS governance-krav (planlagt)'
+  D1: 'D1 – Metode & governance'
 }
 
 export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
@@ -113,7 +107,7 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C13: runC13,
   C14: runC14,
   C15: runC15,
-  D1: (input) => createPlanningStubResult('D1', input)
+  D1: runD1
 }
 
 export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): ModuleResult {
@@ -132,28 +126,6 @@ export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): Mod
 export function runModule(moduleId: ModuleId, input: ModuleInput): ModuleResult {
   const calculator = moduleCalculators[moduleId]
   return calculator(input)
-}
-
-function createPlanningStubResult(moduleId: PlannedModuleId, input: ModuleInput): ModuleResult {
-  const payload = input[moduleId]
-  const tracePayload =
-    payload == null
-      ? 'null'
-      : typeof payload === 'object'
-        ? JSON.stringify(payload)
-        : String(payload)
-
-  return {
-    value: 0,
-    unit: 'n/a',
-    assumptions: [
-      'Stubberegning',
-      'Modul er planlagt og afventer fuld beregning.',
-      plannedModuleMessages[moduleId]
-    ],
-    trace: [`Stub(${moduleId})=${tracePayload}`],
-    warnings: ['Resultatet udelades fra rapporter, indtil beregningsmetoden er implementeret.']
-  }
 }
 
 export function aggregateResults(input: ModuleInput): CalculatedModuleResult[] {

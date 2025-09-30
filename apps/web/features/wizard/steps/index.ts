@@ -9,7 +9,7 @@ import { A1Step } from './A1'
 import { A2Step } from './A2'
 import { A3Step } from './A3'
 import { A4Step } from './A4'
-import { D1Step } from './PlanningSteps'
+import { D1Step } from './D1'
 import { B1Step } from './B1'
 import { B2Step } from './B2'
 import { B3Step } from './B3'
@@ -80,5 +80,5 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C14', label: 'C14 – Behandling af solgte produkter', component: C14Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'ready' },
-  { id: 'D1', label: 'D1 – CSRD/ESRS governance-krav', component: D1Step, scope: 'Governance', status: 'planned' }
+  { id: 'D1', label: 'D1 – Metode & governance', component: D1Step, scope: 'Governance', status: 'ready' }
 ]

@@ -29,5 +29,5 @@
   "C13": "Scope 3 investeringer: Σ (investeret beløb × emissionsintensitet i kg CO₂e/DKK) konverteret til ton CO₂e.",
   "C14": "C14 = \u2211 (tonnage * emissionsfaktor (kg CO2e/ton)) / 1000 med standardværdier for genanvendelse, forbrænding og deponi.",
   "C15": "Scope 3 screening: Σ (estimeret mængde × valgt emissionsfaktor) / 1000 for de relevante kategorier.",
-  "D1": "Planlagt modul – CSRD/ESRS governance-krav dokumenteres og beregnes senere."
+  "D1": "D1 governance-score = gennemsnit af seks governance-dimensioner (organisatorisk afgrænsning, Scope 2 metode, Scope 3 screening, datakvalitet, væsentlighed og strategi) × 100."
 }
