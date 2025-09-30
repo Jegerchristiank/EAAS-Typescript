@@ -44,6 +44,7 @@ import { runC15 } from './modules/runC15'
 type PlannedModuleId = 'D1'
 
 const plannedModuleMessages: Record<PlannedModuleId, string> = {
+
   D1: 'CSRD/ESRS governance-kravet afventer komplet metode. Indtast kontaktpunkter og status for policies.'
 }
 

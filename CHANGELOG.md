@@ -42,7 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt C8-modul for Scope 3 udlejede aktiver (downstream) med schema, beregning, UI og tests.
 - Fuldt C9-modul for Scope 3 forarbejdning af solgte produkter med schema, beregning, UI og tests.
 - Fuldt C10-modul for Scope 3 upstream leasede aktiver med schema, beregning, UI og tests.
-- Udvidet dokumentation for Scope 1-modulerne A1–A3 med standardfaktorer, valideringer og antagelser.
 - Fuldt C11-modul for Scope 3 downstream leasede aktiver med schema, beregning, UI og tests.
 - Fuldt C12-modul for Scope 3 franchising og downstream services med schema, beregning, UI og tests.
 - Fuldt C13-modul for Scope 3 investeringer og finansielle aktiviteter med schema, beregning, UI og tests.

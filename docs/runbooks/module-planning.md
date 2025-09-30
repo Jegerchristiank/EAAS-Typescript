@@ -24,6 +24,7 @@ Denne runbook beskriver, hvordan planlægningsmodulet for governance (D1) bruges
 - PDF-downloaden filtrerer automatisk planlægningsmodulet væk, så det ikke påvirker eksisterende rapporter.
 - Review-siden markerer tydeligt, at D1 endnu ikke har beregningslogik.
 
+
 ## Dataudtræk og videreudvikling
 
 - Shared-pakken eksponerer `PlanningModuleInput`-typen, som kan bruges til at etablere backend- eller rapportintegrationer, hvis
