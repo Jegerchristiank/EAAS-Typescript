@@ -47,7 +47,7 @@ export default function ReviewPage(): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h1>Review og download</h1>
         <p style={{ maxWidth: '48rem' }}>
-          Et overblik over beregnede Scope 1- og Scope 2-resultater samt planlagte udvidelser. Scope 3-udvidelserne (C10–C15)
+          Et overblik over beregnede Scope 1- og Scope 3-resultater samt planlagte udvidelser. Scope 3-udvidelserne (C14–C15)
           og governance-modulet D1 er klar til planlægningsinput og udelades automatisk fra PDF, indtil deres beregninger er
           implementeret.
         </p>
@@ -139,8 +139,8 @@ function EmptyCard(): JSX.Element {
     <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
-        Når du udfylder de beregningsklare Scope 1- og Scope 2-moduler vises resultaterne her. Planlægningsmodulerne for Scope 3
-        (C10–C15) og D1 registrerer governance- og dataejere men genererer ikke emissionsresultater endnu.
+        Når du udfylder de beregningsklare Scope 1- og Scope 3-moduler vises resultaterne her. Planlægningsmodulerne for Scope 3
+        (C14–C15) og D1 registrerer governance- og dataejere men genererer ikke emissionsresultater endnu.
 
       </p>
     </section>

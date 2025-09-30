@@ -9,7 +9,7 @@ ESG-as-a-Service (ESG reporting platform)
 - [Migrations](docs/migrations)
 - [Runbooks](docs/runbooks)
 - [Changelog](CHANGELOG.md)
-- [Scope 1 modulreference](docs/modules/scope-1.md)
+- [Modulreferencer](docs/modules)
 
 ## Development quickstart
 
@@ -22,8 +22,9 @@ ESG-as-a-Service (ESG reporting platform)
 
 - Scope 2-modulerne B1–B11 er fuldt implementeret med beregninger, UI og tests.
 - Scope 1-modulerne A1–A4 er implementeret med dynamisk brændsels-, proces- og kølemiddelregistrering, beregninger og UI.
-- Scope 3-udvidelserne (C10–C15) og governance-modulet D1 er fortsat planlægningssteps med schemaer, stubberegninger og UI,
-  så dataejere og go-live-planer kan registreres inden beregningslogik leveres.
+- Scope 3 C10 (upstream leasede aktiver), C11 (downstream leasede aktiver), C12 (franchising og downstream services) og C13 (investeringer og finansielle aktiviteter) er implementeret med schema, beregning, UI og tests.
+- Scope 3-udvidelserne C14–C15 og governance-modulet D1 er fortsat planlægningssteps med schemaer, stubberegninger og UI, så
+  dataejere og go-live-planer kan registreres inden beregningslogik leveres.
 
 ## Publishing
 

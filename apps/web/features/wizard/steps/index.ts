@@ -9,7 +9,7 @@ import { A1Step } from './A1'
 import { A2Step } from './A2'
 import { A3Step } from './A3'
 import { A4Step } from './A4'
-import { C10Step, C11Step, C12Step, C13Step, C14Step, C15Step, D1Step } from './PlanningSteps'
+import { C14Step, C15Step, D1Step } from './PlanningSteps'
 import { B1Step } from './B1'
 import { B2Step } from './B2'
 import { B3Step } from './B3'
@@ -30,6 +30,10 @@ import { C6Step } from './C6'
 import { C7Step } from './C7'
 import { C8Step } from './C8'
 import { C9Step } from './C9'
+import { C10Step } from './C10'
+import { C11Step } from './C11'
+import { C12Step } from './C12'
+import { C13Step } from './C13'
 
 export type WizardStep = {
   id: ModuleId
@@ -68,10 +72,10 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C7', label: 'C7 – Transport og distribution (downstream)', component: C7Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C8', label: 'C8 – Udlejede aktiver (downstream)', component: C8Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C9', label: 'C9 – Forarbejdning af solgte produkter', component: C9Step, scope: 'Scope 3', status: 'ready' },
-  { id: 'C10', label: 'C10 – Brug af solgte produkter', component: C10Step, scope: 'Scope 3', status: 'planned' },
-  { id: 'C11', label: 'C11 – Slutbehandling af solgte produkter', component: C11Step, scope: 'Scope 3', status: 'planned' },
-  { id: 'C12', label: 'C12 – Franchising og downstream services', component: C12Step, scope: 'Scope 3', status: 'planned' },
-  { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'planned' },
+  { id: 'C10', label: 'C10 – Upstream leasede aktiver', component: C10Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C11', label: 'C11 – Downstream leasede aktiver', component: C11Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C12', label: 'C12 – Franchising og downstream services', component: C12Step, scope: 'Scope 3', status: 'ready' },
+  { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C14', label: 'C14 – Øvrige downstream aktiviteter', component: C14Step, scope: 'Scope 3', status: 'planned' },
   { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'planned' },
   { id: 'D1', label: 'D1 – CSRD/ESRS governance-krav', component: D1Step, scope: 'Governance', status: 'planned' }

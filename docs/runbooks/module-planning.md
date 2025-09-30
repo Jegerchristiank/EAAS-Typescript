@@ -1,6 +1,6 @@
 # Planlægningsrunbook – kommende ESG-moduler
 
-Denne runbook beskriver, hvordan planlægningsmodulerne (Scope 3 C10–C15 samt governance-modulet D1) bruges frem til de fulde
+Denne runbook beskriver, hvordan planlægningsmodulerne (Scope 3 C14–C15 samt governance-modulet D1) bruges frem til de fulde
 beregninger leveres.
 
 ## Formål
@@ -23,7 +23,7 @@ beregninger leveres.
 
 - Planlægningsmoduler returnerer værdien `0` med enheden `n/a` og antagelsen "Stubberegning".
 - PDF-downloaden filtrerer automatisk planlægningsmoduler væk, så de ikke påvirker eksisterende rapporter.
-- Review-siden markerer tydeligt, at C10–C15 og D1 endnu ikke har beregningslogik.
+- Review-siden markerer tydeligt, at C14–C15 og D1 endnu ikke har beregningslogik.
 
 ## Dataudtræk og videreudvikling
 
