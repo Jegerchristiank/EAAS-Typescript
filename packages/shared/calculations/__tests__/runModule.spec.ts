@@ -3,7 +3,10 @@
  */
 import { describe, expect, it } from 'vitest'
 import type { ModuleInput } from '../../types'
-import { createDefaultResult, runModule } from '../runModule'
+import { createDefaultResult } from '../runModule'
+import { runA2 } from '../modules/runA2'
+import { runA3 } from '../modules/runA3'
+import { runA4 } from '../modules/runA4'
 import { runB1 } from '../modules/runB1'
 import { runB2 } from '../modules/runB2'
 import { runB3 } from '../modules/runB3'
@@ -25,6 +28,7 @@ import { runC6 } from '../modules/runC6'
 import { runC7 } from '../modules/runC7'
 import { runC8 } from '../modules/runC8'
 import { runC9 } from '../modules/runC9'
+import { runA1 } from '../modules/runA1'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -33,24 +37,261 @@ describe('createDefaultResult', () => {
   })
 })
 
-describe('planned modules', () => {
-  it('markerer A1 som stub og bevarer planlægningsdata', () => {
+describe('runA2', () => {
+  it('summerer mobile kilder og beregner intensitet', () => {
     const input: ModuleInput = {
-      A1: {
-        dataOwner: 'ESG-team',
-        dataSource: 'Energi-logger',
-        targetGoLiveQuarter: 'Q4 2025',
-        notes: 'Afventer metodik fra rådgiver.'
+      A2: {
+        vehicleConsumptions: [
+          {
+            fuelType: 'diesel',
+            unit: 'liter',
+            quantity: 1_500,
+            emissionFactorKgPerUnit: null,
+            distanceKm: 42_000,
+            documentationQualityPercent: 58
+          },
+          {
+            fuelType: 'biodiesel',
+            unit: 'liter',
+            quantity: 600,
+            emissionFactorKgPerUnit: 1.2,
+            distanceKm: null,
+            documentationQualityPercent: 90
+          }
+        ]
       }
     }
 
-    const result = runModule('A1', input)
+    const result = runA2(input)
+
+    expect(result.value).toBe(4.74)
+    expect(result.unit).toBe(factors.a2.unit)
+    expect(result.trace).toContain('totalEmissionsKg=4740')
+    expect(result.trace).toContain('fleetEmissionsKgPerKm=0.11285714285714285')
+    expect(result.assumptions).toContain(
+      'Standardfaktor for Diesel: 2.68 kg CO2e/liter.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Diesel anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Diesel er kun 58%. Overvej at forbedre dokumentation eller anvende konservative antagelser.'
+    )
+  })
+
+  it('filtrerer ugyldige rækker og informerer brugeren', () => {
+    const input: ModuleInput = {
+      A2: {
+        vehicleConsumptions: [
+          {
+            fuelType: 'ukendt' as never,
+            unit: 'gallon' as never,
+            quantity: -10,
+            emissionFactorKgPerUnit: -1,
+            distanceKm: -500,
+            documentationQualityPercent: 150
+          }
+        ]
+      }
+    }
+
+    const result = runA2(input)
 
     expect(result.value).toBe(0)
-    expect(result.unit).toBe('n/a')
-    expect(result.assumptions[0]).toContain('Stubberegning')
-    expect(result.trace[0]).toContain('ESG-team')
-    expect(result.warnings).toHaveLength(1)
+    expect(result.trace).toEqual([
+      'totalEmissionsKg=0',
+      'totalEmissionsTonnes=0',
+      'totalDistanceKm=0'
+    ])
+    expect(result.warnings).toEqual([
+      'Ukendt brændstoftype på linje 1. Standard (Diesel) anvendes.',
+      'Ugyldig enhed på linje 1. liter anvendes i stedet.',
+      'Mængden på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Emissionsfaktoren på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Distance kan ikke være negativ på linje 1. 0 km anvendes i stedet.',
+      'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
+      'Ingen gyldige mobile linjer kunne beregnes. Kontrollér indtastningerne.'
+    ])
+  })
+})
+
+describe('runA3', () => {
+  it('beregner procesemissioner og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      A3: {
+        processLines: [
+          {
+            processType: 'cementClinker',
+            outputQuantityTon: 1_000,
+            emissionFactorKgPerTon: null,
+            documentationQualityPercent: 78
+          },
+          {
+            processType: 'aluminiumSmelting',
+            outputQuantityTon: 200,
+            emissionFactorKgPerTon: 1_700,
+            documentationQualityPercent: 55
+          }
+        ]
+      }
+    }
+
+    const result = runA3(input)
+
+    expect(result.value).toBe(850)
+    expect(result.unit).toBe(factors.a3.unit)
+    expect(result.trace).toContain('totalEmissionsKg=850000')
+    expect(result.assumptions).toContain(
+      'Standardfaktor for Cementklinker (CaCO₃ → CaO): 510 kg CO2e/ton.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Cementklinker (CaCO₃ → CaO) anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Primær aluminiumselektrolyse er kun 55%. Overvej at forbedre dokumentation eller anvende konservative antagelser.'
+    )
+  })
+
+  it('filtrerer ugyldige proceslinjer', () => {
+    const input: ModuleInput = {
+      A3: {
+        processLines: [
+          {
+            processType: 'ukendt' as never,
+            outputQuantityTon: -4,
+            emissionFactorKgPerTon: -10,
+            documentationQualityPercent: 140
+          }
+        ]
+      }
+    }
+
+    const result = runA3(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toEqual(['totalEmissionsKg=0', 'totalEmissionsTonnes=0'])
+    expect(result.warnings).toEqual([
+      'Ukendt proces på linje 1. Standard (Cementklinker (CaCO₃ → CaO)) anvendes.',
+      'Outputmængden på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Emissionsfaktoren på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
+      'Ingen gyldige proceslinjer kunne beregnes. Kontrollér indtastningerne.'
+    ])
+  })
+})
+
+describe('runA4', () => {
+  it('beregner lækageemissioner med standardværdier og advarsler', () => {
+    const input: ModuleInput = {
+      A4: {
+        refrigerantLines: [
+          {
+            refrigerantType: 'hfc134a',
+            systemChargeKg: 200,
+            leakagePercent: null,
+            gwp100: null,
+            documentationQualityPercent: 82
+          },
+          {
+            refrigerantType: 'sf6',
+            systemChargeKg: 50,
+            leakagePercent: 5,
+            gwp100: 23_000,
+            documentationQualityPercent: 40
+          }
+        ]
+      }
+    }
+
+    const result = runA4(input)
+
+    expect(result.value).toBe(86.1)
+    expect(result.unit).toBe(factors.a4.unit)
+    expect(result.trace).toContain('totalEmissionsKg=86100')
+    expect(result.assumptions).toContain(
+      'Standard lækageandel for HFC-134a (R-134a): 10%.'
+    )
+    expect(result.assumptions).toContain(
+      'Standard GWP100 for HFC-134a (R-134a): 1430.'
+    )
+    expect(result.warnings).toContain(
+      'Lækageandel mangler på linje 1. Standard på 10% anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'GWP100 mangler på linje 1. Standardværdi for HFC-134a (R-134a) anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for SF₆ (svovlhexafluorid) er kun 40%. Overvej at forbedre lækagekontrol, logning eller anvende konservative antagelser.'
+    )
+  })
+
+  it('filtrerer ugyldige kølemiddellinjer', () => {
+    const input: ModuleInput = {
+      A4: {
+        refrigerantLines: [
+          {
+            refrigerantType: 'ukendt' as never,
+            systemChargeKg: -25,
+            leakagePercent: 140,
+            gwp100: -5,
+            documentationQualityPercent: 150
+          }
+        ]
+      }
+    }
+
+    const result = runA4(input)
+
+    expect(result.value).toBe(0)
+    expect(result.trace).toEqual(['totalEmissionsKg=0', 'totalEmissionsTonnes=0'])
+    expect(result.warnings).toEqual([
+      'Ukendt kølemiddel på linje 1. Standard (HFC-134a (R-134a)) anvendes.',
+      'Fyldningen på linje 1 kan ikke være negativ. 0 kg anvendes i stedet.',
+      'Lækageandelen på linje 1 er begrænset til 100%.',
+      'GWP100 på linje 1 kan ikke være negativ. 0 anvendes i stedet.',
+      'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
+      'Ingen gyldige kølemiddellinjer kunne beregnes. Kontrollér indtastningerne.'
+    ])
+  })
+})
+
+describe('runA1', () => {
+  it('summerer brændsler med standardfaktorer og markerer lav dokumentation', () => {
+    const input: ModuleInput = {
+      A1: {
+        fuelConsumptions: [
+          {
+            fuelType: 'naturgas',
+            unit: 'Nm³',
+            quantity: 1_200,
+            emissionFactorKgPerUnit: null,
+            documentationQualityPercent: 85
+          },
+          {
+            fuelType: 'diesel',
+            unit: 'liter',
+            quantity: 500,
+            emissionFactorKgPerUnit: 2.68,
+            documentationQualityPercent: 55
+          }
+        ]
+      }
+    }
+
+    const result = runA1(input)
+
+    expect(result.value).toBe(3.8)
+    expect(result.unit).toBe(factors.a1.unit)
+    expect(result.trace).toContain('totalEmissionsKg=3800')
+    expect(result.assumptions).toContain(
+      'Standardfaktor for Naturgas: 2.05 kg CO2e/Nm³.'
+    )
+    expect(result.warnings).toContain(
+      'Emissionsfaktor mangler på linje 1. Standardfaktor for Naturgas anvendes.'
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet for Diesel er kun 55%. Overvej at forbedre dokumentation eller anvende konservative antagelser.'
+    )
   })
 })
 

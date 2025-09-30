@@ -13,10 +13,67 @@ const planningInputSchema = z
   })
   .strict()
 
-export const a1InputSchema = planningInputSchema
-export const a2InputSchema = planningInputSchema
-export const a3InputSchema = planningInputSchema
-export const a4InputSchema = planningInputSchema
+const a1FuelConsumptionSchema = z
+  .object({
+    fuelType: z.enum(['naturgas', 'diesel', 'fyringsolie', 'biogas']),
+    unit: z.enum(['liter', 'Nm³', 'kg']),
+    quantity: z.number().min(0).nullable(),
+    emissionFactorKgPerUnit: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a1InputSchema = z
+  .object({
+    fuelConsumptions: z.array(a1FuelConsumptionSchema).max(12).optional()
+  })
+  .strict()
+const a2FuelConsumptionSchema = z
+  .object({
+    fuelType: z.enum(['benzin', 'diesel', 'biodiesel', 'cng']),
+    unit: z.enum(['liter', 'kg']),
+    quantity: z.number().min(0).nullable(),
+    emissionFactorKgPerUnit: z.number().min(0).nullable(),
+    distanceKm: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a2InputSchema = z
+  .object({
+    vehicleConsumptions: z.array(a2FuelConsumptionSchema).max(20).optional()
+  })
+  .strict()
+const a3ProcessLineSchema = z
+  .object({
+    processType: z.enum(['cementClinker', 'limeCalcination', 'ammoniaProduction', 'aluminiumSmelting']),
+    outputQuantityTon: z.number().min(0).nullable(),
+    emissionFactorKgPerTon: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a3InputSchema = z
+  .object({
+    processLines: z.array(a3ProcessLineSchema).max(20).optional()
+  })
+  .strict()
+
+const a4RefrigerantLineSchema = z
+  .object({
+    refrigerantType: z.enum(['hfc134a', 'hfc125', 'hfc32', 'r410a', 'r407c', 'sf6']),
+    systemChargeKg: z.number().min(0).nullable(),
+    leakagePercent: z.number().min(0).max(100).nullable(),
+    gwp100: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const a4InputSchema = z
+  .object({
+    refrigerantLines: z.array(a4RefrigerantLineSchema).max(20).optional()
+  })
+  .strict()
 
 export const b1InputSchema = z
   .object({

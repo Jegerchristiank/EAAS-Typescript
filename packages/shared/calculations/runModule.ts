@@ -10,6 +10,10 @@ import {
   type ModuleResult
 } from '../types'
 import { factors } from './factors'
+import { runA1 } from './modules/runA1'
+import { runA2 } from './modules/runA2'
+import { runA3 } from './modules/runA3'
+import { runA4 } from './modules/runA4'
 import { runB1 } from './modules/runB1'
 import { runB2 } from './modules/runB2'
 import { runB3 } from './modules/runB3'
@@ -32,10 +36,6 @@ import { runC8 } from './modules/runC8'
 import { runC9 } from './modules/runC9'
 
 type PlannedModuleId =
-  | 'A1'
-  | 'A2'
-  | 'A3'
-  | 'A4'
   | 'C10'
   | 'C11'
   | 'C12'
@@ -45,10 +45,6 @@ type PlannedModuleId =
   | 'D1'
 
 const plannedModuleMessages: Record<PlannedModuleId, string> = {
-  A1: 'Scope 1 stationære forbrændingskilder modelleres i næste bølge. Dokumentér ejerskab og datakilder her.',
-  A2: 'Scope 1 mobile forbrændingskilder kortlægges snart. Indsaml ansvarlige teams og systemintegrationer.',
-  A3: 'Scope 1 procesemissioner kræver yderligere metodevalg. Brug felterne til at planlægge datatilgængelighed.',
-  A4: 'Scope 1 flugtige emissioner (fx kølemidler) tilføjes i næste release. Forbered governance og dataveje.',
   C10: 'Scope 3 brug af solgte produkter kræver downstream performance-data. Registrér plan for dataindsamling.',
   C11: 'Scope 3 slutbehandling af solgte produkter forberedes. Angiv ansvarlige og forventede kilder.',
   C12: 'Scope 3 franchising og downstream services kortlægges. Notér ejerskab og næste skridt.',
@@ -59,10 +55,10 @@ const plannedModuleMessages: Record<PlannedModuleId, string> = {
 }
 
 const moduleTitles: Record<ModuleId, string> = {
-  A1: 'A1 – Scope 1 stationære forbrændingskilder (planlagt)',
-  A2: 'A2 – Scope 1 mobile forbrændingskilder (planlagt)',
-  A3: 'A3 – Scope 1 procesemissioner (planlagt)',
-  A4: 'A4 – Scope 1 flugtige emissioner (planlagt)',
+  A1: 'A1 – Scope 1 stationære forbrændingskilder',
+  A2: 'A2 – Scope 1 mobile forbrændingskilder',
+  A3: 'A3 – Scope 1 procesemissioner',
+  A4: 'A4 – Scope 1 flugtige emissioner',
   B1: 'B1 – Scope 2 elforbrug',
   B2: 'B2 – Scope 2 varmeforbrug',
   B3: 'B3 – Scope 2 køleforbrug',
@@ -93,10 +89,10 @@ const moduleTitles: Record<ModuleId, string> = {
 }
 
 export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
-  A1: (input) => createPlanningStubResult('A1', input),
-  A2: (input) => createPlanningStubResult('A2', input),
-  A3: (input) => createPlanningStubResult('A3', input),
-  A4: (input) => createPlanningStubResult('A4', input),
+  A1: runA1,
+  A2: runA2,
+  A3: runA3,
+  A4: runA4,
   B1: runB1,
   B2: runB2,
   B3: runB3,

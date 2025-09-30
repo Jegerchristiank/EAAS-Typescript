@@ -5,7 +5,11 @@
 
 import type { ModuleId } from '@org/shared'
 import type { WizardStepComponent } from './StepTemplate'
-import { A1Step, A2Step, A3Step, A4Step, C10Step, C11Step, C12Step, C13Step, C14Step, C15Step, D1Step } from './PlanningSteps'
+import { A1Step } from './A1'
+import { A2Step } from './A2'
+import { A3Step } from './A3'
+import { A4Step } from './A4'
+import { C10Step, C11Step, C12Step, C13Step, C14Step, C15Step, D1Step } from './PlanningSteps'
 import { B1Step } from './B1'
 import { B2Step } from './B2'
 import { B3Step } from './B3'
@@ -51,10 +55,10 @@ export const wizardSteps: WizardStep[] = [
   { id: 'B9', label: 'B9 – Fysisk PPA for vedvarende el', component: B9Step, scope: 'Scope 2', status: 'ready' },
   { id: 'B10', label: 'B10 – Virtuel PPA for vedvarende el', component: B10Step, scope: 'Scope 2', status: 'ready' },
   { id: 'B11', label: 'B11 – Time-matchede certifikater for vedvarende el', component: B11Step, scope: 'Scope 2', status: 'ready' },
-  { id: 'A1', label: 'A1 – Scope 1 stationære forbrændingskilder', component: A1Step, scope: 'Scope 1', status: 'planned' },
-  { id: 'A2', label: 'A2 – Scope 1 mobile forbrændingskilder', component: A2Step, scope: 'Scope 1', status: 'planned' },
-  { id: 'A3', label: 'A3 – Scope 1 procesemissioner', component: A3Step, scope: 'Scope 1', status: 'planned' },
-  { id: 'A4', label: 'A4 – Scope 1 flugtige emissioner', component: A4Step, scope: 'Scope 1', status: 'planned' },
+  { id: 'A1', label: 'A1 – Scope 1 stationære forbrændingskilder', component: A1Step, scope: 'Scope 1', status: 'ready' },
+  { id: 'A2', label: 'A2 – Scope 1 mobile forbrændingskilder', component: A2Step, scope: 'Scope 1', status: 'ready' },
+  { id: 'A3', label: 'A3 – Scope 1 procesemissioner', component: A3Step, scope: 'Scope 1', status: 'ready' },
+  { id: 'A4', label: 'A4 – Scope 1 flugtige emissioner', component: A4Step, scope: 'Scope 1', status: 'ready' },
   { id: 'C1', label: 'C1 – Medarbejderpendling', component: C1Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C2', label: 'C2 – Forretningsrejser', component: C2Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C3', label: 'C3 – Brændstof- og energirelaterede aktiviteter', component: C3Step, scope: 'Scope 3', status: 'ready' },

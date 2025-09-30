@@ -1,8 +1,8 @@
 {
-  "A1": "Planlagt modul – Scope 1 stationære forbrændingskilder implementeres i næste iteration.",
-  "A2": "Planlagt modul – Scope 1 mobile forbrændingskilder forberedes.",
-  "A3": "Planlagt modul – Scope 1 procesemissioner afventer metodevalg.",
-  "A4": "Planlagt modul – Scope 1 flugtige emissioner (kølemidler m.m.) tilføjes senere.",
+  "A1": "A1 = \u2211 (brændselsmængde * emissionsfaktor) / 1000 med standardfaktorer for naturgas, diesel, fyringsolie og biogas.",
+  "A2": "A2 = \u2211 (brændselsmængde * emissionsfaktor) / 1000. Kilometer registreres til intensitetsopfølgning.",
+  "A3": "A3 = \u2211 (proces-output (ton) * emissionsfaktor (kg CO2e/ton)) / 1000 med standardfaktorer for cement, kalk, ammoniak og aluminium.",
+  "A4": "Scope 1 flugtige emissioner = Σ (fyldning kg × lækageandel % × GWP100) ÷ 1.000.",
   "B1": "B1 = (el-forbrug * emissionsfaktor) - (el-forbrug * emissionsfaktor * (vedvarende% / 100) * 0.9)",
   "B2": "B2 = ((varmeforbrug - genindvinding) * emissionsfaktor) - ((varmeforbrug - genindvinding) * emissionsfaktor * (vedvarende% / 100) * 0.85)",
   "B3": "B3 = ((køleforbrug - frikøling) * emissionsfaktor) - ((køleforbrug - frikøling) * emissionsfaktor * (vedvarende% / 100) * 0.9)",
