@@ -47,9 +47,8 @@ export default function ReviewPage(): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h1>Review og download</h1>
         <p style={{ maxWidth: '48rem' }}>
-          Et overblik over beregnede Scope 1- og Scope 2-resultater samt planlagte udvidelser. Scope 3-udvidelserne (C10–C15)
-          og governance-modulet D1 er klar til planlægningsinput og udelades automatisk fra PDF, indtil deres beregninger er
-          implementeret.
+          Et overblik over beregnede Scope 1- og Scope 3-resultater samt planlagte udvidelser. Governance-modulet D1 er klar til
+          planlægningsinput og udelades automatisk fra PDF, indtil beregninger er implementeret.
         </p>
       </header>
 
@@ -67,8 +66,8 @@ export default function ReviewPage(): JSX.Element {
         <section style={{ display: 'grid', gap: '1rem' }}>
           <h2>Andre moduler</h2>
           <p style={{ margin: 0, color: '#555' }}>
-            De øvrige moduler inkluderer både eksisterende Scope 3-beregninger og de planlagte Scope 3- og governance-moduler.
-            Planlagte moduler vises som stubberegninger, indtil deres logik er klar.
+            De øvrige moduler inkluderer både eksisterende Scope 3-beregninger og governance-planlægningsmodulet D1, som vises
+            som stubberegning, indtil logikken er klar.
           </p>
         </section>
       )}
@@ -139,8 +138,8 @@ function EmptyCard(): JSX.Element {
     <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
       <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
       <p style={{ margin: 0 }}>
-        Når du udfylder de beregningsklare Scope 1- og Scope 2-moduler vises resultaterne her. Planlægningsmodulerne for Scope 3
-        (C10–C15) og D1 registrerer governance- og dataejere men genererer ikke emissionsresultater endnu.
+        Når du udfylder de beregningsklare Scope 1- og Scope 3-moduler vises resultaterne her. Planlægningsmodulet D1 registrerer
+        governance- og dataejere men genererer ikke emissionsresultater endnu.
 
       </p>
     </section>

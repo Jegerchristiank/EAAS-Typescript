@@ -34,23 +34,16 @@ import { runC6 } from './modules/runC6'
 import { runC7 } from './modules/runC7'
 import { runC8 } from './modules/runC8'
 import { runC9 } from './modules/runC9'
+import { runC10 } from './modules/runC10'
+import { runC11 } from './modules/runC11'
+import { runC12 } from './modules/runC12'
+import { runC13 } from './modules/runC13'
+import { runC14 } from './modules/runC14'
+import { runC15 } from './modules/runC15'
 
-type PlannedModuleId =
-  | 'C10'
-  | 'C11'
-  | 'C12'
-  | 'C13'
-  | 'C14'
-  | 'C15'
-  | 'D1'
+type PlannedModuleId = 'D1'
 
 const plannedModuleMessages: Record<PlannedModuleId, string> = {
-  C10: 'Scope 3 brug af solgte produkter kræver downstream performance-data. Registrér plan for dataindsamling.',
-  C11: 'Scope 3 slutbehandling af solgte produkter forberedes. Angiv ansvarlige og forventede kilder.',
-  C12: 'Scope 3 franchising og downstream services kortlægges. Notér ejerskab og næste skridt.',
-  C13: 'Scope 3 investeringer og finansielle aktiviteter tilføjes. Dokumentér governance og datastrømme.',
-  C14: 'Scope 3 øvrige downstream aktiviteter samles her. Brug felterne til at beskrive dataplacering.',
-  C15: 'Scope 3 øvrige kategorioplysninger dækker resterende krav. Forbered kontekst og kontaktpersoner.',
   D1: 'CSRD/ESRS governance-kravet afventer komplet metode. Indtast kontaktpunkter og status for policies.'
 }
 
@@ -79,12 +72,12 @@ const moduleTitles: Record<ModuleId, string> = {
   C7: 'C7 – Transport og distribution (downstream)',
   C8: 'C8 – Udlejede aktiver (downstream)',
   C9: 'C9 – Forarbejdning af solgte produkter',
-  C10: 'C10 – Brug af solgte produkter (planlagt)',
-  C11: 'C11 – Slutbehandling af solgte produkter (planlagt)',
-  C12: 'C12 – Franchising og downstream services (planlagt)',
-  C13: 'C13 – Investeringer og finansielle aktiviteter (planlagt)',
-  C14: 'C14 – Øvrige downstream aktiviteter (planlagt)',
-  C15: 'C15 – Øvrige kategorioplysninger (planlagt)',
+  C10: 'C10 – Upstream leasede aktiver',
+  C11: 'C11 – Downstream leasede aktiver',
+  C12: 'C12 – Franchising og downstream services',
+  C13: 'C13 – Investeringer og finansielle aktiviteter',
+  C14: 'C14 – Behandling af solgte produkter',
+  C15: 'C15 – Øvrige kategorioplysninger',
   D1: 'D1 – CSRD/ESRS governance-krav (planlagt)'
 }
 
@@ -113,12 +106,12 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C7: runC7,
   C8: runC8,
   C9: runC9,
-  C10: (input) => createPlanningStubResult('C10', input),
-  C11: (input) => createPlanningStubResult('C11', input),
-  C12: (input) => createPlanningStubResult('C12', input),
-  C13: (input) => createPlanningStubResult('C13', input),
-  C14: (input) => createPlanningStubResult('C14', input),
-  C15: (input) => createPlanningStubResult('C15', input),
+  C10: runC10,
+  C11: runC11,
+  C12: runC12,
+  C13: runC13,
+  C14: runC14,
+  C15: runC15,
   D1: (input) => createPlanningStubResult('D1', input)
 }
 

@@ -1,7 +1,6 @@
-# Planlægningsrunbook – kommende ESG-moduler
+# Planlægningsrunbook – governance-moduler
 
-Denne runbook beskriver, hvordan planlægningsmodulerne (Scope 3 C10–C15 samt governance-modulet D1) bruges frem til de fulde
-beregninger leveres.
+Denne runbook beskriver, hvordan planlægningsmodulet for governance (D1) bruges frem til fulde beregninger leveres.
 
 ## Formål
 
@@ -11,7 +10,7 @@ beregninger leveres.
 
 ## UI-arbejdsgang
 
-1. Navigér til `/wizard` og vælg det relevante planlægningsmodul i Scope 3- eller Governance-sektionerne.
+1. Navigér til `/wizard` og vælg governance-planlægningsmodulet i sektionen for Governance.
 2. Udfyld felterne:
    - **Dataansvarlig** – navn eller rolle på det team, der ejer data og governance.
    - **Primære datakilder** – hvilke systemer eller processer der skal integreres.
@@ -22,8 +21,8 @@ beregninger leveres.
 ## Rapportering
 
 - Planlægningsmoduler returnerer værdien `0` med enheden `n/a` og antagelsen "Stubberegning".
-- PDF-downloaden filtrerer automatisk planlægningsmoduler væk, så de ikke påvirker eksisterende rapporter.
-- Review-siden markerer tydeligt, at C10–C15 og D1 endnu ikke har beregningslogik.
+- PDF-downloaden filtrerer automatisk planlægningsmodulet væk, så det ikke påvirker eksisterende rapporter.
+- Review-siden markerer tydeligt, at D1 endnu ikke har beregningslogik.
 
 ## Dataudtræk og videreudvikling
 
@@ -42,6 +41,6 @@ beregninger leveres.
 
 ## Kvalitetssikring
 
-- Vitest indeholder enhedstest, der sikrer, at planlægningsmodulerne markeres som stubberegninger og ikke påvirker aggregater.
+- Vitest indeholder enhedstest, der sikrer, at planlægningsmodulet markeres som en stubberegning og ikke påvirker aggregater.
 - Playwright-scenariet `wizard.spec.ts` dækker navigationen til både planlagte og aktive moduler.
 - Lint, typecheck og build skal fortsat være grønne før release af beregningslogikken.
