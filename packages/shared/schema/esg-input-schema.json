@@ -927,6 +927,264 @@
         }
       },
       "additionalProperties": false
+    },
+    "C7": {
+      "type": "object",
+      "title": "C7Input",
+      "description": "Scope 3 transport og distribution (downstream)",
+      "properties": {
+        "roadTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Transporteret tonnagemængde på vej (ton-km)"
+        },
+        "roadEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for vejtransport (kg CO2e/ton-km)"
+        },
+        "railTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Transporteret tonnagemængde på bane (ton-km)"
+        },
+        "railEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for banetransport (kg CO2e/ton-km)"
+        },
+        "seaTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Transporteret tonnagemængde til søs (ton-km)"
+        },
+        "seaEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for søtransport (kg CO2e/ton-km)"
+        },
+        "airTonnesKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Transporteret tonnagemængde med luftfragt (ton-km)"
+        },
+        "airEmissionFactorKgPerTonneKm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for luftfragt (kg CO2e/ton-km)"
+        },
+        "warehousingEnergyKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt energiforbrug i downstream-lagre (kWh)"
+        },
+        "warehousingEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for energikilden i lagre (kg CO2e/kWh)"
+        },
+        "lowEmissionVehicleSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af vejtransport udført med lavemissionskøretøjer (%)"
+        },
+        "renewableWarehousingSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af lagerenergi dækket af vedvarende kilder (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C8": {
+      "type": "object",
+      "title": "C8Input",
+      "description": "Scope 3 udlejede aktiver (downstream)",
+      "properties": {
+        "leasedFloorAreaSqm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Udlejet areal der fortsat er under virksomhedens energiansvar (m²)"
+        },
+        "electricityIntensityKwhPerSqm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt elforbrug pr. m² i de udlejede lokationer (kWh/m²)"
+        },
+        "heatIntensityKwhPerSqm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årligt varmeforbrug pr. m² i de udlejede lokationer (kWh/m²)"
+        },
+        "occupancySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Udnyttelsesgrad af arealet på årsbasis (%)"
+        },
+        "landlordEnergySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af energiforbruget der fortsat afholdes af virksomheden som udlejer (%)"
+        },
+        "energyEfficiencyImprovementPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 70,
+          "description": "Årlig dokumenteret forbedring i energiintensitet sammenlignet med baseline (%)"
+        },
+        "electricityEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for el leveret til de udlejede aktiver (kg CO2e/kWh)"
+        },
+        "heatEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for varme leveret til de udlejede aktiver (kg CO2e/kWh)"
+        },
+        "renewableElectricitySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af elforbruget dækket af dokumenteret vedvarende energi (%)"
+        },
+        "renewableHeatSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af varmeforbruget dækket af dokumenteret vedvarende energi (%)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "C9": {
+      "type": "object",
+      "title": "C9Input",
+      "description": "Forarbejdning af solgte produkter",
+      "properties": {
+        "processedOutputTonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Solgte produkter der videreforarbejdes af kunder (ton)"
+        },
+        "processingEnergyIntensityKwhPerTonne": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Energiforbrug pr. ton i forarbejdningen (kWh/ton)"
+        },
+        "processingEmissionFactorKgPerKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Emissionsfaktor for energikilder i forarbejdningen (kg CO2e/kWh)"
+        },
+        "processEfficiencyImprovementPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 60,
+          "description": "Dokumenteret proceseffektivisering (%)"
+        },
+        "secondaryMaterialSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 80,
+          "description": "Andel sekundært materiale anvendt i processen (%)"
+        },
+        "renewableEnergySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel dokumenteret vedvarende energi i processen (%)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

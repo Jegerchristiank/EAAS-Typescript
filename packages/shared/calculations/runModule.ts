@@ -49,9 +49,9 @@ const moduleTitles: Record<ModuleId, string> = {
   C4: 'C4 – Transport og distribution (upstream)',
   C5: 'C5 – Affald fra drift (upstream)',
   C6: 'C6 – Udlejede aktiver (upstream)',
-  C7: 'Modul C7',
-  C8: 'Modul C8',
-  C9: 'Modul C9'
+  C7: 'C7 – Transport og distribution (downstream)',
+  C8: 'C8 – Udlejede aktiver (downstream)',
+  C9: 'C9 – Forarbejdning af solgte produkter'
 }
 
 export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
