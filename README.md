@@ -7,7 +7,12 @@ ESG-as-a-Service (ESG reporting platform)
 - [Baseline quality metrics](docs/quality/baseline.md)
 - [Architectural decision records](docs/adr)
 - [Migrations](docs/migrations)
-- [Runbooks](docs/runbooks)
+- Runbooks
+  - [Runbook-overblik](docs/runbooks/overview.md)
+  - [B1 Scope 2 elforbrug](docs/runbooks/module-b1.md)
+  - [C10 upstream leasede aktiver](docs/runbooks/module-c10.md)
+  - [D1 Metode & governance](docs/runbooks/module-d1.md)
+  - [Publishing](docs/runbooks/publishing.md)
 - [Changelog](CHANGELOG.md)
 - [Modulreferencer](docs/modules)
 
