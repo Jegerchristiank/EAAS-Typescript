@@ -1,157 +1,80 @@
 /**
- * Wizardtrin for modul B2.
+ * Wizardtrin for modul B2 – varmeforbrug.
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { B2Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { B2Input } from '@org/shared'
 import { runB2 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof B2Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
-  label: string
-  description: string
-  unit: string
-  placeholder?: string
+export type B2FormState = B2Input & {
+  emissionFactorSource?: string | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
-  {
-    key: 'heatConsumptionKwh',
-    label: 'Årligt varmeforbrug',
-    description: 'Samlet varme leveret fra forsyningen i kWh.',
-    unit: 'kWh'
-  },
-  {
-    key: 'recoveredHeatKwh',
-    label: 'Genindvundet varme',
-    description: 'Varme fra genindvinding eller egenproduktion, der reducerer behovet.',
-    unit: 'kWh'
-  },
-  {
-    key: 'emissionFactorKgPerKwh',
-    label: 'Emissionsfaktor',
-    description: 'Kg CO2e pr. kWh i varmeleverandørens miljødeklaration.',
-    unit: 'kg CO2e/kWh',
-    placeholder: '0.080'
-  },
-  {
-    key: 'renewableSharePercent',
-    label: 'Vedvarende andel',
-    description: 'Andel af varmen købt som certificeret vedvarende energi.',
-    unit: '%',
-    placeholder: '0-100'
-  }
-]
-
-const EMPTY_B2: B2Input = {
+const EMPTY_B2: B2FormState = {
   heatConsumptionKwh: null,
   recoveredHeatKwh: null,
   emissionFactorKgPerKwh: null,
-  renewableSharePercent: null
+  renewableSharePercent: null,
+  emissionFactorSource: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function B2Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.B2 as B2Input | undefined) ?? EMPTY_B2
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runB2({ B2: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: B2Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const B2Step = createConfiguredModuleStep<'B2', B2FormState>({
+  moduleId: 'B2',
+  title: 'B2 – Scope 2 varmeforbrug',
+  description:
+    'Registrér indkøbt fjernvarme og vælg hvilken emissionsfaktor der gælder for leverancen.',
+  emptyState: EMPTY_B2,
+  fields: [
+    {
+      type: 'number',
+      key: 'heatConsumptionKwh',
+      label: 'Forbrug',
+      unit: 'kWh',
+      description: 'Målt eller faktureret varmeforbrug i den relevante periode.'
+    },
+    {
+      type: 'select',
+      key: 'emissionFactorSource',
+      label: 'Emissionsfaktor',
+      description: 'Vælg standard- eller leverandørfaktor. Feltet nedenfor udfyldes automatisk.',
+      options: [
+        {
+          value: 'dk-fjernvarme-standard',
+          label: 'Standard fjernvarme (0,080 kg CO₂e/kWh)',
+          derived: { emissionFactorKgPerKwh: 0.08 }
+        },
+        {
+          value: 'leverandor',
+          label: 'Leverandørdata',
+          derived: {}
+        }
+      ]
+    },
+    {
+      type: 'number',
+      key: 'emissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor',
+      unit: 'kg CO₂e/kWh',
+      description: 'Kan justeres hvis leverandøren har oplyst anden faktor.'
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurdering af kvaliteten af dokumentation og måledata.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload varmefaktura eller leverandørdata.'
     }
-    onChange('B2', next)
-  }
-
-  const hasData =
-    preview.trace.some((line) => line.includes('netHeatConsumptionKwh')) &&
-    (current.heatConsumptionKwh != null ||
-      current.recoveredHeatKwh != null ||
-      current.emissionFactorKgPerKwh != null ||
-      current.renewableSharePercent != null)
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>B2 – Scope 2 varmeforbrug</h2>
-        <p>
-          Indtast data for organisationens varmeforbrug. Beregningen korrigerer for genindvundet varme og
-          vedvarende leverancer.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label} ({field.unit})
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={0}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet nettoemission.</p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runB2
+})

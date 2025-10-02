@@ -15,17 +15,21 @@ import {
 
 import type { WizardStepProps } from './StepTemplate'
 
+type BaseRefrigerantRow = NonNullable<A4Input['refrigerantLines']>[number]
+
+type RefrigerantRow = BaseRefrigerantRow & {
+  gwpSource?: string | null
+  documentationFileName?: string | null
+}
+
 const EMPTY_A4: A4Input = {
   refrigerantLines: []
 }
 
-type RefrigerantRow = NonNullable<A4Input['refrigerantLines']>[number]
-
-type RefrigerantFieldKey =
-  | 'systemChargeKg'
-  | 'leakagePercent'
-  | 'gwp100'
-  | 'documentationQualityPercent'
+const GWP_SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'standard', label: 'GWP100 fra database' },
+  { value: 'leverandor', label: 'Leverandørdata / laboratorie' }
+]
 
 type RefrigerantKey = keyof typeof a4RefrigerantConfigurations
 
@@ -36,20 +40,40 @@ function createDefaultRow(refrigerantType: RefrigerantKey = 'hfc134a'): Refriger
     systemChargeKg: null,
     leakagePercent: a4DefaultLeakagePercent,
     gwp100: config.defaultGwp100,
-    documentationQualityPercent: 100
+    documentationQualityPercent: 100,
+    gwpSource: 'standard',
+    documentationFileName: null
   }
 }
 
+function parseNumber(value: string): number | null {
+  const normalised = value.replace(',', '.')
+  if (normalised.trim() === '') {
+    return null
+  }
+  const parsed = Number.parseFloat(normalised)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.A4 as A4Input | undefined) ?? EMPTY_A4
-  const rows = current.refrigerantLines ?? []
+  const stored = (state.A4 as { refrigerantLines?: RefrigerantRow[] } | undefined) ?? EMPTY_A4
+  const rows = (stored.refrigerantLines ?? []) as RefrigerantRow[]
 
   const preview = useMemo<ModuleResult>(() => {
-    return runA4({ A4: current } as ModuleInput)
-  }, [current])
+    const calculationRows: NonNullable<A4Input['refrigerantLines']> = rows.map(
+      ({ refrigerantType, systemChargeKg, leakagePercent, gwp100, documentationQualityPercent }) => ({
+        refrigerantType,
+        systemChargeKg,
+        leakagePercent,
+        gwp100,
+        documentationQualityPercent
+      })
+    )
+    return runA4({ A4: { refrigerantLines: calculationRows } as A4Input } as ModuleInput)
+  }, [rows])
 
   const updateRows = (nextRows: RefrigerantRow[]) => {
-    onChange('A4', { refrigerantLines: nextRows })
+    onChange('A4', { refrigerantLines: nextRows as unknown as A4Input['refrigerantLines'] })
   }
 
   const handleAddRow = () => {
@@ -57,13 +81,10 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
   }
 
   const handleRemoveRow = (index: number) => () => {
-    const next = rows.filter((_, rowIndex) => rowIndex !== index)
-    updateRows(next)
+    updateRows(rows.filter((_, rowIndex) => rowIndex !== index))
   }
 
-  const handleRefrigerantChange = (index: number) => (
-    event: ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleRefrigerantChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const nextType = event.target.value as RefrigerantRow['refrigerantType']
     const config = a4RefrigerantConfigurations[nextType]
     const existing = rows[index]
@@ -72,26 +93,69 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
       systemChargeKg: existing?.systemChargeKg ?? null,
       leakagePercent: existing?.leakagePercent ?? a4DefaultLeakagePercent,
       gwp100: config.defaultGwp100,
-      documentationQualityPercent: existing?.documentationQualityPercent ?? 100
+      documentationQualityPercent: existing?.documentationQualityPercent ?? 100,
+      gwpSource: 'standard',
+      documentationFileName: existing?.documentationFileName ?? null
     }
-    const nextRows = rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row))
-    updateRows(nextRows)
+    updateRows(rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row)))
   }
 
-  const handleFieldChange = (index: number, field: RefrigerantFieldKey) => (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            [field]: Number.isFinite(parsed) ? parsed : null
-          }
-        : row
+  const handleNumericFieldChange = (index: number, field: keyof BaseRefrigerantRow) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const parsed = parseNumber(event.target.value)
+      updateRows(
+        rows.map((row, rowIndex) =>
+          rowIndex === index
+            ? {
+                ...row,
+                [field]: parsed
+              }
+            : row
+        )
+      )
+    }
+
+  const handleGwpSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value
+    const config = a4RefrigerantConfigurations[rows[index].refrigerantType]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              gwpSource: value,
+              gwp100: value === 'standard' ? config.defaultGwp100 : row.gwp100
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
+  }
+
+  const handleFileChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: file ? file.name : null
+            }
+          : row
+      )
+    )
+  }
+
+  const handleClearFile = (index: number) => () => {
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: null
+            }
+          : row
+      )
+    )
   }
 
   const hasRows = rows.length > 0
@@ -101,8 +165,8 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h2>A4 – Scope 1 flugtige emissioner</h2>
         <p style={{ margin: 0 }}>
-          Indsaml data om fyldning af kølemidler og øvrige gasser. Lækageandelen kombineret med GWP100-værdien afgør
-          emissionerne. Dokumentationskvalitet bruges til at fremhæve anlæg med utilstrækkelig logning eller kontrol.
+          Indsaml data om fyldning af kølemidler og andre gasser. Angiv lækageandel, vælg GWP100-reference og upload
+          relevant service- eller lækagerapport.
         </p>
       </header>
 
@@ -147,12 +211,7 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
                     <button
                       type="button"
                       onClick={handleRemoveRow(index)}
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        color: '#b4231f',
-                        cursor: 'pointer'
-                      }}
+                      style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
                     >
                       Fjern
                     </button>
@@ -175,7 +234,7 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
 
                   <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Fyldning (kg)</span>
+                      <span>Fyldning</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -183,13 +242,14 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
                         step="any"
                         value={row.systemChargeKg ?? ''}
                         placeholder="0 kg"
-                        onChange={handleFieldChange(index, 'systemChargeKg')}
+                        onChange={handleNumericFieldChange(index, 'systemChargeKg')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
+                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>kg</span>
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Lækageandel (%)</span>
+                      <span>Lækageandel</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -198,28 +258,35 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
                         step="any"
                         value={row.leakagePercent ?? ''}
                         placeholder="fx 10%"
-                        onChange={handleFieldChange(index, 'leakagePercent')}
+                        onChange={handleNumericFieldChange(index, 'leakagePercent')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
-                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>
-                        Angiv forventet årlig lækageandel. Manglende værdier antager standard på {a4DefaultLeakagePercent}%.
-                      </span>
+                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>%</span>
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>GWP100-værdi</span>
+                      <span>GWP100 kilde</span>
+                      <select
+                        value={row.gwpSource ?? 'standard'}
+                        onChange={handleGwpSourceChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      >
+                        {GWP_SOURCE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="number"
                         inputMode="decimal"
                         min={0}
                         step="any"
                         value={row.gwp100 ?? ''}
-                        onChange={handleFieldChange(index, 'gwp100')}
+                        onChange={handleNumericFieldChange(index, 'gwp100')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
-                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>
-                        Standard: {config.defaultGwp100}
-                      </span>
+                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>kg CO₂e/kg</span>
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
@@ -231,25 +298,49 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
                         max={100}
                         step="any"
                         value={row.documentationQualityPercent ?? ''}
-                        onChange={handleFieldChange(index, 'documentationQualityPercent')}
+                        onChange={handleNumericFieldChange(index, 'documentationQualityPercent')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <label style={{ fontWeight: 600 }}>Dokumentation</label>
+                    <input
+                      type="file"
+                      onChange={handleFileChange(index)}
+                      style={{
+                        padding: '0.45rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #c8d2cf',
+                        background: '#f6f9f8'
+                      }}
+                    />
+                    {row.documentationFileName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <span>{row.documentationFileName}</span>
+                        <button
+                          type="button"
+                          onClick={handleClearFile(index)}
+                          style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
+                        >
+                          Fjern
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </article>
               )
             })}
           </div>
         ) : (
-          <p style={{ margin: 0, color: '#5f6f6a' }}>
-            Tilføj mindst én kølemiddellinje for at beregne Scope 1-emissioner.
-          </p>
+          <p style={{ margin: 0, color: '#5f6f6a' }}>Tilføj mindst ét anlæg for at beregne flugtige emissioner.</p>
         )}
       </section>
 
       <section style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}>
         <h3 style={{ margin: 0 }}>Estimat</h3>
-        {preview.trace.some((line) => line.startsWith('entry[')) ? (
+        {rows.length > 0 && preview.trace.some((line) => line.startsWith('entry[')) ? (
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
               {preview.value} {preview.unit}

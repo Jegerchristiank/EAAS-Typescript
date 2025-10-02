@@ -10,13 +10,21 @@ import { a3ProcessConfigurations, a3ProcessOptions, runA3 } from '@org/shared'
 
 import type { WizardStepProps } from './StepTemplate'
 
+type BaseProcessRow = NonNullable<A3Input['processLines']>[number]
+
+type ProcessRow = BaseProcessRow & {
+  emissionFactorSource?: string | null
+  documentationFileName?: string | null
+}
+
 const EMPTY_A3: A3Input = {
   processLines: []
 }
 
-type ProcessRow = NonNullable<A3Input['processLines']>[number]
-
-type ProcessFieldKey = 'outputQuantityTon' | 'emissionFactorKgPerTon' | 'documentationQualityPercent'
+const EMISSION_FACTOR_SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'standard', label: 'Standardfaktor fra database' },
+  { value: 'leverandor', label: 'Leverandørdata' }
+]
 
 type ProcessKey = keyof typeof a3ProcessConfigurations
 
@@ -26,20 +34,39 @@ function createDefaultRow(processType: ProcessKey = 'cementClinker'): ProcessRow
     processType,
     outputQuantityTon: null,
     emissionFactorKgPerTon: config.defaultEmissionFactorKgPerTon,
-    documentationQualityPercent: 100
+    documentationQualityPercent: 100,
+    emissionFactorSource: 'standard',
+    documentationFileName: null
   }
 }
 
+function parseNumber(value: string): number | null {
+  const normalised = value.replace(',', '.')
+  if (normalised.trim() === '') {
+    return null
+  }
+  const parsed = Number.parseFloat(normalised)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.A3 as A3Input | undefined) ?? EMPTY_A3
-  const rows = current.processLines ?? []
+  const stored = (state.A3 as { processLines?: ProcessRow[] } | undefined) ?? EMPTY_A3
+  const rows = (stored.processLines ?? []) as ProcessRow[]
 
   const preview = useMemo<ModuleResult>(() => {
-    return runA3({ A3: current } as ModuleInput)
-  }, [current])
+    const calculationRows: NonNullable<A3Input['processLines']> = rows.map(
+      ({ processType, outputQuantityTon, emissionFactorKgPerTon, documentationQualityPercent }) => ({
+        processType,
+        outputQuantityTon,
+        emissionFactorKgPerTon,
+        documentationQualityPercent
+      })
+    )
+    return runA3({ A3: { processLines: calculationRows } as A3Input } as ModuleInput)
+  }, [rows])
 
   const updateRows = (nextRows: ProcessRow[]) => {
-    onChange('A3', { processLines: nextRows })
+    onChange('A3', { processLines: nextRows as unknown as A3Input['processLines'] })
   }
 
   const handleAddRow = () => {
@@ -47,8 +74,7 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
   }
 
   const handleRemoveRow = (index: number) => () => {
-    const next = rows.filter((_, rowIndex) => rowIndex !== index)
-    updateRows(next)
+    updateRows(rows.filter((_, rowIndex) => rowIndex !== index))
   }
 
   const handleProcessChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
@@ -59,24 +85,70 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
       processType: nextType,
       outputQuantityTon: existing?.outputQuantityTon ?? null,
       emissionFactorKgPerTon: config.defaultEmissionFactorKgPerTon,
-      documentationQualityPercent: existing?.documentationQualityPercent ?? 100
+      documentationQualityPercent: existing?.documentationQualityPercent ?? 100,
+      emissionFactorSource: 'standard',
+      documentationFileName: existing?.documentationFileName ?? null
     }
-    const nextRows = rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row))
-    updateRows(nextRows)
+    updateRows(rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row)))
   }
 
-  const handleFieldChange = (index: number, field: ProcessFieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            [field]: Number.isFinite(parsed) ? parsed : null
-          }
-        : row
+  const handleNumericFieldChange = (index: number, field: keyof BaseProcessRow) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const parsed = parseNumber(event.target.value)
+      updateRows(
+        rows.map((row, rowIndex) =>
+          rowIndex === index
+            ? {
+                ...row,
+                [field]: parsed
+              }
+            : row
+        )
+      )
+    }
+
+  const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value
+    const config = a3ProcessConfigurations[rows[index].processType]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              emissionFactorSource: value,
+              emissionFactorKgPerTon:
+                value === 'standard' ? config.defaultEmissionFactorKgPerTon : row.emissionFactorKgPerTon
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
+  }
+
+  const handleFileChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: file ? file.name : null
+            }
+          : row
+      )
+    )
+  }
+
+  const handleClearFile = (index: number) => () => {
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: null
+            }
+          : row
+      )
+    )
   }
 
   const hasRows = rows.length > 0
@@ -87,8 +159,8 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
         <h2>A3 – Scope 1 procesemissioner</h2>
         <p style={{ margin: 0 }}>
           Kortlæg industrielle procesemissioner som cementproduktion, kalkudbrænding eller kemiske reaktioner. Angiv
-          produceret mængde i ton og den relevante emissionsfaktor. Dokumentationskvalitet bruges til at fremhæve
-          linjer med lav datakvalitet.
+          produceret mængde i ton og vælg den relevante emissionsfaktor. Dokumentationskvalitet og bilag hjælper med at
+          synliggøre datagrundlaget.
         </p>
       </header>
 
@@ -133,12 +205,7 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
                     <button
                       type="button"
                       onClick={handleRemoveRow(index)}
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        color: '#b4231f',
-                        cursor: 'pointer'
-                      }}
+                      style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
                     >
                       Fjern
                     </button>
@@ -161,7 +228,7 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
 
                   <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Outputmængde (ton)</span>
+                      <span>Outputmængde</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -169,20 +236,32 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
                         step="any"
                         value={row.outputQuantityTon ?? ''}
                         placeholder="0 ton"
-                        onChange={handleFieldChange(index, 'outputQuantityTon')}
+                        onChange={handleNumericFieldChange(index, 'outputQuantityTon')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
+                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>ton</span>
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Emissionsfaktor (kg CO₂e/ton)</span>
+                      <span>Emissionsfaktor</span>
+                      <select
+                        value={row.emissionFactorSource ?? 'standard'}
+                        onChange={handleEmissionFactorSourceChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      >
+                        {EMISSION_FACTOR_SOURCE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="number"
                         inputMode="decimal"
                         min={0}
                         step="any"
                         value={row.emissionFactorKgPerTon ?? ''}
-                        onChange={handleFieldChange(index, 'emissionFactorKgPerTon')}
+                        onChange={handleNumericFieldChange(index, 'emissionFactorKgPerTon')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                       <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>
@@ -199,25 +278,49 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
                         max={100}
                         step="any"
                         value={row.documentationQualityPercent ?? ''}
-                        onChange={handleFieldChange(index, 'documentationQualityPercent')}
+                        onChange={handleNumericFieldChange(index, 'documentationQualityPercent')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <label style={{ fontWeight: 600 }}>Dokumentation</label>
+                    <input
+                      type="file"
+                      onChange={handleFileChange(index)}
+                      style={{
+                        padding: '0.45rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #c8d2cf',
+                        background: '#f6f9f8'
+                      }}
+                    />
+                    {row.documentationFileName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <span>{row.documentationFileName}</span>
+                        <button
+                          type="button"
+                          onClick={handleClearFile(index)}
+                          style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
+                        >
+                          Fjern
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </article>
               )
             })}
           </div>
         ) : (
-          <p style={{ margin: 0, color: '#5f6f6a' }}>
-            Tilføj mindst én proceslinje for at beregne Scope 1-emissioner.
-          </p>
+          <p style={{ margin: 0, color: '#5f6f6a' }}>Tilføj mindst én proceslinje for at beregne Scope 1-emissioner.</p>
         )}
       </section>
 
       <section style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}>
         <h3 style={{ margin: 0 }}>Estimat</h3>
-        {preview.trace.some((line) => line.startsWith('entry[')) ? (
+        {rows.length > 0 && preview.trace.some((line) => line.startsWith('entry[')) ? (
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
               {preview.value} {preview.unit}

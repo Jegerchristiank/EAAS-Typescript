@@ -10,12 +10,27 @@ import { a2FuelConfigurations, a2FuelOptions, runA2 } from '@org/shared'
 
 import type { WizardStepProps } from './StepTemplate'
 
-type VehicleRow = NonNullable<A2Input['vehicleConsumptions']>[number]
-type VehicleFieldKey = 'quantity' | 'emissionFactorKgPerUnit' | 'distanceKm' | 'documentationQualityPercent'
+type BaseVehicleRow = NonNullable<A2Input['vehicleConsumptions']>[number]
+
+type VehicleRow = BaseVehicleRow & {
+  vehicleCount?: number | null
+  emissionFactorSource?: string | null
+  documentationFileName?: string | null
+}
 
 const EMPTY_A2: A2Input = {
   vehicleConsumptions: []
 }
+
+const UNIT_OPTIONS: Array<{ value: BaseVehicleRow['unit']; label: string }> = [
+  { value: 'liter', label: 'Liter' },
+  { value: 'kg', label: 'Kilogram' }
+]
+
+const EMISSION_FACTOR_SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'standard', label: 'Standardfaktor fra database' },
+  { value: 'leverandor', label: 'Leverandørdata' }
+]
 
 function createDefaultRow(fuelType: keyof typeof a2FuelConfigurations = 'diesel'): VehicleRow {
   const config = a2FuelConfigurations[fuelType]
@@ -25,39 +40,42 @@ function createDefaultRow(fuelType: keyof typeof a2FuelConfigurations = 'diesel'
     quantity: null,
     emissionFactorKgPerUnit: config.defaultEmissionFactorKgPerUnit,
     distanceKm: null,
-    documentationQualityPercent: 100
+    documentationQualityPercent: 100,
+    vehicleCount: null,
+    emissionFactorSource: 'standard',
+    documentationFileName: null
   }
 }
 
-const UNIT_OPTIONS: Array<{ value: VehicleRow['unit']; label: string }> = [
-  { value: 'liter', label: 'Liter' },
-  { value: 'kg', label: 'Kilogram' }
-]
-
-const numberFormatter = new Intl.NumberFormat('da-DK', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 3
-})
-
-function parseTraceValue(line: string | undefined): number | null {
-  if (!line) {
+function parseNumber(value: string): number | null {
+  const normalised = value.replace(',', '.')
+  if (normalised.trim() === '') {
     return null
   }
-  const [, raw] = line.split('=')
-  const parsed = Number(raw)
+  const parsed = Number.parseFloat(normalised)
   return Number.isFinite(parsed) ? parsed : null
 }
 
 export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.A2 as A2Input | undefined) ?? EMPTY_A2
-  const rows = current.vehicleConsumptions ?? []
+  const stored = (state.A2 as { vehicleConsumptions?: VehicleRow[] } | undefined) ?? EMPTY_A2
+  const rows = (stored.vehicleConsumptions ?? []) as VehicleRow[]
 
   const preview = useMemo<ModuleResult>(() => {
-    return runA2({ A2: current } as ModuleInput)
-  }, [current])
+    const calculationRows: NonNullable<A2Input['vehicleConsumptions']> = rows.map(
+      ({ fuelType, unit, quantity, emissionFactorKgPerUnit, distanceKm, documentationQualityPercent }) => ({
+        fuelType,
+        unit,
+        quantity,
+        emissionFactorKgPerUnit,
+        distanceKm,
+        documentationQualityPercent
+      })
+    )
+    return runA2({ A2: { vehicleConsumptions: calculationRows } as A2Input } as ModuleInput)
+  }, [rows])
 
   const updateRows = (nextRows: VehicleRow[]) => {
-    onChange('A2', { vehicleConsumptions: nextRows })
+    onChange('A2', { vehicleConsumptions: nextRows as unknown as A2Input['vehicleConsumptions'] })
   }
 
   const handleAddRow = () => {
@@ -65,8 +83,7 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
   }
 
   const handleRemoveRow = (index: number) => () => {
-    const next = rows.filter((_, rowIndex) => rowIndex !== index)
-    updateRows(next)
+    updateRows(rows.filter((_, rowIndex) => rowIndex !== index))
   }
 
   const handleFuelTypeChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
@@ -79,50 +96,112 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
       quantity: existing?.quantity ?? null,
       emissionFactorKgPerUnit: config.defaultEmissionFactorKgPerUnit,
       distanceKm: existing?.distanceKm ?? null,
-      documentationQualityPercent: existing?.documentationQualityPercent ?? 100
+      documentationQualityPercent: existing?.documentationQualityPercent ?? 100,
+      vehicleCount: existing?.vehicleCount ?? null,
+      emissionFactorSource: 'standard',
+      documentationFileName: existing?.documentationFileName ?? null
     }
-    const nextRows = rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row))
-    updateRows(nextRows)
+    updateRows(rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row)))
   }
 
   const handleUnitChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const nextUnit = event.target.value as VehicleRow['unit']
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            unit: nextUnit
-          }
-        : row
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              unit: nextUnit
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
   }
 
-  const handleFieldChange = (index: number, field: VehicleFieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            [field]: Number.isFinite(parsed) ? parsed : null
-          }
-        : row
+  const handleNumericFieldChange = (index: number, field: keyof BaseVehicleRow) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const parsed = parseNumber(event.target.value)
+      updateRows(
+        rows.map((row, rowIndex) =>
+          rowIndex === index
+            ? {
+                ...row,
+                [field]: parsed
+              }
+            : row
+        )
+      )
+    }
+
+  const handleVehicleCountChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const parsed = parseNumber(event.target.value)
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              vehicleCount: parsed
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
+  }
+
+  const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value
+    const config = a2FuelConfigurations[rows[index].fuelType]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              emissionFactorSource: value,
+              emissionFactorKgPerUnit:
+                value === 'standard'
+                  ? config.defaultEmissionFactorKgPerUnit
+                  : row.emissionFactorKgPerUnit
+            }
+          : row
+      )
+    )
+  }
+
+  const handleFileChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: file ? file.name : null
+            }
+          : row
+      )
+    )
+  }
+
+  const handleClearFile = (index: number) => () => {
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: null
+            }
+          : row
+      )
+    )
   }
 
   const hasRows = rows.length > 0
-  const totalDistance = parseTraceValue(preview.trace.find((line) => line.startsWith('totalDistanceKm=')))
-  const fleetIntensity = parseTraceValue(preview.trace.find((line) => line.startsWith('fleetEmissionsKgPerKm=')))
 
   return (
     <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '64rem' }}>
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h2>A2 – Scope 1 mobile forbrændingskilder</h2>
         <p style={{ margin: 0 }}>
-          Registrér brændselsforbrug for egne køretøjer, trucks og entreprenørmaskiner. Tilføj eventuel kørt distance for at
-          følge udledningsintensitet, og marker rækker med lav dokumentationskvalitet.
+          Registrér brændselsforbrug for egne køretøjer, trucks og entreprenørmateriel. Angiv antal køretøjer, eventuel
+          distance samt dokumentationskvalitet og tilhørende bilag.
         </p>
       </header>
 
@@ -167,12 +246,7 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
                     <button
                       type="button"
                       onClick={handleRemoveRow(index)}
-                      style={{
-                        border: 'none',
-                        background: 'transparent',
-                        color: '#b4231f',
-                        cursor: 'pointer'
-                      }}
+                      style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
                     >
                       Fjern
                     </button>
@@ -193,7 +267,7 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </select>
                   </label>
 
-                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
                       <span>Mængde</span>
                       <input
@@ -203,7 +277,7 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
                         step="any"
                         value={row.quantity ?? ''}
                         placeholder={`0 (${fuelConfig.defaultUnit})`}
-                        onChange={handleFieldChange(index, 'quantity')}
+                        onChange={handleNumericFieldChange(index, 'quantity')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
@@ -224,14 +298,38 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Emissionsfaktor (kg CO₂e/enhed)</span>
+                      <span>Antal køretøjer</span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="1"
+                        value={row.vehicleCount ?? ''}
+                        onChange={handleVehicleCountChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span>Emissionsfaktor</span>
+                      <select
+                        value={row.emissionFactorSource ?? 'standard'}
+                        onChange={handleEmissionFactorSourceChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      >
+                        {EMISSION_FACTOR_SOURCE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="number"
                         inputMode="decimal"
                         min={0}
                         step="any"
                         value={row.emissionFactorKgPerUnit ?? ''}
-                        onChange={handleFieldChange(index, 'emissionFactorKgPerUnit')}
+                        onChange={handleNumericFieldChange(index, 'emissionFactorKgPerUnit')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                       <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>
@@ -240,17 +338,17 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Kørt distance (km)</span>
+                      <span>Distance (valgfri)</span>
                       <input
                         type="number"
                         inputMode="decimal"
                         min={0}
                         step="any"
                         value={row.distanceKm ?? ''}
-                        placeholder="0 (valgfrit)"
-                        onChange={handleFieldChange(index, 'distanceKm')}
+                        onChange={handleNumericFieldChange(index, 'distanceKm')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
+                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>km</span>
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
@@ -262,35 +360,53 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
                         max={100}
                         step="any"
                         value={row.documentationQualityPercent ?? ''}
-                        onChange={handleFieldChange(index, 'documentationQualityPercent')}
+                        onChange={handleNumericFieldChange(index, 'documentationQualityPercent')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <label style={{ fontWeight: 600 }}>Dokumentation</label>
+                    <input
+                      type="file"
+                      onChange={handleFileChange(index)}
+                      style={{
+                        padding: '0.45rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #c8d2cf',
+                        background: '#f6f9f8'
+                      }}
+                    />
+                    {row.documentationFileName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <span>{row.documentationFileName}</span>
+                        <button
+                          type="button"
+                          onClick={handleClearFile(index)}
+                          style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
+                        >
+                          Fjern
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </article>
               )
             })}
           </div>
         ) : (
-          <p style={{ margin: 0, color: '#5f6f6a' }}>
-            Tilføj mindst én køretøjslinje for at beregne Scope 1-emissioner.
-          </p>
+          <p style={{ margin: 0, color: '#5f6f6a' }}>Tilføj mindst én brændselslinje for at beregne Scope 1-emissioner.</p>
         )}
       </section>
 
       <section style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}>
         <h3 style={{ margin: 0 }}>Estimat</h3>
-        {preview.trace.some((line) => line.startsWith('entry[')) ? (
+        {rows.length > 0 && preview.trace.some((line) => line.startsWith('entry[')) ? (
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
               {preview.value} {preview.unit}
             </p>
-            {fleetIntensity != null && totalDistance != null && totalDistance > 0 && (
-              <p style={{ margin: 0, color: '#3a4b45' }}>
-                Gns. intensitet: {numberFormatter.format(fleetIntensity)} kg CO₂e/km over{' '}
-                {numberFormatter.format(totalDistance)} km.
-              </p>
-            )}
             <div>
               <strong>Antagelser</strong>
               <ul>
@@ -321,7 +437,7 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
             </details>
           </div>
         ) : (
-          <p style={{ margin: 0 }}>Udfyld køretøjslinjer for at få beregnet Scope 1-emissioner.</p>
+          <p style={{ margin: 0 }}>Udfyld brændselslinjer for at få beregnet Scope 1-emissioner.</p>
         )}
       </section>
     </form>
