@@ -70,11 +70,20 @@ export const a4InputSchema = z
   })
   .strict()
 
+const documentationQualityPercentSchema = z.number().min(0).max(100).nullable()
+const documentationFileNameSchema = z.string().max(200).nullable()
+
+const b1EmissionFactorSources = ['landefaktor', 'residualMix'] as const
+const b1CalculationMethods = ['locationBased', 'marketBased'] as const
+
 export const b1InputSchema = z
   .object({
-    electricityConsumptionKwh: z.number().min(0).nullable(),
+    consumptionKwh: z.number().min(0).nullable(),
+    emissionFactorSource: z.enum(b1EmissionFactorSources).nullable(),
     emissionFactorKgPerKwh: z.number().min(0).nullable(),
-    renewableSharePercent: z.number().min(0).max(100).nullable()
+    calculationMethod: z.enum(b1CalculationMethods).nullable(),
+    documentationQualityPercent: documentationQualityPercentSchema,
+    documentationFileName: documentationFileNameSchema
   })
   .strict()
 

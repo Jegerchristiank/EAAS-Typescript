@@ -4,8 +4,7 @@
 import { readFile } from 'node:fs/promises'
 
 const formulaOverrides: Record<string, string> = {
-  B1:
-    'B1 = (electricityConsumptionKwh * emissionFactorKgPerKwh) - (electricityConsumptionKwh * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.9)',
+  B1: 'B1 = consumptionKwh * emissionFactorKgPerKwh',
   B2:
     'B2 = ((heatConsumptionKwh - recoveredHeatKwh) * emissionFactorKgPerKwh) - ((heatConsumptionKwh - recoveredHeatKwh) * emissionFactorKgPerKwh * renewableSharePercent/100 * 0.85)',
   B3:

@@ -764,40 +764,49 @@ describe('runA1', () => {
 })
 
 describe('runB1', () => {
-  it('beregner nettoemission med vedvarende reduktion', () => {
+  it('beregner emission ud fra elforbrug og valgt faktor', () => {
     const input: ModuleInput = {
       B1: {
-        electricityConsumptionKwh: 120_000,
+        consumptionKwh: 120_000,
+        emissionFactorSource: 'landefaktor',
         emissionFactorKgPerKwh: 0.233,
-        renewableSharePercent: 40
+        calculationMethod: 'locationBased',
+        documentationQualityPercent: 80,
+        documentationFileName: 'invoice.pdf'
       }
     }
 
     const result = runB1(input)
 
-    expect(result.value).toBe(17.894)
+    expect(result.value).toBeCloseTo(27.96, 3)
     expect(result.unit).toBe(factors.b1.unit)
     expect(result.warnings).toEqual([])
-    expect(result.trace).toContain('renewableReductionKg=10065.6')
+    expect(result.trace).toContain('calculationMethod=locationBased')
   })
 
-  it('håndterer negative og manglende værdier med advarsler', () => {
+  it('falder tilbage til standardværdier og informerer brugeren', () => {
     const input: ModuleInput = {
       B1: {
-        electricityConsumptionKwh: -10,
+        consumptionKwh: -10,
+        emissionFactorSource: 'ukendt' as never,
         emissionFactorKgPerKwh: null,
-        renewableSharePercent: 140
+        calculationMethod: 'unknown' as never,
+        documentationQualityPercent: -5,
+        documentationFileName: null
       }
     }
 
     const result = runB1(input)
 
     expect(result.value).toBe(0)
-    expect(result.trace).toContain('renewableSharePercent=100')
+    expect(result.trace).toContain('emissionFactorSource=landefaktor')
     expect(result.warnings).toEqual([
-      'Feltet electricityConsumptionKwh kan ikke være negativt. 0 anvendes i stedet.',
-      'Feltet emissionFactorKgPerKwh mangler og behandles som 0.',
-      'Andelen af vedvarende energi er begrænset til 100%.'
+      'Feltet consumptionKwh kan ikke være negativt. 0 anvendes i stedet.',
+      'Ukendt emissionsfaktorkilde. Landefaktor anvendes som standard.',
+      'Emissionsfaktor mangler. Standard for Landefaktor anvendes: 0.233 kg CO2e/kWh.',
+      'Ukendt beregningsmetode. Location-based anvendes som standard.',
+      'Dokumentationskvalitet kan ikke være negativ. 0% anvendes i stedet.',
+      'Dokumentationskvaliteten er under 60%. Overvej at forbedre data eller anvende konservativ tilgang.'
     ])
   })
 })

@@ -13,21 +13,36 @@ const b1Override = {
   title: 'B1Input',
   description: 'Scope 2 elforbrug',
   properties: {
-    electricityConsumptionKwh: {
+    consumptionKwh: {
       type: ['number', 'null'],
       minimum: 0,
-      description: 'Årligt elforbrug (kWh)'
+      description: 'Indkøbt elektricitet i kWh.'
+    },
+    emissionFactorSource: {
+      type: ['string', 'null'],
+      enum: ['landefaktor', 'residualMix', null],
+      description: 'Kilde til emissionsfaktor (landefaktor eller residualmix).'
     },
     emissionFactorKgPerKwh: {
       type: ['number', 'null'],
       minimum: 0,
-      description: 'Emissionsfaktor (kg CO2e pr. kWh)'
+      description: 'Emissionsfaktor i kg CO2e pr. kWh.'
     },
-    renewableSharePercent: {
+    calculationMethod: {
+      type: ['string', 'null'],
+      enum: ['locationBased', 'marketBased', null],
+      description: 'Valgt beregningsmetode for Scope 2.'
+    },
+    documentationQualityPercent: {
       type: ['number', 'null'],
       minimum: 0,
       maximum: 100,
-      description: 'Andel af strøm indkøbt som vedvarende energi (%)'
+      description: 'Dokumentationskvalitet i procent.'
+    },
+    documentationFileName: {
+      type: ['string', 'null'],
+      maxLength: 200,
+      description: 'Filnavn for dokumentation (fx elregning).'
     }
   },
   additionalProperties: false
