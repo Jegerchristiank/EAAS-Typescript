@@ -16,26 +16,37 @@ import {
 
 import type { WizardStepProps } from './StepTemplate'
 
-type C12Row = NonNullable<C12Input['franchiseLines']>[number]
+type BaseC12Row = NonNullable<C12Input['franchiseLines']>[number]
+
+type C12Row = BaseC12Row & {
+  documentationFileName?: string | null
+}
+
 type NumericFieldKey = 'revenueDkk' | 'energyConsumptionKwh' | 'documentationQualityPercent'
 
-type ActivityOption = { value: C12ActivityBasis; label: string }
-type EmissionFactorOption = { value: C12EmissionFactorKey; label: string }
-
-const ACTIVITY_OPTIONS: ActivityOption[] = [
-  { value: 'revenue', label: 'Omsætning (DKK)' },
-  { value: 'energy', label: 'Energiforbrug (kWh)' }
-]
-
-const EMPTY_C12: C12Input = {
+const EMPTY_C12: { franchiseLines: C12Row[] } = {
   franchiseLines: []
 }
 
-const EMISSION_FACTOR_OPTIONS: Record<C12ActivityBasis, EmissionFactorOption[]> = ((): Record<
+const ACTIVITY_OPTIONS: Array<{ value: C12ActivityBasis; label: string; description: string }> = [
+  {
+    value: 'revenue',
+    label: 'Omsætning (DKK)',
+    description: 'Anvend regnskabsdata eller rapporteret franchiseomsætning.'
+  },
+  {
+    value: 'energy',
+    label: 'Energiforbrug (kWh)',
+    description: 'Målt eller estimeret kWh-forbrug for franchiserede enheder.'
+  }
+]
+
+const EMISSION_FACTOR_OPTIONS: Record<C12ActivityBasis, Array<{ value: C12EmissionFactorKey; label: string }>> = ((): Record<
   C12ActivityBasis,
-  EmissionFactorOption[]
+  Array<{ value: C12EmissionFactorKey; label: string }>
 > => {
   const bases: C12ActivityBasis[] = ['revenue', 'energy']
+
   return bases.reduce((acc, basis) => {
     acc[basis] = Object.entries(c12EmissionFactorConfigurations)
       .filter(([, config]) => config.basis === basis)
@@ -45,35 +56,60 @@ const EMISSION_FACTOR_OPTIONS: Record<C12ActivityBasis, EmissionFactorOption[]> 
           minimumFractionDigits: decimals,
           maximumFractionDigits: decimals
         }).format(config.factor)
+
         return {
           value: key as C12EmissionFactorKey,
           label: `${config.label} (${formattedFactor} ${config.unit})`
         }
       })
+
     return acc
-  }, {} as Record<C12ActivityBasis, EmissionFactorOption[]>)
+  }, {} as Record<C12ActivityBasis, Array<{ value: C12EmissionFactorKey; label: string }>>)
 })()
 
-function createDefaultRow(basis: C12ActivityBasis = 'revenue'): C12Row {
+function createDefaultRow(activityBasis: C12ActivityBasis = 'revenue'): C12Row {
   return {
-    activityBasis: basis,
+    activityBasis,
     revenueDkk: null,
     energyConsumptionKwh: null,
-    emissionFactorKey: defaultC12EmissionFactorKeyByBasis[basis],
-    documentationQualityPercent: 100
+    emissionFactorKey: defaultC12EmissionFactorKeyByBasis[activityBasis],
+    documentationQualityPercent: 100,
+    documentationFileName: null
   }
 }
 
+function parseNumber(value: string): number | null {
+  const normalised = value.replace(',', '.').trim()
+  if (normalised === '') {
+    return null
+  }
+
+  const parsed = Number.parseFloat(normalised)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.C12 as C12Input | undefined) ?? EMPTY_C12
-  const rows = current.franchiseLines ?? []
+  const stored = (state.C12 as { franchiseLines?: C12Row[] } | undefined) ?? EMPTY_C12
+  const rows = (stored.franchiseLines ?? []) as C12Row[]
 
   const preview = useMemo<ModuleResult>(() => {
-    return runC12({ C12: current } as ModuleInput)
-  }, [current])
+    const franchiseLines: NonNullable<C12Input['franchiseLines']> = rows.map(
+      ({ activityBasis, revenueDkk, energyConsumptionKwh, emissionFactorKey, documentationQualityPercent }) => ({
+        activityBasis,
+        revenueDkk,
+        energyConsumptionKwh,
+        emissionFactorKey,
+        documentationQualityPercent
+      })
+    )
+
+    return runC12({ C12: { franchiseLines } as C12Input } as ModuleInput)
+  }, [rows])
 
   const updateRows = (nextRows: C12Row[]) => {
-    onChange('C12', { franchiseLines: nextRows })
+    onChange('C12', {
+      franchiseLines: nextRows as unknown as NonNullable<C12Input['franchiseLines']>
+    })
   }
 
   const handleAddRow = () => {
@@ -87,45 +123,78 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
   const handleActivityBasisChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const nextBasis = event.target.value as C12ActivityBasis
     const defaultKey = defaultC12EmissionFactorKeyByBasis[nextBasis]
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            activityBasis: nextBasis,
-            emissionFactorKey: defaultKey
-          }
-        : row
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              activityBasis: nextBasis,
+              emissionFactorKey: defaultKey,
+              revenueDkk: nextBasis === 'revenue' ? row.revenueDkk : null,
+              energyConsumptionKwh: nextBasis === 'energy' ? row.energyConsumptionKwh : null
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
   }
 
   const handleEmissionFactorChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const nextKey = event.target.value as C12EmissionFactorKey
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            emissionFactorKey: nextKey
-          }
-        : row
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              emissionFactorKey: nextKey
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
   }
 
-  const handleNumericFieldChange = (index: number, field: NumericFieldKey) => (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            [field]: Number.isFinite(parsed) ? parsed : null
-          }
-        : row
+  const handleNumericFieldChange = (index: number, field: NumericFieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
+    const parsed = parseNumber(event.target.value)
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              [field]: parsed
+            }
+          : row
+      )
     )
-    updateRows(nextRows as C12Row[])
+  }
+
+  const handleFileChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: file ? file.name : null
+            }
+          : row
+      )
+    )
+  }
+
+  const handleFileClear = (index: number) => () => {
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: null
+            }
+          : row
+      )
+    )
   }
 
   const hasRows = rows.length > 0
@@ -136,8 +205,8 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
         <h2>C12 – Franchising og downstream services</h2>
         <p style={{ margin: 0 }}>
           Registrér franchiseomsætning eller energiforbrug for aktiviteter, som virksomheden har kontrol over downstream. Vælg
-          basis, anvend branchespecifikke emissionsfaktorer og vurder dokumentationskvaliteten for at beregne Scope 3-emissioner
-          fra franchiserede enheder.
+          basis, anvend branchespecifikke emissionsfaktorer og vedhæft dokumentation for at beregne Scope 3-emissioner fra
+          franchiserede enheder.
         </p>
       </header>
 
@@ -164,9 +233,8 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
         {hasRows ? (
           <div style={{ display: 'grid', gap: '1rem' }}>
             {rows.map((row, index) => {
-              const options = EMISSION_FACTOR_OPTIONS[row.activityBasis]
-              const selectedKey = row.emissionFactorKey ?? defaultC12EmissionFactorKeyByBasis[row.activityBasis]
-
+              const basis = row.activityBasis ?? 'revenue'
+              const factorOptions = EMISSION_FACTOR_OPTIONS[basis]
               return (
                 <article
                   key={`c12-row-${index}`}
@@ -175,7 +243,7 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
                     borderRadius: '0.75rem',
                     padding: '1rem',
                     display: 'grid',
-                    gap: '0.75rem',
+                    gap: '0.9rem',
                     background: '#f9fbfa'
                   }}
                 >
@@ -190,11 +258,11 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
                       <span>Aktivitetsbasis</span>
                       <select
-                        value={row.activityBasis}
+                        value={row.activityBasis ?? 'revenue'}
                         onChange={handleActivityBasisChange(index)}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       >
@@ -204,9 +272,12 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
                           </option>
                         ))}
                       </select>
+                      <span style={{ color: '#5a6b66', fontSize: '0.8rem' }}>
+                        {ACTIVITY_OPTIONS.find((option) => option.value === basis)?.description}
+                      </span>
                     </label>
 
-                    {row.activityBasis === 'revenue' ? (
+                    {basis === 'revenue' ? (
                       <label style={{ display: 'grid', gap: '0.25rem' }}>
                         <span>Omsætning (DKK)</span>
                         <input
@@ -229,7 +300,7 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
                           min={0}
                           step="any"
                           value={row.energyConsumptionKwh ?? ''}
-                          placeholder="fx 85 000"
+                          placeholder="fx 240 000"
                           onChange={handleNumericFieldChange(index, 'energyConsumptionKwh')}
                           style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                         />
@@ -239,11 +310,11 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
                       <span>Emissionsfaktor</span>
                       <select
-                        value={selectedKey}
+                        value={row.emissionFactorKey ?? defaultC12EmissionFactorKeyByBasis[basis]}
                         onChange={handleEmissionFactorChange(index)}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       >
-                        {options.map((option) => (
+                        {factorOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>
@@ -267,9 +338,36 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </label>
                   </div>
 
+                  <div style={{ display: 'grid', gap: '0.45rem' }}>
+                    <label style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span>Dokumentation</span>
+                      <input
+                        type="file"
+                        onChange={handleFileChange(index)}
+                        style={{
+                          padding: '0.45rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #c8d2cf',
+                          background: '#f6f9f8'
+                        }}
+                      />
+                    </label>
+                    {row.documentationFileName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                        <span>{row.documentationFileName}</span>
+                        <button
+                          type="button"
+                          onClick={handleFileClear(index)}
+                          style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
+                        >
+                          Fjern
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
                   <p style={{ margin: 0, fontSize: '0.85rem', color: '#4f5d59' }}>
-                    Basisvalget styrer hvilke emissionsfaktorer der vises. Manglende emissionfaktor bruger standardværdien for den
-                    valgte kategori.
+                    Omsætning multipliceres med branchefaktorer (kg CO₂e/DKK), og energiforbrug multipliceres med valgte kWh-faktorer.
                   </p>
                 </article>
               )
@@ -277,7 +375,7 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
           </div>
         ) : (
           <p style={{ margin: 0, color: '#555' }}>
-            Tilføj mindst én linje for at beregne emissioner fra franchiserede aktiviteter.
+            Tilføj mindst én linje for at beregne emissionerne fra franchising og downstream services.
           </p>
         )}
       </section>
@@ -291,29 +389,31 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
             <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
               {preview.value} {preview.unit}
             </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
+            {preview.assumptions.length > 0 ? (
               <div>
-                <strong>Advarsler</strong>
+                <strong>Antagelser</strong>
                 <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
+                  {preview.assumptions.map((assumption, assumptionIndex) => (
+                    <li key={`assumption-${assumptionIndex}`}>{assumption}</li>
                   ))}
                 </ul>
               </div>
-            )}
+            ) : null}
+            {preview.warnings.length > 0 ? (
+              <div>
+                <strong>Advarsler</strong>
+                <ul>
+                  {preview.warnings.map((warning, warningIndex) => (
+                    <li key={`warning-${warningIndex}`}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <details>
               <summary>Teknisk trace</summary>
               <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
+                {preview.trace.map((line, traceIndex) => (
+                  <li key={`trace-${traceIndex}`} style={{ fontFamily: 'monospace' }}>
                     {line}
                   </li>
                 ))}
@@ -321,7 +421,7 @@ export function C12Step({ state, onChange }: WizardStepProps): JSX.Element {
             </details>
           </div>
         ) : (
-          <p style={{ margin: 0 }}>Indtast data for at se et estimat.</p>
+          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet emission.</p>
         )}
       </section>
     </form>

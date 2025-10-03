@@ -10,8 +10,20 @@ import { c11EnergyConfigurations, runC11 } from '@org/shared'
 
 import type { WizardStepProps } from './StepTemplate'
 
-type C11Row = NonNullable<C11Input['leasedAssetLines']>[number]
-type NumericFieldKey = 'floorAreaSqm' | 'energyConsumptionKwh' | 'emissionFactorKgPerKwh' | 'documentationQualityPercent'
+type BaseC11Row = NonNullable<C11Input['leasedAssetLines']>[number]
+
+type EmissionFactorSource = 'standard' | 'supplier' | 'custom'
+
+type C11Row = BaseC11Row & {
+  emissionFactorSource?: EmissionFactorSource | null
+  documentationFileName?: string | null
+}
+
+type NumericFieldKey =
+  | 'floorAreaSqm'
+  | 'energyConsumptionKwh'
+  | 'emissionFactorKgPerKwh'
+  | 'documentationQualityPercent'
 
 type EnergyTypeOption = { value: C11Row['energyType']; label: string }
 
@@ -20,7 +32,13 @@ const ENERGY_TYPE_OPTIONS: EnergyTypeOption[] = [
   { value: 'heat', label: 'Varme' }
 ]
 
-const EMPTY_C11: C11Input = {
+const EMISSION_FACTOR_SOURCE_OPTIONS: Array<{ value: EmissionFactorSource; label: string }> = [
+  { value: 'standard', label: 'Standardfaktor fra database' },
+  { value: 'supplier', label: 'Leverandør-/kontraktsdata' },
+  { value: 'custom', label: 'Manuelt angivet faktor' }
+]
+
+const EMPTY_C11: { leasedAssetLines: C11Row[] } = {
   leasedAssetLines: []
 }
 
@@ -30,20 +48,44 @@ function createDefaultRow(energyType: C11Row['energyType'] = 'electricity'): C11
     floorAreaSqm: null,
     energyConsumptionKwh: null,
     emissionFactorKgPerKwh: c11EnergyConfigurations[energyType].defaultEmissionFactorKgPerKwh,
-    documentationQualityPercent: 100
+    documentationQualityPercent: 100,
+    emissionFactorSource: 'standard',
+    documentationFileName: null
   }
 }
 
+function parseNumber(value: string): number | null {
+  const normalised = value.replace(',', '.').trim()
+  if (normalised === '') {
+    return null
+  }
+
+  const parsed = Number.parseFloat(normalised)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.C11 as C11Input | undefined) ?? EMPTY_C11
-  const rows = current.leasedAssetLines ?? []
+  const stored = (state.C11 as { leasedAssetLines?: C11Row[] } | undefined) ?? EMPTY_C11
+  const rows = (stored.leasedAssetLines ?? []) as C11Row[]
 
   const preview = useMemo<ModuleResult>(() => {
-    return runC11({ C11: current } as ModuleInput)
-  }, [current])
+    const leasedAssetLines: NonNullable<C11Input['leasedAssetLines']> = rows.map(
+      ({ energyType, floorAreaSqm, energyConsumptionKwh, emissionFactorKgPerKwh, documentationQualityPercent }) => ({
+        energyType,
+        floorAreaSqm,
+        energyConsumptionKwh,
+        emissionFactorKgPerKwh,
+        documentationQualityPercent
+      })
+    )
+
+    return runC11({ C11: { leasedAssetLines } as C11Input } as ModuleInput)
+  }, [rows])
 
   const updateRows = (nextRows: C11Row[]) => {
-    onChange('C11', { leasedAssetLines: nextRows })
+    onChange('C11', {
+      leasedAssetLines: nextRows as unknown as NonNullable<C11Input['leasedAssetLines']>
+    })
   }
 
   const handleAddRow = () => {
@@ -51,36 +93,89 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
   }
 
   const handleRemoveRow = (index: number) => () => {
-    const next = rows.filter((_, rowIndex) => rowIndex !== index)
-    updateRows(next)
+    updateRows(rows.filter((_, rowIndex) => rowIndex !== index))
   }
 
   const handleEnergyTypeChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const nextType = event.target.value as C11Row['energyType']
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            energyType: nextType,
-            emissionFactorKgPerKwh: c11EnergyConfigurations[nextType].defaultEmissionFactorKgPerKwh ?? null
-          }
-        : row
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              energyType: nextType,
+              emissionFactorKgPerKwh: c11EnergyConfigurations[nextType].defaultEmissionFactorKgPerKwh ?? null,
+              emissionFactorSource: 'standard'
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
   }
 
   const handleNumericFieldChange = (index: number, field: NumericFieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            [field]: Number.isFinite(parsed) ? parsed : null
-          }
-        : row
+    const parsed = parseNumber(event.target.value)
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              [field]: parsed
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
+  }
+
+  const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const nextSource = event.target.value as EmissionFactorSource
+
+    updateRows(
+      rows.map((row, rowIndex) => {
+        if (rowIndex !== index) {
+          return row
+        }
+
+        const config = c11EnergyConfigurations[row.energyType]
+        return {
+          ...row,
+          emissionFactorSource: nextSource,
+          emissionFactorKgPerKwh:
+            nextSource === 'standard'
+              ? config.defaultEmissionFactorKgPerKwh ?? row.emissionFactorKgPerKwh
+              : row.emissionFactorKgPerKwh
+        }
+      })
+    )
+  }
+
+  const handleFileChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null
+
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: file ? file.name : null
+            }
+          : row
+      )
+    )
+  }
+
+  const handleFileClear = (index: number) => () => {
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: null
+            }
+          : row
+      )
+    )
   }
 
   const hasRows = rows.length > 0
@@ -90,15 +185,14 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h2>C11 – Downstream leasede aktiver</h2>
         <p style={{ margin: 0 }}>
-          Registrér energi for aktiver virksomheden har leaset ud, men hvor ansvaret for emissionerne
-          fortsat ligger hos jer. Indtast enten målt energiforbrug eller areal – modulet estimerer kWh
-          ud fra standardintensiteter og beregner emissioner baseret på den valgte energitype.
+          Kortlæg energi- og dokumentationsgrundlaget for aktiver virksomheden udlejer downstream. Brug enten målte kWh eller
+          estimer ud fra areal og standardintensiteter og vedhæft evidens for de vigtigste kontrakter og opgørelser.
         </p>
       </header>
 
       <section style={{ display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-          <h3 style={{ margin: 0 }}>Udlejede aktiver</h3>
+          <h3 style={{ margin: 0 }}>Lejede aktiver</h3>
           <button
             type="button"
             onClick={handleAddRow}
@@ -128,7 +222,7 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
                     borderRadius: '0.75rem',
                     padding: '1rem',
                     display: 'grid',
-                    gap: '0.75rem',
+                    gap: '0.9rem',
                     background: '#f9fbfa'
                   }}
                 >
@@ -143,22 +237,22 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </button>
                   </div>
 
-                  <label style={{ display: 'grid', gap: '0.25rem' }}>
-                    <span>Energitype</span>
-                    <select
-                      value={row.energyType}
-                      onChange={handleEnergyTypeChange(index)}
-                      style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
-                    >
-                      {ENERGY_TYPE_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                    <label style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span>Energitype</span>
+                      <select
+                        value={row.energyType}
+                        onChange={handleEnergyTypeChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      >
+                        {ENERGY_TYPE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
                       <span>Areal (m²)</span>
                       <input
@@ -167,7 +261,7 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
                         min={0}
                         step="any"
                         value={row.floorAreaSqm ?? ''}
-                        placeholder="fx 850"
+                        placeholder="fx 900"
                         onChange={handleNumericFieldChange(index, 'floorAreaSqm')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
@@ -181,14 +275,29 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
                         min={0}
                         step="any"
                         value={row.energyConsumptionKwh ?? ''}
-                        placeholder="fx 25 000"
+                        placeholder="fx 30 000"
                         onChange={handleNumericFieldChange(index, 'energyConsumptionKwh')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Emissionsfaktor (kg CO2e/kWh)</span>
+                      <span>Kilde til emissionsfaktor</span>
+                      <select
+                        value={row.emissionFactorSource ?? 'standard'}
+                        onChange={handleEmissionFactorSourceChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      >
+                        {EMISSION_FACTOR_SOURCE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span>Emissionsfaktor (kg CO₂e/kWh)</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -217,9 +326,37 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </label>
                   </div>
 
+                  <div style={{ display: 'grid', gap: '0.45rem' }}>
+                    <label style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span>Dokumentation</span>
+                      <input
+                        type="file"
+                        onChange={handleFileChange(index)}
+                        style={{
+                          padding: '0.45rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #c8d2cf',
+                          background: '#f6f9f8'
+                        }}
+                      />
+                    </label>
+                    {row.documentationFileName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                        <span>{row.documentationFileName}</span>
+                        <button
+                          type="button"
+                          onClick={handleFileClear(index)}
+                          style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
+                        >
+                          Fjern
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
                   <p style={{ margin: 0, fontSize: '0.85rem', color: '#4f5d59' }}>
-                    Mangler energiforbruget, estimeres det ud fra arealet og standardintensiteten for den
-                    valgte energitype.
+                    Manglende energiforbrug estimeres ud fra arealet og de standardintensiteter, der knytter sig til den valgte
+                    energitype.
                   </p>
                 </article>
               )
@@ -241,29 +378,31 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
             <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
               {preview.value} {preview.unit}
             </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
+            {preview.assumptions.length > 0 ? (
               <div>
-                <strong>Advarsler</strong>
+                <strong>Antagelser</strong>
                 <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
+                  {preview.assumptions.map((assumption, assumptionIndex) => (
+                    <li key={`assumption-${assumptionIndex}`}>{assumption}</li>
                   ))}
                 </ul>
               </div>
-            )}
+            ) : null}
+            {preview.warnings.length > 0 ? (
+              <div>
+                <strong>Advarsler</strong>
+                <ul>
+                  {preview.warnings.map((warning, warningIndex) => (
+                    <li key={`warning-${warningIndex}`}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <details>
               <summary>Teknisk trace</summary>
               <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
+                {preview.trace.map((line, traceIndex) => (
+                  <li key={`trace-${traceIndex}`} style={{ fontFamily: 'monospace' }}>
                     {line}
                   </li>
                 ))}
@@ -271,7 +410,7 @@ export function C11Step({ state, onChange }: WizardStepProps): JSX.Element {
             </details>
           </div>
         ) : (
-          <p style={{ margin: 0 }}>Indtast data for at se et estimat.</p>
+          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet emission.</p>
         )}
       </section>
     </form>
