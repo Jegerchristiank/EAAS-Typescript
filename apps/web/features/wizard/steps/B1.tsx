@@ -1,146 +1,101 @@
 /**
- * Wizardtrin for modul B1.
+ * Wizardtrin for modul B1 – elforbrug.
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { B1Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { B1Input } from '@org/shared'
 import { runB1 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof B1Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
-  label: string
-  description: string
-  unit: string
-  placeholder?: string
+export type B1FormState = B1Input & {
+  emissionFactorSource?: string | null
+  calculationMethod?: 'locationBased' | 'marketBased' | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
-  {
-    key: 'electricityConsumptionKwh',
-    label: 'Årligt elforbrug',
-    description: 'Samlet forbrug for organisationen i kWh.',
-    unit: 'kWh'
-  },
-  {
-    key: 'emissionFactorKgPerKwh',
-    label: 'Emissionsfaktor',
-    description: 'Kg CO2e pr. kWh i leverandørens deklaration.',
-    unit: 'kg CO2e/kWh',
-    placeholder: '0.233'
-  },
-  {
-    key: 'renewableSharePercent',
-    label: 'Vedvarende andel',
-    description: 'Andel af strøm indkøbt som certificeret vedvarende energi.',
-    unit: '%',
-    placeholder: '0-100'
-  }
-]
-
-const EMPTY_B1: B1Input = {
+const EMPTY_B1: B1FormState = {
   electricityConsumptionKwh: null,
   emissionFactorKgPerKwh: null,
-  renewableSharePercent: null
+  renewableSharePercent: null,
+  emissionFactorSource: null,
+  calculationMethod: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function B1Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.B1 as B1Input | undefined) ?? EMPTY_B1
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runB1({ B1: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: B1Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const B1Step = createConfiguredModuleStep<'B1', B1FormState>({
+  moduleId: 'B1',
+  title: 'B1 – Scope 2 elforbrug',
+  description:
+    'Indtast organisationens indkøbte elforbrug og vælg hvilken emissionsfaktor der skal danne grundlag for beregningen.',
+  emptyState: EMPTY_B1,
+  fields: [
+    {
+      type: 'number',
+      key: 'electricityConsumptionKwh',
+      label: 'Forbrug',
+      unit: 'kWh',
+      description: 'Samlet indkøbt elektricitet i den valgte periode.'
+    },
+    {
+      type: 'select',
+      key: 'emissionFactorSource',
+      label: 'Emissionsfaktor',
+      description: 'Vælg landefaktor eller residualfaktor fra database eller leverandør.',
+      helperText: 'Valget udfylder feltet for emissionsfaktor nedenfor, som altid kan justeres manuelt.',
+      options: [
+        {
+          value: 'dk-standard',
+          label: 'Danmark – standardfaktor (0,233 kg CO₂e/kWh)',
+          derived: { emissionFactorKgPerKwh: 0.233 }
+        },
+        {
+          value: 'dk-residual',
+          label: 'Danmark – residualfaktor (0,318 kg CO₂e/kWh)',
+          derived: { emissionFactorKgPerKwh: 0.318 }
+        },
+        {
+          value: 'eu-average',
+          label: 'EU-gennemsnit (0,275 kg CO₂e/kWh)',
+          derived: { emissionFactorKgPerKwh: 0.275 }
+        },
+        {
+          value: 'custom',
+          label: 'Egen leverandørdata'
+        }
+      ]
+    },
+    {
+      type: 'number',
+      key: 'emissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor',
+      unit: 'kg CO₂e/kWh',
+      description: 'Automatisk udfyldt fra dropdown men kan erstattes med leverandørdata.'
+    },
+    {
+      type: 'select',
+      key: 'calculationMethod',
+      label: 'Beregningsmetode',
+      description: 'Angiv om rapporteringen sker efter location-based eller market-based metode.',
+      options: [
+        { value: 'locationBased', label: 'Location based' },
+        { value: 'marketBased', label: 'Market based' }
+      ]
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurdering af hvor sikker dokumentationen er for indtastet data.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload elregning eller måleraflæsning som bilag.'
     }
-    onChange('B1', next)
-  }
-
-  const hasData = preview.trace.some((line) => line.includes('grossEmissionsKg')) &&
-    (current.electricityConsumptionKwh != null ||
-      current.emissionFactorKgPerKwh != null ||
-      current.renewableSharePercent != null)
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>B1 – Scope 2 elforbrug</h2>
-        <p>
-          Indtast data for organisationens elforbrug. Resultatet beregner nettoemissionen efter
-          fradrag for vedvarende indkøb.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label} ({field.unit})
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={0}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}>
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet nettoemission.</p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runB1
+})

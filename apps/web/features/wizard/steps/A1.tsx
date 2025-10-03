@@ -1,5 +1,5 @@
 /**
- * Wizardtrin for modul A1 – stationær forbrænding.
+ * Wizardtrin for modul A1 – stationære forbrændingskilder.
  */
 'use client'
 
@@ -10,12 +10,28 @@ import { a1FuelConfigurations, a1FuelOptions, runA1 } from '@org/shared'
 
 import type { WizardStepProps } from './StepTemplate'
 
-type FuelRow = NonNullable<A1Input['fuelConsumptions']>[number]
-type FuelFieldKey = 'quantity' | 'emissionFactorKgPerUnit' | 'documentationQualityPercent'
+const EMISSION_FACTOR_SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'standard', label: 'Standardfaktor fra database' },
+  { value: 'leverandor', label: 'Leverandørdata' }
+]
+
+type BaseFuelRow = NonNullable<A1Input['fuelConsumptions']>[number]
+
+type FuelRow = BaseFuelRow & {
+  energyContentMjPerUnit?: number | null
+  emissionFactorSource?: string | null
+  documentationFileName?: string | null
+}
 
 const EMPTY_A1: A1Input = {
   fuelConsumptions: []
 }
+
+const UNIT_OPTIONS: Array<{ value: BaseFuelRow['unit']; label: string }> = [
+  { value: 'liter', label: 'Liter' },
+  { value: 'Nm³', label: 'Nm³' },
+  { value: 'kg', label: 'Kilogram' }
+]
 
 function createDefaultRow(fuelType: keyof typeof a1FuelConfigurations = 'naturgas'): FuelRow {
   const config = a1FuelConfigurations[fuelType]
@@ -24,26 +40,41 @@ function createDefaultRow(fuelType: keyof typeof a1FuelConfigurations = 'naturga
     unit: config.defaultUnit,
     quantity: null,
     emissionFactorKgPerUnit: config.defaultEmissionFactorKgPerUnit,
-    documentationQualityPercent: 100
+    documentationQualityPercent: 100,
+    energyContentMjPerUnit: config.energyContentMjPerUnit,
+    emissionFactorSource: 'standard',
+    documentationFileName: null
   }
 }
 
-const UNIT_OPTIONS: Array<{ value: FuelRow['unit']; label: string }> = [
-  { value: 'liter', label: 'Liter' },
-  { value: 'Nm³', label: 'Nm³' },
-  { value: 'kg', label: 'Kilogram' }
-]
+function parseNumber(value: string): number | null {
+  const normalised = value.replace(',', '.')
+  if (normalised.trim() === '') {
+    return null
+  }
+  const parsed = Number.parseFloat(normalised)
+  return Number.isFinite(parsed) ? parsed : null
+}
 
 export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.A1 as A1Input | undefined) ?? EMPTY_A1
-  const rows = current.fuelConsumptions ?? []
+  const stored = (state.A1 as { fuelConsumptions?: FuelRow[] } | undefined) ?? EMPTY_A1
+  const rows = (stored.fuelConsumptions ?? []) as FuelRow[]
 
   const preview = useMemo<ModuleResult>(() => {
-    return runA1({ A1: current } as ModuleInput)
-  }, [current])
+    const calculationRows: NonNullable<A1Input['fuelConsumptions']> = rows.map(
+      ({ fuelType, unit, quantity, emissionFactorKgPerUnit, documentationQualityPercent }) => ({
+        fuelType,
+        unit,
+        quantity,
+        emissionFactorKgPerUnit,
+        documentationQualityPercent
+      })
+    )
+    return runA1({ A1: { fuelConsumptions: calculationRows } as A1Input } as ModuleInput)
+  }, [rows])
 
   const updateRows = (nextRows: FuelRow[]) => {
-    onChange('A1', { fuelConsumptions: nextRows })
+    onChange('A1', { fuelConsumptions: nextRows as unknown as A1Input['fuelConsumptions'] })
   }
 
   const handleAddRow = () => {
@@ -51,8 +82,7 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
   }
 
   const handleRemoveRow = (index: number) => () => {
-    const next = rows.filter((_, rowIndex) => rowIndex !== index)
-    updateRows(next)
+    updateRows(rows.filter((_, rowIndex) => rowIndex !== index))
   }
 
   const handleFuelTypeChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
@@ -64,37 +94,88 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
       unit: config.defaultUnit,
       quantity: existing?.quantity ?? null,
       emissionFactorKgPerUnit: config.defaultEmissionFactorKgPerUnit,
-      documentationQualityPercent: existing?.documentationQualityPercent ?? 100
+      documentationQualityPercent: existing?.documentationQualityPercent ?? 100,
+      energyContentMjPerUnit: config.energyContentMjPerUnit,
+      emissionFactorSource: 'standard',
+      documentationFileName: existing?.documentationFileName ?? null
     }
-    const nextRows = rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row))
-    updateRows(nextRows)
+    updateRows(rows.map((row, rowIndex) => (rowIndex === index ? nextRow : row)))
   }
 
   const handleUnitChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const nextUnit = event.target.value as FuelRow['unit']
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            unit: nextUnit
-          }
-        : row
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              unit: nextUnit
+            }
+          : row
+      )
     )
-    updateRows(nextRows)
   }
 
-  const handleFieldChange = (index: number, field: FuelFieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const nextRows = rows.map((row, rowIndex) =>
-      rowIndex === index
-        ? {
-            ...row,
-            [field]: Number.isFinite(parsed) ? parsed : null
-          }
-        : row
+  const handleNumericFieldChange = (index: number, field: keyof BaseFuelRow) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const parsed = parseNumber(event.target.value)
+      updateRows(
+        rows.map((row, rowIndex) =>
+          rowIndex === index
+            ? {
+                ...row,
+                [field]: parsed
+              }
+            : row
+        )
+      )
+    }
+
+  const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value
+    const row = rows[index]
+    if (!row) {
+      return
+    }
+    const config = a1FuelConfigurations[row.fuelType]
+    updateRows(
+      rows.map((existing, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...existing,
+              emissionFactorSource: value,
+              emissionFactorKgPerUnit: value === 'standard' ? config.defaultEmissionFactorKgPerUnit : existing.emissionFactorKgPerUnit
+            }
+          : existing
+      )
     )
-    updateRows(nextRows)
+  }
+
+  const handleFileChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: file ? file.name : null
+            }
+          : row
+      )
+    )
+  }
+
+  const handleClearFile = (index: number) => () => {
+    updateRows(
+      rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...row,
+              documentationFileName: null
+            }
+          : row
+      )
+    )
   }
 
   const hasRows = rows.length > 0
@@ -104,8 +185,8 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
       <header style={{ display: 'grid', gap: '0.5rem' }}>
         <h2>A1 – Scope 1 stationære forbrændingskilder</h2>
         <p style={{ margin: 0 }}>
-          Registrér brændselsforbrug for kedler, ovne og generatorer. Vælg brændstoftype, angiv mængde og juster
-          emissionsfaktoren ved behov. Dokumentationskvalitet bruges til at fremhæve rækker med lav datakvalitet.
+          Registrér brændselsforbrug for kedler, ovne og generatorer. Vælg brændstoftype, angiv mængde, se
+          energiindhold og vælg emissionsfaktor. Dokumentationskvalitet og bilag hjælper med revision.
         </p>
       </header>
 
@@ -133,6 +214,7 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
           <div style={{ display: 'grid', gap: '1rem' }}>
             {rows.map((row, index) => {
               const fuelConfig = a1FuelConfigurations[row.fuelType]
+              const optionMeta = a1FuelOptions.find((option) => option.value === row.fuelType)
               return (
                 <article
                   key={`fuel-row-${index}`}
@@ -176,7 +258,7 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </select>
                   </label>
 
-                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                  <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
                       <span>Mængde</span>
                       <input
@@ -186,7 +268,7 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
                         step="any"
                         value={row.quantity ?? ''}
                         placeholder={`0 (${fuelConfig.defaultUnit})`}
-                        onChange={handleFieldChange(index, 'quantity')}
+                        onChange={handleNumericFieldChange(index, 'quantity')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
@@ -207,14 +289,41 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
                     </label>
 
                     <label style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span>Emissionsfaktor (kg CO₂e/enhed)</span>
+                      <span>Energiindhold</span>
+                      <input
+                        type="number"
+                        value={row.energyContentMjPerUnit ?? optionMeta?.energyContentMjPerUnit ?? ''}
+                        readOnly
+                        style={{
+                          padding: '0.5rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #c8d2cf',
+                          background: '#eef3f1'
+                        }}
+                      />
+                      <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>MJ per {row.unit}</span>
+                    </label>
+
+                    <label style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span>Emissionsfaktor</span>
+                      <select
+                        value={row.emissionFactorSource ?? 'standard'}
+                        onChange={handleEmissionFactorSourceChange(index)}
+                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
+                      >
+                        {EMISSION_FACTOR_SOURCE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="number"
                         inputMode="decimal"
                         min={0}
                         step="any"
                         value={row.emissionFactorKgPerUnit ?? ''}
-                        onChange={handleFieldChange(index, 'emissionFactorKgPerUnit')}
+                        onChange={handleNumericFieldChange(index, 'emissionFactorKgPerUnit')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                       <span style={{ fontSize: '0.8rem', color: '#5f6f6a' }}>
@@ -231,25 +340,49 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
                         max={100}
                         step="any"
                         value={row.documentationQualityPercent ?? ''}
-                        onChange={handleFieldChange(index, 'documentationQualityPercent')}
+                        onChange={handleNumericFieldChange(index, 'documentationQualityPercent')}
                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #c8d2cf' }}
                       />
                     </label>
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <label style={{ fontWeight: 600 }}>Dokumentation</label>
+                    <input
+                      type="file"
+                      onChange={handleFileChange(index)}
+                      style={{
+                        padding: '0.45rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #c8d2cf',
+                        background: '#f6f9f8'
+                      }}
+                    />
+                    {row.documentationFileName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <span>{row.documentationFileName}</span>
+                        <button
+                          type="button"
+                          onClick={handleClearFile(index)}
+                          style={{ border: 'none', background: 'transparent', color: '#b4231f', cursor: 'pointer' }}
+                        >
+                          Fjern
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 </article>
               )
             })}
           </div>
         ) : (
-          <p style={{ margin: 0, color: '#5f6f6a' }}>
-            Tilføj mindst én brændselslinje for at beregne Scope 1-emissioner.
-          </p>
+          <p style={{ margin: 0, color: '#5f6f6a' }}>Tilføj mindst én brændselslinje for at beregne Scope 1-emissioner.</p>
         )}
       </section>
 
       <section style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}>
         <h3 style={{ margin: 0 }}>Estimat</h3>
-        {preview.trace.some((line) => line.startsWith('entry[')) ? (
+        {rows.length > 0 && preview.trace.some((line) => line.startsWith('entry[')) ? (
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
               {preview.value} {preview.unit}

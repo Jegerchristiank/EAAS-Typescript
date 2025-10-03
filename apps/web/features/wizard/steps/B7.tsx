@@ -3,157 +3,83 @@
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { B7Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { B7Input } from '@org/shared'
 import { runB7 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof B7Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
-  label: string
-  description: string
-  unit: string
-  placeholder?: string
+export type B7FormState = B7Input & {
+  residualFactorSource?: string | null
+  certificateSharePercent?: number | null
+  documentationFileName?: string | null
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
-  {
-    key: 'documentedRenewableKwh',
-    label: 'Dokumenteret vedvarende el',
-    description: 'Mængde el i kWh der er dækket af certifikater eller PPAs.',
-    unit: 'kWh',
-    placeholder: '10000'
-  },
-  {
-    key: 'residualEmissionFactorKgPerKwh',
-    label: 'Residual emissionsfaktor',
-    description: 'Kg CO2e pr. kWh for den residuale elmix der afløses.',
-    unit: 'kg CO2e/kWh',
-    placeholder: '0.233'
-  },
-  {
-    key: 'documentationQualityPercent',
-    label: 'Dokumentationskvalitet',
-    description: 'Andel af dokumentationen der forventes godkendt ved revision.',
-    unit: '%',
-    placeholder: '0-100'
-  }
-]
-
-const EMPTY_B7: B7Input = {
+const EMPTY_B7: B7FormState = {
   documentedRenewableKwh: null,
   residualEmissionFactorKgPerKwh: null,
-  documentationQualityPercent: null
+  documentationQualityPercent: null,
+  residualFactorSource: null,
+  certificateSharePercent: null,
+  documentationFileName: null
 }
 
-export function B7Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state['B7'] as B7Input | undefined) ?? EMPTY_B7
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runB7({ B7: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: B7Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const B7Step = createConfiguredModuleStep<'B7', B7FormState>({
+  moduleId: 'B7',
+  title: 'B7 – Dokumenteret vedvarende el',
+  description: 'Angiv hvor meget vedvarende el der dokumenteres via certifikater og hvilke residualfaktorer der anvendes.',
+  emptyState: EMPTY_B7,
+  fields: [
+    {
+      type: 'number',
+      key: 'documentedRenewableKwh',
+      label: 'Dokumenteret kWh',
+      unit: 'kWh',
+      description: 'Mængde el dækket af certifikater eller garantier.'
+    },
+    {
+      type: 'percent',
+      key: 'certificateSharePercent',
+      label: 'Certifikatandel',
+      description: 'Procentdel af elforbruget der er certifikatdækket.'
+    },
+    {
+      type: 'select',
+      key: 'residualFactorSource',
+      label: 'Residualfaktor',
+      description: 'Vælg hvilken residualfaktor der anvendes i beregningen.',
+      options: [
+        {
+          value: 'dk-residual',
+          label: 'Danmark residual (0,318 kg CO₂e/kWh)',
+          derived: { residualEmissionFactorKgPerKwh: 0.318 }
+        },
+        {
+          value: 'eu-average',
+          label: 'EU gennemsnit (0,275 kg CO₂e/kWh)',
+          derived: { residualEmissionFactorKgPerKwh: 0.275 }
+        },
+        { value: 'custom', label: 'Anden faktor' }
+      ]
+    },
+    {
+      type: 'number',
+      key: 'residualEmissionFactorKgPerKwh',
+      label: 'Valgt residualfaktor',
+      unit: 'kg CO₂e/kWh',
+      description: 'Kan justeres manuelt hvis anden faktor benyttes.'
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurdering af datakvalitet for certifikatdækningen.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload certifikater eller garantier for oprindelse.'
     }
-    onChange('B7', next)
-  }
-
-  const hasData =
-    preview.trace.some((line) => line.includes('qualityAdjustedKwh')) &&
-    (current.documentedRenewableKwh != null ||
-      current.residualEmissionFactorKgPerKwh != null ||
-      current.documentationQualityPercent != null)
-
-  const valueColour = preview.value < 0 ? '#047857' : '#111827'
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>B7 – Dokumenteret vedvarende el</h2>
-        <p>
-          Registrer certifikater, PPAs eller anden dokumenteret vedvarende el. Beregningen estimerer den
-          revisionsrobuste reduktion i Scope 2-udledninger.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          const commonProps =
-            field.key === 'documentationQualityPercent'
-              ? { min: 0, max: 100 }
-              : { min: 0 }
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label} ({field.unit})
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                {...commonProps}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: valueColour }}>
-              {preview.value} {preview.unit}
-            </p>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#374151' }}>
-              Negative tal angiver en reduktion i Scope 2-emissioner.
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>Udfyld felterne for at se den dokumenterede reduktion.</p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runB7
+})

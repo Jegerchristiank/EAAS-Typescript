@@ -10,7 +10,7 @@ const d1DataQualityOptions = ['primary', 'secondary', 'proxy'] as const
 
 const a1FuelConsumptionSchema = z
   .object({
-    fuelType: z.enum(['naturgas', 'diesel', 'fyringsolie', 'biogas']),
+    fuelType: z.enum(['naturgas', 'diesel', 'fyringsolie', 'biogas', 'lpg']),
     unit: z.enum(['liter', 'Nm³', 'kg']),
     quantity: z.number().min(0).nullable(),
     emissionFactorKgPerUnit: z.number().min(0).nullable(),

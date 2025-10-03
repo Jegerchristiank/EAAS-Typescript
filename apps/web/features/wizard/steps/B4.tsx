@@ -1,157 +1,113 @@
 /**
- * Wizardtrin for modul B4.
+ * Wizardtrin for modul B4 – dampforbrug.
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { B4Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { B4Input } from '@org/shared'
 import { runB4 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof B4Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
-  label: string
-  description: string
-  unit: string
-  placeholder?: string
+const STEAM_UNIT_TO_KWH: Record<'kWh' | 'ton', number> = {
+  kWh: 1,
+  ton: 657
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
-  {
-    key: 'steamConsumptionKwh',
-    label: 'Årligt dampforbrug',
-    description: 'Samlet dampenergi leveret fra forsyningen i kWh.',
-    unit: 'kWh'
-  },
-  {
-    key: 'recoveredSteamKwh',
-    label: 'Genindvundet damp eller kondensat',
-    description: 'Damp eller kondensat, der genanvendes og reducerer behovet.',
-    unit: 'kWh'
-  },
-  {
-    key: 'emissionFactorKgPerKwh',
-    label: 'Emissionsfaktor',
-    description: 'Kg CO2e pr. kWh i dampforsyningens miljødeklaration.',
-    unit: 'kg CO2e/kWh',
-    placeholder: '0.090'
-  },
-  {
-    key: 'renewableSharePercent',
-    label: 'Vedvarende andel',
-    description: 'Andel af dampen købt som certificeret vedvarende energi.',
-    unit: '%',
-    placeholder: '0-100'
-  }
-]
+export type B4FormState = B4Input & {
+  quantity?: number | null
+  quantityUnit?: 'kWh' | 'ton' | null
+  emissionFactorSource?: string | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
+}
 
-const EMPTY_B4: B4Input = {
+const EMPTY_B4: B4FormState = {
   steamConsumptionKwh: null,
   recoveredSteamKwh: null,
   emissionFactorKgPerKwh: null,
-  renewableSharePercent: null
+  renewableSharePercent: null,
+  quantity: null,
+  quantityUnit: 'kWh',
+  emissionFactorSource: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function B4Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state['B4'] as B4Input | undefined) ?? EMPTY_B4
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runB4({ B4: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: B4Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
-    }
-    onChange('B4', next)
+function toKwh(quantity: number | null, unit: 'kWh' | 'ton' | null | undefined): number | null {
+  if (quantity == null || Number.isNaN(quantity)) {
+    return null
   }
-
-  const hasData =
-    preview.trace.some((line) => line.includes('netSteamConsumptionKwh')) &&
-    (current.steamConsumptionKwh != null ||
-      current.recoveredSteamKwh != null ||
-      current.emissionFactorKgPerKwh != null ||
-      current.renewableSharePercent != null)
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>B4 – Scope 2 dampforbrug</h2>
-        <p>
-          Indtast data for organisationens indkøbte damp. Beregningen korrigerer for genanvendt damp og
-          dokumenteret vedvarende leverancer.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label} ({field.unit})
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={0}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet nettoemission.</p>
-        )}
-      </section>
-    </form>
-  )
+  const safeUnit: 'kWh' | 'ton' = unit === 'ton' ? 'ton' : 'kWh'
+  return quantity * STEAM_UNIT_TO_KWH[safeUnit]
 }
+
+export const B4Step = createConfiguredModuleStep<'B4', B4FormState>({
+  moduleId: 'B4',
+  title: 'B4 – Scope 2 dampforbrug',
+  description:
+    'Registrér indkøbt damp. Angiv mængden i ton eller kWh og vælg relevant emissionsfaktor.',
+  emptyState: EMPTY_B4,
+  fields: [
+    {
+      type: 'select',
+      key: 'quantityUnit',
+      label: 'Enhed',
+      description: 'Vælg om mængden angives i ton eller kWh. Omregning sker automatisk.',
+      options: [
+        { value: 'kWh', label: 'kWh' },
+        { value: 'ton', label: 'Ton damp' }
+      ],
+      afterUpdate: ({ value, current }) => {
+        const unit = (value as 'kWh' | 'ton' | null) ?? 'kWh'
+        const amount = current.quantity ?? null
+        return { steamConsumptionKwh: toKwh(amount, unit) }
+      }
+    },
+    {
+      type: 'number',
+      key: 'quantity',
+      label: 'Mængde',
+      description: 'Angiv indkøbt damp i valgt enhed.',
+      helperText: '1 ton damp omregnes til ca. 657 kWh i beregningen.',
+      afterUpdate: ({ value, current }) => {
+        const amount = typeof value === 'number' ? value : null
+        const unit = (current.quantityUnit as 'kWh' | 'ton' | null) ?? 'kWh'
+        return { steamConsumptionKwh: toKwh(amount, unit) }
+      }
+    },
+    {
+      type: 'select',
+      key: 'emissionFactorSource',
+      label: 'Emissionsfaktor',
+      description: 'Vælg standardfaktor eller leverandørdata.',
+      options: [
+        {
+          value: 'standard',
+          label: 'Standard damp (0,180 kg CO₂e/kWh)',
+          derived: { emissionFactorKgPerKwh: 0.18 }
+        },
+        { value: 'leverandor', label: 'Leverandørdata' }
+      ]
+    },
+    {
+      type: 'number',
+      key: 'emissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor',
+      unit: 'kg CO₂e/kWh',
+      description: 'Kan tilpasses ved alternative deklarationer.'
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurdering af kvaliteten af dokumentation.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload leverandørdata eller måleraflæsning.'
+    }
+  ],
+  runModule: runB4
+})

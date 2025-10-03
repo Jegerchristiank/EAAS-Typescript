@@ -8,22 +8,32 @@ export const a1FuelConfigurations = {
   naturgas: {
     label: 'Naturgas',
     defaultUnit: 'Nm³',
-    defaultEmissionFactorKgPerUnit: 2.05
+    defaultEmissionFactorKgPerUnit: 2.05,
+    energyContentMjPerUnit: 39.8
   },
   diesel: {
     label: 'Diesel',
     defaultUnit: 'liter',
-    defaultEmissionFactorKgPerUnit: 2.68
+    defaultEmissionFactorKgPerUnit: 2.68,
+    energyContentMjPerUnit: 36.0
   },
   fyringsolie: {
     label: 'Fyringsolie',
     defaultUnit: 'liter',
-    defaultEmissionFactorKgPerUnit: 2.96
+    defaultEmissionFactorKgPerUnit: 2.96,
+    energyContentMjPerUnit: 38.2
   },
   biogas: {
     label: 'Biogas',
     defaultUnit: 'Nm³',
-    defaultEmissionFactorKgPerUnit: 0.1
+    defaultEmissionFactorKgPerUnit: 0.1,
+    energyContentMjPerUnit: 21.0
+  },
+  lpg: {
+    label: 'LPG',
+    defaultUnit: 'liter',
+    defaultEmissionFactorKgPerUnit: 3.0,
+    energyContentMjPerUnit: 26.0
   }
 } as const
 
@@ -53,7 +63,8 @@ export const a1FuelOptions = (Object.entries(a1FuelConfigurations) as Array<
   value,
   label: config.label,
   unit: config.defaultUnit,
-  defaultEmissionFactorKgPerUnit: config.defaultEmissionFactorKgPerUnit
+  defaultEmissionFactorKgPerUnit: config.defaultEmissionFactorKgPerUnit,
+  energyContentMjPerUnit: config.energyContentMjPerUnit
 }))
 
 export function runA1(input: ModuleInput): ModuleResult {

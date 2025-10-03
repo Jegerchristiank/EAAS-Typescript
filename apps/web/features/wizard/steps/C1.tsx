@@ -3,186 +3,182 @@
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { C1Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { C1Input } from '@org/shared'
 import { runC1 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof C1Input
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
+type CommuteTransportOption = {
+  value: string
   label: string
   description: string
-  unit: string
-  placeholder?: string
-  min?: number
-  max?: number
+  defaultEmissionFactor: number
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
+type C1FormState = C1Input & {
+  transportProfile?: string | null
+  emissionFactorSource?: string | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
+}
+
+const COMMUTE_TRANSPORT_OPTIONS: CommuteTransportOption[] = [
   {
-    key: 'employeesCovered',
-    label: 'Antal ansatte omfattet',
-    description: 'Angiv antal medarbejdere eller FTE, der pendler regelmæssigt.',
-    unit: 'personer',
-    min: 0
+    value: 'carPetrol',
+    label: 'Personbil – benzin',
+    description: 'Gennemsnitlig emissionsprofil for benzinbiler i Danmark.',
+    defaultEmissionFactor: 0.182
   },
   {
-    key: 'averageCommuteDistanceKm',
-    label: 'Gns. tur-retur distance',
-    description: 'Samlet distance i km for en typisk pendlerdag (tur-retur).',
-    unit: 'km',
-    placeholder: 'fx 30',
-    min: 0
+    value: 'carDiesel',
+    label: 'Personbil – diesel',
+    description: 'Dieselbiler med nyere Euro 6-motorer.',
+    defaultEmissionFactor: 0.165
   },
   {
-    key: 'commutingDaysPerWeek',
-    label: 'Pendlerdage pr. uge',
-    description: 'Gennemsnitligt antal dage, hvor medarbejderne møder fysisk ind.',
-    unit: 'dage',
-    placeholder: '0-7',
-    min: 0,
-    max: 7
+    value: 'carHybrid',
+    label: 'Plug-in hybridbil',
+    description: 'Antager kombineret kørsel på el og brændstof.',
+    defaultEmissionFactor: 0.11
   },
   {
-    key: 'weeksPerYear',
-    label: 'Arbejdsuger pr. år',
-    description: 'Fx 46 uger med fratrukket ferie og helligdage.',
-    unit: 'uger',
-    placeholder: '0-52',
-    min: 0,
-    max: 52
+    value: 'carElectric',
+    label: 'Elbil',
+    description: 'Elbil opladet på nordisk elmix.',
+    defaultEmissionFactor: 0.05
   },
   {
-    key: 'remoteWorkSharePercent',
-    label: 'Andel fjernarbejde',
-    description: 'Reducerer pendlingen lineært i beregningen.',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
+    value: 'publicTransit',
+    label: 'Bus/Metro',
+    description: 'Offentlig transport baseret på mix af bus og metro.',
+    defaultEmissionFactor: 0.081
   },
   {
-    key: 'emissionFactorKgPerKm',
-    label: 'Emissionsfaktor',
-    description: 'Kg CO2e per kørt km for den valgte transportprofil.',
-    unit: 'kg CO2e/km',
-    placeholder: 'fx 0.142',
-    min: 0
+    value: 'rail',
+    label: 'Tog',
+    description: 'Elektriske tog med nordisk elmix.',
+    defaultEmissionFactor: 0.035
   }
 ]
 
-const EMPTY_C1: C1Input = {
+const COMMUTE_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C1FormState>> = [
+  ...COMMUTE_TRANSPORT_OPTIONS.map<SelectOption<C1FormState>>((option) => ({
+    value: option.value,
+    label: `${option.label} (${option.defaultEmissionFactor.toFixed(3)} kg CO₂e/km)`,
+    derived: { emissionFactorKgPerKm: option.defaultEmissionFactor }
+  })),
+  {
+    value: 'custom',
+    label: 'Tilpasset emissionsfaktor'
+  }
+]
+
+const EMPTY_C1: C1FormState = {
   employeesCovered: null,
   averageCommuteDistanceKm: null,
   commutingDaysPerWeek: null,
   weeksPerYear: null,
   remoteWorkSharePercent: null,
-  emissionFactorKgPerKm: null
+  emissionFactorKgPerKm: null,
+  transportProfile: null,
+  emissionFactorSource: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function C1Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.C1 as C1Input | undefined) ?? EMPTY_C1
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runC1({ C1: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: C1Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const C1Step = createConfiguredModuleStep<'C1', C1FormState>({
+  moduleId: 'C1',
+  title: 'C1 – Medarbejderpendling',
+  description:
+    'Angiv antal medarbejdere, afstand og arbejdsdage for at estimere emissioner fra pendling. Vælg transportprofil og emissionsfaktor fra databasen eller indtast egne værdier.',
+  emptyState: EMPTY_C1,
+  fields: [
+    {
+      type: 'number',
+      key: 'employeesCovered',
+      label: 'Antal ansatte',
+      unit: 'personer',
+      description: 'Antal medarbejdere der indgår i pendlingen.',
+      min: 0
+    },
+    {
+      type: 'number',
+      key: 'averageCommuteDistanceKm',
+      label: 'Tur/retur-distance',
+      unit: 'km',
+      description: 'Gennemsnitlig distance for en pendlerdag (tur/retur).',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'commutingDaysPerWeek',
+      label: 'Pendlerdage pr. uge',
+      unit: 'dage',
+      description: 'Hvor mange dage om ugen pendler medarbejderne i gennemsnit.',
+      min: 0,
+      max: 7
+    },
+    {
+      type: 'number',
+      key: 'weeksPerYear',
+      label: 'Arbejdsuger pr. år',
+      unit: 'uger',
+      description: 'Typisk 46 uger efter ferie og helligdage.',
+      min: 0,
+      max: 52
+    },
+    {
+      type: 'percent',
+      key: 'remoteWorkSharePercent',
+      label: 'Andel hjemmearbejde',
+      description: 'Reducerer pendlingen lineært i beregningen.'
+    },
+    {
+      type: 'select',
+      key: 'transportProfile',
+      label: 'Transporttype',
+      description: 'Vælg den primære transporttype for pendlingen. Valget kan tilpasses pr. emissionsfaktor nedenfor.',
+      options: COMMUTE_TRANSPORT_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        description: option.description,
+        derived: {
+          emissionFactorSource: option.value,
+          emissionFactorKgPerKm: option.defaultEmissionFactor
+        }
+      })),
+      placeholder: 'Vælg transporttype'
+    },
+    {
+      type: 'select',
+      key: 'emissionFactorSource',
+      label: 'Emissionsfaktor fra database',
+      description: 'Vælg standardfaktor eller angiv en egen leverandørværdi.',
+      options: COMMUTE_EMISSION_FACTOR_OPTIONS,
+      placeholder: 'Vælg emissionsfaktor'
+    },
+    {
+      type: 'number',
+      key: 'emissionFactorKgPerKm',
+      label: 'Valgt emissionsfaktor',
+      unit: 'kg CO₂e/km',
+      description: 'Forudfyldes af dropdowns, men kan overskrives manuelt.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurdering af hvor sikker dokumentationen er for inputdata.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload fx pendlerundersøgelse eller HR-data.'
     }
-    onChange('C1', next)
-  }
-
-  const hasData =
-    current.employeesCovered != null ||
-    current.averageCommuteDistanceKm != null ||
-    current.commutingDaysPerWeek != null ||
-    current.weeksPerYear != null ||
-    current.remoteWorkSharePercent != null ||
-    current.emissionFactorKgPerKm != null
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>C1 – Medarbejderpendling</h2>
-        <p>
-          Estimatet dækker emissioner fra daglig pendling baseret på antal medarbejdere,
-          afstand, arbejdsuger og andelen af fjernarbejde.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label}
-                {field.unit ? ` (${field.unit})` : ''}
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={field.min}
-                max={field.max}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet pendlingsemission.</p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runC1
+})
