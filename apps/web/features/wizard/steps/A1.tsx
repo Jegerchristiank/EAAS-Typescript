@@ -134,6 +134,9 @@ export function A1Step({ state, onChange }: WizardStepProps): JSX.Element {
   const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value
     const row = rows[index]
+    if (!row) {
+      return
+    }
     const config = a1FuelConfigurations[row.fuelType]
     updateRows(
       rows.map((existing, rowIndex) =>

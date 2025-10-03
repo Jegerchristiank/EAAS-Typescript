@@ -6,7 +6,7 @@
 import type { C9Input } from '@org/shared'
 import { runC9 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -25,6 +25,15 @@ const PROCESSING_FACTOR_OPTIONS: EmissionFactorOption[] = [
   { value: 'manufacturing', label: 'Let industri (0,22 kg CO₂e/kWh)', factor: 0.22 },
   { value: 'heavyIndustry', label: 'Tung industri (0,30 kg CO₂e/kWh)', factor: 0.3 },
   { value: 'renewablePowered', label: 'Vedvarende energi (0,08 kg CO₂e/kWh)', factor: 0.08 }
+]
+
+const PROCESSING_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C9FormState>> = [
+  ...PROCESSING_FACTOR_OPTIONS.map<SelectOption<C9FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { processingEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
 ]
 
 const EMPTY_C9: C9FormState = {
@@ -69,11 +78,7 @@ export const C9Step = createConfiguredModuleStep<'C9', C9FormState>({
       key: 'processingEmissionFactorSource',
       label: 'Emissionsfaktor – energi',
       description: 'Vælg en standardfaktor eller indtast egen værdi.',
-      options: PROCESSING_FACTOR_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { processingEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: PROCESSING_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

@@ -6,7 +6,7 @@
 import type { C2Input } from '@org/shared'
 import { runC2 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -48,6 +48,42 @@ const HOTEL_OPTIONS: EmissionFactorOption[] = [
   { value: 'greenHotel', label: 'Certificeret grønt hotel (6 kg CO₂e/nat)', factor: 6 }
 ]
 
+const AIR_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C2FormState>> = [
+  ...AIR_TRAVEL_OPTIONS.map<SelectOption<C2FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { airEmissionFactorKgPerKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const RAIL_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C2FormState>> = [
+  ...RAIL_TRAVEL_OPTIONS.map<SelectOption<C2FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { railEmissionFactorKgPerKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const ROAD_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C2FormState>> = [
+  ...ROAD_TRAVEL_OPTIONS.map<SelectOption<C2FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { roadEmissionFactorKgPerKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const HOTEL_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C2FormState>> = [
+  ...HOTEL_OPTIONS.map<SelectOption<C2FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { hotelEmissionFactorKgPerNight: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
 const EMPTY_C2: C2FormState = {
   airTravelDistanceKm: null,
   airEmissionFactorKgPerKm: null,
@@ -87,11 +123,7 @@ export const C2Step = createConfiguredModuleStep<'C2', C2FormState>({
       key: 'airEmissionFactorSource',
       label: 'Emissionsfaktor for fly',
       description: 'Vælg en standardfaktor eller angiv en tilpasset værdi.',
-      options: AIR_TRAVEL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { airEmissionFactorKgPerKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: AIR_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -116,11 +148,7 @@ export const C2Step = createConfiguredModuleStep<'C2', C2FormState>({
       key: 'railEmissionFactorSource',
       label: 'Emissionsfaktor for tog',
       description: 'Vælg standardfaktor baseret på togtype.',
-      options: RAIL_TRAVEL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { railEmissionFactorKgPerKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: RAIL_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -145,11 +173,7 @@ export const C2Step = createConfiguredModuleStep<'C2', C2FormState>({
       key: 'roadEmissionFactorSource',
       label: 'Emissionsfaktor for bil',
       description: 'Vælg køretøjstype. Faktor kan efterfølgende justeres.',
-      options: ROAD_TRAVEL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { roadEmissionFactorKgPerKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: ROAD_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -173,11 +197,7 @@ export const C2Step = createConfiguredModuleStep<'C2', C2FormState>({
       key: 'hotelEmissionFactorSource',
       label: 'Emissionsfaktor for hotel',
       description: 'Vælg niveau for hotelstandard. Faktoren kan overskrives.',
-      options: HOTEL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { hotelEmissionFactorKgPerNight: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: HOTEL_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

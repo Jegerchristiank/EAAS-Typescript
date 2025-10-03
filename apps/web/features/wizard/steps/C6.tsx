@@ -6,7 +6,7 @@
 import type { C6Input } from '@org/shared'
 import { runC6 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -31,6 +31,24 @@ const HEAT_OPTIONS: EmissionFactorOption[] = [
   { value: 'districtHeatDK', label: 'Dansk fjernvarme (0,080 kg CO₂e/kWh)', factor: 0.08 },
   { value: 'districtHeatCertified', label: 'Fjernvarme med certifikat (0,045 kg CO₂e/kWh)', factor: 0.045 },
   { value: 'heatPump', label: 'Varme via varmepumpe (0,035 kg CO₂e/kWh)', factor: 0.035 }
+]
+
+const ELECTRICITY_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C6FormState>> = [
+  ...ELECTRICITY_OPTIONS.map<SelectOption<C6FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { electricityEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const HEAT_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C6FormState>> = [
+  ...HEAT_OPTIONS.map<SelectOption<C6FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { heatEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
 ]
 
 const EMPTY_C6: C6FormState = {
@@ -102,11 +120,7 @@ export const C6Step = createConfiguredModuleStep<'C6', C6FormState>({
       key: 'electricityEmissionFactorSource',
       label: 'Emissionsfaktor – el',
       description: 'Vælg location- eller residualbaseret faktor for el.',
-      options: ELECTRICITY_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { electricityEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: ELECTRICITY_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -122,11 +136,7 @@ export const C6Step = createConfiguredModuleStep<'C6', C6FormState>({
       key: 'heatEmissionFactorSource',
       label: 'Emissionsfaktor – varme',
       description: 'Vælg relevant emissionsfaktor for varmeleverancen.',
-      options: HEAT_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { heatEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: HEAT_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

@@ -51,8 +51,7 @@ export const B2Step = createConfiguredModuleStep<'B2', B2FormState>({
         },
         {
           value: 'leverandor',
-          label: 'Leverandørdata',
-          derived: {}
+          label: 'Leverandørdata'
         }
       ]
     },

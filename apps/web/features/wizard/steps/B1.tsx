@@ -63,8 +63,7 @@ export const B1Step = createConfiguredModuleStep<'B1', B1FormState>({
         },
         {
           value: 'custom',
-          label: 'Egen leverandørdata',
-          derived: {}
+          label: 'Egen leverandørdata'
         }
       ]
     },

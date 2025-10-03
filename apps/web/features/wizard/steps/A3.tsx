@@ -109,7 +109,11 @@ export function A3Step({ state, onChange }: WizardStepProps): JSX.Element {
 
   const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value
-    const config = a3ProcessConfigurations[rows[index].processType]
+    const row = rows[index]
+    if (!row) {
+      return
+    }
+    const config = a3ProcessConfigurations[row.processType]
     updateRows(
       rows.map((row, rowIndex) =>
         rowIndex === index

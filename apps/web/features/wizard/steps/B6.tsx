@@ -59,7 +59,7 @@ export const B6Step = createConfiguredModuleStep<'B6', B6FormState>({
           label: 'Residualfaktor (0,318 kg CO₂e/kWh)',
           derived: { emissionFactorKgPerKwh: 0.318 }
         },
-        { value: 'custom', label: 'Anden faktor', derived: {} }
+        { value: 'custom', label: 'Anden faktor' }
       ]
     },
     {

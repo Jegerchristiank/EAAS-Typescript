@@ -6,7 +6,7 @@
 import type { C7Input } from '@org/shared'
 import { runC7 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -49,6 +49,51 @@ const WAREHOUSING_OPTIONS: EmissionFactorOption[] = [
   { value: 'euWarehouse', label: 'EU-lager (0,12 kg CO₂e/kWh)', factor: 0.12 },
   { value: 'dkWarehouse', label: 'Dansk lager (0,09 kg CO₂e/kWh)', factor: 0.09 },
   { value: 'renewableWarehouse', label: 'Grønt lager (0,05 kg CO₂e/kWh)', factor: 0.05 }
+]
+
+const ROAD_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C7FormState>> = [
+  ...ROAD_OPTIONS.map<SelectOption<C7FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { roadEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const RAIL_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C7FormState>> = [
+  ...RAIL_OPTIONS.map<SelectOption<C7FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { railEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const SEA_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C7FormState>> = [
+  ...SEA_OPTIONS.map<SelectOption<C7FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { seaEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const AIR_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C7FormState>> = [
+  ...AIR_OPTIONS.map<SelectOption<C7FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { airEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const WAREHOUSING_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C7FormState>> = [
+  ...WAREHOUSING_OPTIONS.map<SelectOption<C7FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { warehousingEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
 ]
 
 const EMPTY_C7: C7FormState = {
@@ -94,11 +139,7 @@ export const C7Step = createConfiguredModuleStep<'C7', C7FormState>({
       key: 'roadEmissionFactorSource',
       label: 'Emissionsfaktor – vejtransport',
       description: 'Vælg passende logistikprofil for distribution.',
-      options: ROAD_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { roadEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: ROAD_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -123,11 +164,7 @@ export const C7Step = createConfiguredModuleStep<'C7', C7FormState>({
       key: 'railEmissionFactorSource',
       label: 'Emissionsfaktor – banetransport',
       description: 'Vælg togtype for distribution.',
-      options: RAIL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { railEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: RAIL_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -152,11 +189,7 @@ export const C7Step = createConfiguredModuleStep<'C7', C7FormState>({
       key: 'seaEmissionFactorSource',
       label: 'Emissionsfaktor – søtransport',
       description: 'Vælg passende skibstype for distribution.',
-      options: SEA_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { seaEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: SEA_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -181,11 +214,7 @@ export const C7Step = createConfiguredModuleStep<'C7', C7FormState>({
       key: 'airEmissionFactorSource',
       label: 'Emissionsfaktor – lufttransport',
       description: 'Vælg flytype for distribution.',
-      options: AIR_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { airEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: AIR_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -210,11 +239,7 @@ export const C7Step = createConfiguredModuleStep<'C7', C7FormState>({
       key: 'warehousingEmissionFactorSource',
       label: 'Emissionsfaktor – lagerenergi',
       description: 'Vælg emissionsfaktor for lagrenes energiforbrug.',
-      options: WAREHOUSING_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { warehousingEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: WAREHOUSING_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

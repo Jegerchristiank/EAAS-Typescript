@@ -36,6 +36,9 @@ export type NumberField<State extends Record<string, unknown>> = BaseField<State
 export type PercentField<State extends Record<string, unknown>> = BaseField<State> & {
   type: 'percent'
   placeholder?: string
+  min?: number
+  max?: number
+  step?: number | 'any'
 }
 
 export type SelectField<State extends Record<string, unknown>> = BaseField<State> & {
@@ -164,9 +167,9 @@ export function createConfiguredModuleStep<
               value={value ?? ''}
               onChange={handleChange}
               placeholder={field.placeholder}
-              min={0}
-              max={100}
-              step="any"
+              min={field.min ?? 0}
+              max={field.max ?? 100}
+              step={field.step ?? 'any'}
               style={{ padding: '0.55rem', borderRadius: '0.5rem', border: '1px solid #c3cec9' }}
             />
             {helper}

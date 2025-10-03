@@ -6,7 +6,7 @@
 import type { C1Input } from '@org/shared'
 import { runC1 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type CommuteTransportOption = {
   value: string
@@ -61,17 +61,17 @@ const COMMUTE_TRANSPORT_OPTIONS: CommuteTransportOption[] = [
   }
 ]
 
-const COMMUTE_EMISSION_FACTOR_OPTIONS = COMMUTE_TRANSPORT_OPTIONS.map((option) => ({
-  value: option.value,
-  label: `${option.label} (${option.defaultEmissionFactor.toFixed(3)} kg CO₂e/km)`,
-  derived: { emissionFactorKgPerKm: option.defaultEmissionFactor }
-})).concat([
+const COMMUTE_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C1FormState>> = [
+  ...COMMUTE_TRANSPORT_OPTIONS.map<SelectOption<C1FormState>>((option) => ({
+    value: option.value,
+    label: `${option.label} (${option.defaultEmissionFactor.toFixed(3)} kg CO₂e/km)`,
+    derived: { emissionFactorKgPerKm: option.defaultEmissionFactor }
+  })),
   {
     value: 'custom',
-    label: 'Tilpasset emissionsfaktor',
-    derived: {}
+    label: 'Tilpasset emissionsfaktor'
   }
-])
+]
 
 const EMPTY_C1: C1FormState = {
   employeesCovered: null,

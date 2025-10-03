@@ -6,7 +6,7 @@
 import type { C5Input } from '@org/shared'
 import { runC5 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -42,6 +42,42 @@ const RECYCLING_OPTIONS: EmissionFactorOption[] = [
 const COMPOSTING_OPTIONS: EmissionFactorOption[] = [
   { value: 'aerobic', label: 'Kompostering (75 kg CO₂e/t)', factor: 75 },
   { value: 'anaerobic', label: 'Biogas/anaerob behandling (40 kg CO₂e/t)', factor: 40 }
+]
+
+const LANDFILL_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C5FormState>> = [
+  ...LANDFILL_OPTIONS.map<SelectOption<C5FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { landfillEmissionFactorKgPerTonne: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const INCINERATION_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C5FormState>> = [
+  ...INCINERATION_OPTIONS.map<SelectOption<C5FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { incinerationEmissionFactorKgPerTonne: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const RECYCLING_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C5FormState>> = [
+  ...RECYCLING_OPTIONS.map<SelectOption<C5FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { recyclingEmissionFactorKgPerTonne: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const COMPOSTING_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C5FormState>> = [
+  ...COMPOSTING_OPTIONS.map<SelectOption<C5FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { compostingEmissionFactorKgPerTonne: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
 ]
 
 const EMPTY_C5: C5FormState = {
@@ -84,11 +120,7 @@ export const C5Step = createConfiguredModuleStep<'C5', C5FormState>({
       key: 'landfillEmissionFactorSource',
       label: 'Emissionsfaktor – deponi',
       description: 'Vælg mellem styret eller ustyret deponi.',
-      options: LANDFILL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { landfillEmissionFactorKgPerTonne: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: LANDFILL_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -113,11 +145,7 @@ export const C5Step = createConfiguredModuleStep<'C5', C5FormState>({
       key: 'incinerationEmissionFactorSource',
       label: 'Emissionsfaktor – forbrænding',
       description: 'Vælg om anlægget udnytter energien.',
-      options: INCINERATION_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { incinerationEmissionFactorKgPerTonne: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: INCINERATION_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -142,11 +170,7 @@ export const C5Step = createConfiguredModuleStep<'C5', C5FormState>({
       key: 'recyclingEmissionFactorSource',
       label: 'Emissionsfaktor – genanvendelse',
       description: 'Vælg faktor baseret på fraktion.',
-      options: RECYCLING_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { recyclingEmissionFactorKgPerTonne: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: RECYCLING_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -171,11 +195,7 @@ export const C5Step = createConfiguredModuleStep<'C5', C5FormState>({
       key: 'compostingEmissionFactorSource',
       label: 'Emissionsfaktor – biologisk behandling',
       description: 'Vælg passende metode.',
-      options: COMPOSTING_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { compostingEmissionFactorKgPerTonne: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: COMPOSTING_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

@@ -54,8 +54,8 @@ export const B4Step = createConfiguredModuleStep<'B4', B4FormState>({
       label: 'Enhed',
       description: 'Vælg om mængden angives i ton eller kWh. Omregning sker automatisk.',
       options: [
-        { value: 'kWh', label: 'kWh', derived: {} },
-        { value: 'ton', label: 'Ton damp', derived: {} }
+        { value: 'kWh', label: 'kWh' },
+        { value: 'ton', label: 'Ton damp' }
       ],
       afterUpdate: ({ value, current }) => {
         const unit = (value as 'kWh' | 'ton' | null) ?? 'kWh'
@@ -86,7 +86,7 @@ export const B4Step = createConfiguredModuleStep<'B4', B4FormState>({
           label: 'Standard damp (0,180 kg CO₂e/kWh)',
           derived: { emissionFactorKgPerKwh: 0.18 }
         },
-        { value: 'leverandor', label: 'Leverandørdata', derived: {} }
+        { value: 'leverandor', label: 'Leverandørdata' }
       ]
     },
     {

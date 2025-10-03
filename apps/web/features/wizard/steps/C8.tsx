@@ -6,7 +6,7 @@
 import type { C8Input } from '@org/shared'
 import { runC8 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -31,6 +31,24 @@ const HEAT_OPTIONS: EmissionFactorOption[] = [
   { value: 'districtHeat', label: 'Standard fjernvarme (0,080 kg CO₂e/kWh)', factor: 0.08 },
   { value: 'renewableHeat', label: 'Grøn varmeaftale (0,040 kg CO₂e/kWh)', factor: 0.04 },
   { value: 'onsiteHeat', label: 'Egen varmeproduktion (0,030 kg CO₂e/kWh)', factor: 0.03 }
+]
+
+const ELECTRICITY_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C8FormState>> = [
+  ...ELECTRICITY_OPTIONS.map<SelectOption<C8FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { electricityEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const HEAT_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C8FormState>> = [
+  ...HEAT_OPTIONS.map<SelectOption<C8FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { heatEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
 ]
 
 const EMPTY_C8: C8FormState = {
@@ -110,11 +128,7 @@ export const C8Step = createConfiguredModuleStep<'C8', C8FormState>({
       key: 'electricityEmissionFactorSource',
       label: 'Emissionsfaktor – el',
       description: 'Vælg residual, location eller grøn kontrakt.',
-      options: ELECTRICITY_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { electricityEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: ELECTRICITY_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -130,11 +144,7 @@ export const C8Step = createConfiguredModuleStep<'C8', C8FormState>({
       key: 'heatEmissionFactorSource',
       label: 'Emissionsfaktor – varme',
       description: 'Vælg standard eller grøn varmeleverance.',
-      options: HEAT_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { heatEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: HEAT_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

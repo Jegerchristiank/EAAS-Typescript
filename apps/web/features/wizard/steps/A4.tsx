@@ -117,7 +117,11 @@ export function A4Step({ state, onChange }: WizardStepProps): JSX.Element {
 
   const handleGwpSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value
-    const config = a4RefrigerantConfigurations[rows[index].refrigerantType]
+    const row = rows[index]
+    if (!row) {
+      return
+    }
+    const config = a4RefrigerantConfigurations[row.refrigerantType]
     updateRows(
       rows.map((row, rowIndex) =>
         rowIndex === index

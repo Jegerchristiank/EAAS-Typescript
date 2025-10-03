@@ -149,7 +149,11 @@ export function A2Step({ state, onChange }: WizardStepProps): JSX.Element {
 
   const handleEmissionFactorSourceChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value
-    const config = a2FuelConfigurations[rows[index].fuelType]
+    const row = rows[index]
+    if (!row) {
+      return
+    }
+    const config = a2FuelConfigurations[row.fuelType]
     updateRows(
       rows.map((row, rowIndex) =>
         rowIndex === index

@@ -68,7 +68,7 @@ export const B8Step = createConfiguredModuleStep<'B8', B8FormState>({
           label: 'EU gennemsnit (0,275 kg CO₂e/kWh)',
           derived: { residualEmissionFactorKgPerKwh: 0.275 }
         },
-        { value: 'custom', label: 'Anden faktor', derived: {} }
+        { value: 'custom', label: 'Anden faktor' }
       ]
     },
     {

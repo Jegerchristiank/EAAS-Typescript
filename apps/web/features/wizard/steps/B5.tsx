@@ -50,8 +50,7 @@ export const B5Step = createConfiguredModuleStep<'B5', B5FormState>({
         },
         {
           value: 'andet',
-          label: 'Andet',
-          derived: {}
+          label: 'Andet'
         }
       ]
     },
@@ -80,8 +79,7 @@ export const B5Step = createConfiguredModuleStep<'B5', B5FormState>({
         },
         {
           value: 'custom',
-          label: 'Anden faktor',
-          derived: {}
+          label: 'Anden faktor'
         }
       ],
       helperText: 'Feltet nedenfor opdateres automatisk og kan manuelt justeres.'

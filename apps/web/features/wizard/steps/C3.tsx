@@ -6,7 +6,7 @@
 import type { C3Input } from '@org/shared'
 import { runC3 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -46,6 +46,24 @@ const FUEL_OPTIONS: EmissionFactorOption[] = [
   { value: 'biogas', label: 'Biogas – upstream (0,020 kg CO₂e/kWh)', factor: 0.02 }
 ]
 
+const ELECTRICITY_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C3FormState>> = [
+  ...ELECTRICITY_OPTIONS.map<SelectOption<C3FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { electricityUpstreamEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const FUEL_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C3FormState>> = [
+  ...FUEL_OPTIONS.map<SelectOption<C3FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { fuelUpstreamEmissionFactorKgPerKwh: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
 const EMPTY_C3: C3FormState = {
   purchasedElectricityKwh: null,
   electricityUpstreamEmissionFactorKgPerKwh: null,
@@ -80,11 +98,7 @@ export const C3Step = createConfiguredModuleStep<'C3', C3FormState>({
       key: 'electricityEmissionFactorSource',
       label: 'Emissionsfaktor – upstream el',
       description: 'Vælg standardfaktor eller angiv egen værdi.',
-      options: ELECTRICITY_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { electricityUpstreamEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: ELECTRICITY_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -123,11 +137,7 @@ export const C3Step = createConfiguredModuleStep<'C3', C3FormState>({
       key: 'fuelEmissionFactorSource',
       label: 'Emissionsfaktor – brændstof',
       description: 'Vælg standardfaktor for brændstoftypen.',
-      options: FUEL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { fuelUpstreamEmissionFactorKgPerKwh: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: FUEL_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',

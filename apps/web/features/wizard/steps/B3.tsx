@@ -50,8 +50,7 @@ export const B3Step = createConfiguredModuleStep<'B3', B3FormState>({
         },
         {
           value: 'leverandor',
-          label: 'Leverandørdata',
-          derived: {}
+          label: 'Leverandørdata'
         }
       ]
     },

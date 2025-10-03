@@ -6,7 +6,7 @@
 import type { C4Input } from '@org/shared'
 import { runC4 } from '@org/shared'
 
-import { createConfiguredModuleStep } from './ConfiguredModuleStep'
+import { createConfiguredModuleStep, type SelectOption } from './ConfiguredModuleStep'
 
 type EmissionFactorOption = {
   value: string
@@ -43,6 +43,42 @@ const SEA_OPTIONS: EmissionFactorOption[] = [
 const AIR_OPTIONS: EmissionFactorOption[] = [
   { value: 'bellyFreight', label: 'Luft – belly cargo (0,55 kg CO₂e/t·km)', factor: 0.55 },
   { value: 'dedicatedCargo', label: 'Luft – dedikeret fragt (0,65 kg CO₂e/t·km)', factor: 0.65 }
+]
+
+const ROAD_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C4FormState>> = [
+  ...ROAD_OPTIONS.map<SelectOption<C4FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { roadEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const RAIL_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C4FormState>> = [
+  ...RAIL_OPTIONS.map<SelectOption<C4FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { railEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const SEA_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C4FormState>> = [
+  ...SEA_OPTIONS.map<SelectOption<C4FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { seaEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
+]
+
+const AIR_EMISSION_FACTOR_OPTIONS: Array<SelectOption<C4FormState>> = [
+  ...AIR_OPTIONS.map<SelectOption<C4FormState>>((option) => ({
+    value: option.value,
+    label: option.label,
+    derived: { airEmissionFactorKgPerTonneKm: option.factor }
+  })),
+  { value: 'custom', label: 'Tilpasset emissionsfaktor' }
 ]
 
 const EMPTY_C4: C4FormState = {
@@ -85,11 +121,7 @@ export const C4Step = createConfiguredModuleStep<'C4', C4FormState>({
       key: 'roadEmissionFactorSource',
       label: 'Emissionsfaktor for vejtransport',
       description: 'Vælg lastbiltype eller anvend tilpasset faktor.',
-      options: ROAD_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { roadEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: ROAD_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -114,11 +146,7 @@ export const C4Step = createConfiguredModuleStep<'C4', C4FormState>({
       key: 'railEmissionFactorSource',
       label: 'Emissionsfaktor for banetransport',
       description: 'Vælg standardfaktor for elektrisk eller dieseltog.',
-      options: RAIL_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { railEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: RAIL_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -143,11 +171,7 @@ export const C4Step = createConfiguredModuleStep<'C4', C4FormState>({
       key: 'seaEmissionFactorSource',
       label: 'Emissionsfaktor for søtransport',
       description: 'Vælg skibstype for søfragt.',
-      options: SEA_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { seaEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: SEA_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
@@ -172,11 +196,7 @@ export const C4Step = createConfiguredModuleStep<'C4', C4FormState>({
       key: 'airEmissionFactorSource',
       label: 'Emissionsfaktor for lufttransport',
       description: 'Vælg om fragten sendes som belly cargo eller dedikeret fragt.',
-      options: AIR_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.label,
-        derived: { airEmissionFactorKgPerTonneKm: option.factor }
-      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+      options: AIR_EMISSION_FACTOR_OPTIONS
     },
     {
       type: 'number',
