@@ -1,128 +1,57 @@
 /**
- * Wizardtrin for modul C7 – downstream transport og distribution.
+ * Wizardtrin for modul C7 – transport og distribution (downstream).
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { C7Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { C7Input } from '@org/shared'
 import { runC7 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof C7Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
+type EmissionFactorOption = {
+  value: string
   label: string
-  description: string
-  unit: string
-  placeholder?: string
-  min?: number
-  max?: number
+  factor: number
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
-  {
-    key: 'roadTonnesKm',
-    label: 'Vejtransport – ton-kilometer',
-    description: 'Samlet mængde gods leveret til kunder via vejtransport.',
-    unit: 'ton-km',
-    placeholder: 'fx 12 500',
-    min: 0
-  },
-  {
-    key: 'roadEmissionFactorKgPerTonneKm',
-    label: 'Vejtransport – emissionsfaktor',
-    description: 'Kg CO2e pr. ton-km for køretøjer anvendt i distributionen.',
-    unit: 'kg CO2e/ton-km',
-    placeholder: 'fx 0.12',
-    min: 0
-  },
-  {
-    key: 'railTonnesKm',
-    label: 'Banetransport – ton-kilometer',
-    description: 'Tonnage leveret med tog til downstream kunder.',
-    unit: 'ton-km',
-    placeholder: 'fx 4 200',
-    min: 0
-  },
-  {
-    key: 'railEmissionFactorKgPerTonneKm',
-    label: 'Banetransport – emissionsfaktor',
-    description: 'Kg CO2e pr. ton-km for raildistribution.',
-    unit: 'kg CO2e/ton-km',
-    placeholder: 'fx 0.03',
-    min: 0
-  },
-  {
-    key: 'seaTonnesKm',
-    label: 'Søtransport – ton-kilometer',
-    description: 'Gods leveret via skib til downstream kunder.',
-    unit: 'ton-km',
-    placeholder: 'fx 8 000',
-    min: 0
-  },
-  {
-    key: 'seaEmissionFactorKgPerTonneKm',
-    label: 'Søtransport – emissionsfaktor',
-    description: 'Kg CO2e pr. ton-km for søtransporten.',
-    unit: 'kg CO2e/ton-km',
-    placeholder: 'fx 0.015',
-    min: 0
-  },
-  {
-    key: 'airTonnesKm',
-    label: 'Luftfragt – ton-kilometer',
-    description: 'Tonnage distribueret med fly til kunder.',
-    unit: 'ton-km',
-    placeholder: 'fx 350',
-    min: 0
-  },
-  {
-    key: 'airEmissionFactorKgPerTonneKm',
-    label: 'Luftfragt – emissionsfaktor',
-    description: 'Kg CO2e pr. ton-km for luftfragt.',
-    unit: 'kg CO2e/ton-km',
-    placeholder: 'fx 0.5',
-    min: 0
-  },
-  {
-    key: 'warehousingEnergyKwh',
-    label: 'Lagre – energiforbrug',
-    description: 'Årligt energiforbrug i downstream-lagre og distributionscentre.',
-    unit: 'kWh',
-    placeholder: 'fx 180 000',
-    min: 0
-  },
-  {
-    key: 'warehousingEmissionFactorKgPerKwh',
-    label: 'Lagre – emissionsfaktor',
-    description: 'Kg CO2e pr. kWh for energikilden i lagrene.',
-    unit: 'kg CO2e/kWh',
-    placeholder: 'fx 0.07',
-    min: 0
-  },
-  {
-    key: 'lowEmissionVehicleSharePercent',
-    label: 'Lavemissionskøretøjer',
-    description: 'Andel af vejtransporten, der udføres med lavemissionskøretøjer (maks 100%).',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
-  },
-  {
-    key: 'renewableWarehousingSharePercent',
-    label: 'Vedvarende energi i lagre',
-    description: 'Andel af lagerenergi dækket af dokumenteret vedvarende energi (maks 100%).',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
-  }
+type C7FormState = C7Input & {
+  roadEmissionFactorSource?: string | null
+  railEmissionFactorSource?: string | null
+  seaEmissionFactorSource?: string | null
+  airEmissionFactorSource?: string | null
+  warehousingEmissionFactorSource?: string | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
+}
+
+const ROAD_OPTIONS: EmissionFactorOption[] = [
+  { value: 'parcelVans', label: 'Pakke-/kurerkørsel (0,22 kg CO₂e/t·km)', factor: 0.22 },
+  { value: 'regionalTruck', label: 'Regional distribution (0,16 kg CO₂e/t·km)', factor: 0.16 },
+  { value: 'electricTruck', label: 'Elektrisk distribution (0,07 kg CO₂e/t·km)', factor: 0.07 }
 ]
 
-const EMPTY_C7: C7Input = {
+const RAIL_OPTIONS: EmissionFactorOption[] = [
+  { value: 'electricRail', label: 'Elektrisk gods (0,028 kg CO₂e/t·km)', factor: 0.028 },
+  { value: 'dieselRail', label: 'Diesel gods (0,045 kg CO₂e/t·km)', factor: 0.045 }
+]
+
+const SEA_OPTIONS: EmissionFactorOption[] = [
+  { value: 'shortSea', label: 'Nærskibsfart (0,015 kg CO₂e/t·km)', factor: 0.015 },
+  { value: 'deepSea', label: 'Dybhav/containerskib (0,010 kg CO₂e/t·km)', factor: 0.01 }
+]
+
+const AIR_OPTIONS: EmissionFactorOption[] = [
+  { value: 'bellyCargo', label: 'Belly cargo (0,55 kg CO₂e/t·km)', factor: 0.55 },
+  { value: 'expressAir', label: 'Express luftfragt (0,70 kg CO₂e/t·km)', factor: 0.7 }
+]
+
+const WAREHOUSING_OPTIONS: EmissionFactorOption[] = [
+  { value: 'euWarehouse', label: 'EU-lager (0,12 kg CO₂e/kWh)', factor: 0.12 },
+  { value: 'dkWarehouse', label: 'Dansk lager (0,09 kg CO₂e/kWh)', factor: 0.09 },
+  { value: 'renewableWarehouse', label: 'Grønt lager (0,05 kg CO₂e/kWh)', factor: 0.05 }
+]
+
+const EMPTY_C7: C7FormState = {
   roadTonnesKm: null,
   roadEmissionFactorKgPerTonneKm: null,
   railTonnesKm: null,
@@ -134,105 +63,194 @@ const EMPTY_C7: C7Input = {
   warehousingEnergyKwh: null,
   warehousingEmissionFactorKgPerKwh: null,
   lowEmissionVehicleSharePercent: null,
-  renewableWarehousingSharePercent: null
+  renewableWarehousingSharePercent: null,
+  roadEmissionFactorSource: null,
+  railEmissionFactorSource: null,
+  seaEmissionFactorSource: null,
+  airEmissionFactorSource: null,
+  warehousingEmissionFactorSource: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function C7Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.C7 as C7Input | undefined) ?? EMPTY_C7
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runC7({ C7: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: C7Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const C7Step = createConfiguredModuleStep<'C7', C7FormState>({
+  moduleId: 'C7',
+  title: 'C7 – Transport og distribution (downstream)',
+  description:
+    'Registrér ton-kilometer for distribution til kunder samt energiforbrug i downstream-lagre. Vælg passende emissionsfaktorer og angiv dokumentation.',
+  emptyState: EMPTY_C7,
+  fields: [
+    {
+      type: 'number',
+      key: 'roadTonnesKm',
+      label: 'Vejtransport – ton-kilometer',
+      unit: 't·km',
+      description: 'Transportydelse for levering til kunder via vejtransport.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'roadEmissionFactorSource',
+      label: 'Emissionsfaktor – vejtransport',
+      description: 'Vælg passende logistikprofil for distribution.',
+      options: ROAD_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { roadEmissionFactorKgPerTonneKm: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'roadEmissionFactorKgPerTonneKm',
+      label: 'Valgt emissionsfaktor – vej',
+      unit: 'kg CO₂e/t·km',
+      description: 'Justér ved særlige køretøjer eller data.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'railTonnesKm',
+      label: 'Banetransport – ton-kilometer',
+      unit: 't·km',
+      description: 'Ton-km leveret via jernbane.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'railEmissionFactorSource',
+      label: 'Emissionsfaktor – banetransport',
+      description: 'Vælg togtype for distribution.',
+      options: RAIL_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { railEmissionFactorKgPerTonneKm: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'railEmissionFactorKgPerTonneKm',
+      label: 'Valgt emissionsfaktor – bane',
+      unit: 'kg CO₂e/t·km',
+      description: 'Kan tilpasses med egne data.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'seaTonnesKm',
+      label: 'Søtransport – ton-kilometer',
+      unit: 't·km',
+      description: 'Ton-km for downstream-søfragt.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'seaEmissionFactorSource',
+      label: 'Emissionsfaktor – søtransport',
+      description: 'Vælg passende skibstype for distribution.',
+      options: SEA_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { seaEmissionFactorKgPerTonneKm: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'seaEmissionFactorKgPerTonneKm',
+      label: 'Valgt emissionsfaktor – sø',
+      unit: 'kg CO₂e/t·km',
+      description: 'Standard eller virksomhedsdata.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'airTonnesKm',
+      label: 'Lufttransport – ton-kilometer',
+      unit: 't·km',
+      description: 'Ton-km for luftfragt til kunder.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'airEmissionFactorSource',
+      label: 'Emissionsfaktor – lufttransport',
+      description: 'Vælg flytype for distribution.',
+      options: AIR_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { airEmissionFactorKgPerTonneKm: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'airEmissionFactorKgPerTonneKm',
+      label: 'Valgt emissionsfaktor – luft',
+      unit: 'kg CO₂e/t·km',
+      description: 'Tilpas ved specifikke ruter eller flytyper.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'warehousingEnergyKwh',
+      label: 'Energiforbrug i downstream-lagre',
+      unit: 'kWh',
+      description: 'Energiforbrug til lager og distributionsterminaler.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'warehousingEmissionFactorSource',
+      label: 'Emissionsfaktor – lagerenergi',
+      description: 'Vælg emissionsfaktor for lagrenes energiforbrug.',
+      options: WAREHOUSING_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { warehousingEmissionFactorKgPerKwh: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'warehousingEmissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor – lagerenergi',
+      unit: 'kg CO₂e/kWh',
+      description: 'Mulighed for at indtaste egne værdier.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'percent',
+      key: 'lowEmissionVehicleSharePercent',
+      label: 'Lavemissionskøretøjer',
+      description: 'Andel af distribution udført med lavemissionsflåde.',
+      max: 100
+    },
+    {
+      type: 'percent',
+      key: 'renewableWarehousingSharePercent',
+      label: 'Grøn lagerenergi',
+      description: 'Andel af lagerenergi dækket af vedvarende kilder.',
+      max: 100
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurder kvaliteten af distributionsdata og energirapporter.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload logistikrapporter, fragtdokumenter eller energidata.'
     }
-    onChange('C7', next)
-  }
-
-  const hasData = Object.values(current).some((value) => value != null)
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>C7 – Transport og distribution (downstream)</h2>
-        <p>
-          Indtast transportmængder, emissionsfaktorer og energiforbrug i downstream-lagre for at beregne emissionerne fra
-          levering til kunder. Dokumentér eventuelle lavemissionskøretøjer og vedvarende energi for at reducere resultatet.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label}
-                {field.unit ? ` (${field.unit})` : ''}
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={field.min}
-                max={field.max}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0, color: '#555' }}>
-            Udfyld felterne ovenfor for at se et estimat for downstream transport og lagerenergi.
-          </p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runC7
+})

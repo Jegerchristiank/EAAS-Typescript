@@ -3,104 +3,37 @@
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { C6Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { C6Input } from '@org/shared'
 import { runC6 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof C6Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
+type EmissionFactorOption = {
+  value: string
   label: string
-  description: string
-  unit: string
-  placeholder?: string
-  min?: number
-  max?: number
+  factor: number
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
-  {
-    key: 'leasedFloorAreaSqm',
-    label: 'Lejet areal',
-    description: 'Samlet kvadratmeter i de upstream-lejemål, hvor energiforbruget skal fordeles.',
-    unit: 'm²',
-    placeholder: 'fx 2 800',
-    min: 0
-  },
-  {
-    key: 'electricityIntensityKwhPerSqm',
-    label: 'El-intensitet',
-    description: 'Årligt elforbrug pr. m² baseret på regninger eller benchmarks.',
-    unit: 'kWh/m²',
-    placeholder: 'fx 85',
-    min: 0
-  },
-  {
-    key: 'heatIntensityKwhPerSqm',
-    label: 'Varme-intensitet',
-    description: 'Årligt varmeforbrug pr. m² (fjernvarme, gas, olie).',
-    unit: 'kWh/m²',
-    placeholder: 'fx 60',
-    min: 0
-  },
-  {
-    key: 'occupancySharePercent',
-    label: 'Lejerandel',
-    description: 'Hvor stor en andel af bygningen disponerer virksomheden over. Mangler data, antages 100%.',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
-  },
-  {
-    key: 'sharedServicesAllocationPercent',
-    label: 'Fradrag for fælles services',
-    description: 'Andel af forbruget der dækkes af udlejer til fællesfaciliteter (maks 50%).',
-    unit: '%',
-    placeholder: '0-50',
-    min: 0,
-    max: 50
-  },
-  {
-    key: 'electricityEmissionFactorKgPerKwh',
-    label: 'El – emissionsfaktor',
-    description: 'Kg CO2e pr. kWh for det lokale el-mix eller markedsfaktor.',
-    unit: 'kg CO2e/kWh',
-    placeholder: 'fx 0.233',
-    min: 0
-  },
-  {
-    key: 'heatEmissionFactorKgPerKwh',
-    label: 'Varme – emissionsfaktor',
-    description: 'Kg CO2e pr. kWh varme leveret via fjernvarme eller brændsel.',
-    unit: 'kg CO2e/kWh',
-    placeholder: 'fx 0.08',
-    min: 0
-  },
-  {
-    key: 'renewableElectricitySharePercent',
-    label: 'Dokumenteret vedvarende el',
-    description: 'Andel af elforbruget der er dækket af garantier eller grøn aftale. Afgrænset til 100%.',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
-  },
-  {
-    key: 'renewableHeatSharePercent',
-    label: 'Dokumenteret vedvarende varme',
-    description: 'Andel af varmeforbruget der er dækket af certificeret grøn varme. Afgrænset til 100%.',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
-  }
+type C6FormState = C6Input & {
+  electricityEmissionFactorSource?: string | null
+  heatEmissionFactorSource?: string | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
+}
+
+const ELECTRICITY_OPTIONS: EmissionFactorOption[] = [
+  { value: 'dkResidual', label: 'Danmark – residualfaktor (0,318 kg CO₂e/kWh)', factor: 0.318 },
+  { value: 'dkLocation', label: 'Danmark – location-based (0,233 kg CO₂e/kWh)', factor: 0.233 },
+  { value: 'nordicMix', label: 'Nordisk elmix (0,200 kg CO₂e/kWh)', factor: 0.2 }
 ]
 
-const EMPTY_C6: C6Input = {
+const HEAT_OPTIONS: EmissionFactorOption[] = [
+  { value: 'districtHeatDK', label: 'Dansk fjernvarme (0,080 kg CO₂e/kWh)', factor: 0.08 },
+  { value: 'districtHeatCertified', label: 'Fjernvarme med certifikat (0,045 kg CO₂e/kWh)', factor: 0.045 },
+  { value: 'heatPump', label: 'Varme via varmepumpe (0,035 kg CO₂e/kWh)', factor: 0.035 }
+]
+
+const EMPTY_C6: C6FormState = {
   leasedFloorAreaSqm: null,
   electricityIntensityKwhPerSqm: null,
   heatIntensityKwhPerSqm: null,
@@ -109,105 +42,127 @@ const EMPTY_C6: C6Input = {
   electricityEmissionFactorKgPerKwh: null,
   heatEmissionFactorKgPerKwh: null,
   renewableElectricitySharePercent: null,
-  renewableHeatSharePercent: null
+  renewableHeatSharePercent: null,
+  electricityEmissionFactorSource: null,
+  heatEmissionFactorSource: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function C6Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.C6 as C6Input | undefined) ?? EMPTY_C6
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runC6({ C6: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: C6Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const C6Step = createConfiguredModuleStep<'C6', C6FormState>({
+  moduleId: 'C6',
+  title: 'C6 – Udlejede aktiver (upstream)',
+  description:
+    'Indtast areal, energiintensiteter og andele for upstream-lejemål. Vælg passende emissionsfaktorer for el og varme og angiv dokumentationskvalitet.',
+  emptyState: EMPTY_C6,
+  fields: [
+    {
+      type: 'number',
+      key: 'leasedFloorAreaSqm',
+      label: 'Lejet areal',
+      unit: 'm²',
+      description: 'Samlet areal for upstream-lejemål hvor energiforbrug rapporteres.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'electricityIntensityKwhPerSqm',
+      label: 'El-intensitet',
+      unit: 'kWh/m²',
+      description: 'Årlig elintensitet baseret på regninger eller benchmarks.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'number',
+      key: 'heatIntensityKwhPerSqm',
+      label: 'Varme-intensitet',
+      unit: 'kWh/m²',
+      description: 'Årlig varmeintensitet for lejemålene.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'percent',
+      key: 'occupancySharePercent',
+      label: 'Lejerandel',
+      description: 'Andel af bygningen virksomheden råder over.',
+      max: 100
+    },
+    {
+      type: 'percent',
+      key: 'sharedServicesAllocationPercent',
+      label: 'Fælles services',
+      description: 'Andel dækket af udlejers fællesfaciliteter (maks 50%).',
+      max: 50
+    },
+    {
+      type: 'select',
+      key: 'electricityEmissionFactorSource',
+      label: 'Emissionsfaktor – el',
+      description: 'Vælg location- eller residualbaseret faktor for el.',
+      options: ELECTRICITY_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { electricityEmissionFactorKgPerKwh: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'electricityEmissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor – el',
+      unit: 'kg CO₂e/kWh',
+      description: 'Kan overskrives hvis der foreligger leverandørdata.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'heatEmissionFactorSource',
+      label: 'Emissionsfaktor – varme',
+      description: 'Vælg relevant emissionsfaktor for varmeleverancen.',
+      options: HEAT_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { heatEmissionFactorKgPerKwh: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'heatEmissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor – varme',
+      unit: 'kg CO₂e/kWh',
+      description: 'Indtast evt. virksomheds- eller leverandørspecifik faktor.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'percent',
+      key: 'renewableElectricitySharePercent',
+      label: 'Vedvarende el',
+      description: 'Dokumenteret grøn andel af elforbruget.',
+      max: 100
+    },
+    {
+      type: 'percent',
+      key: 'renewableHeatSharePercent',
+      label: 'Vedvarende varme',
+      description: 'Dokumenteret grøn andel af varmeforbruget.',
+      max: 100
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurder kvaliteten af kontrakter, fordelingsnøgler og målerdata.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload kontrakter, fordelingsnøgler eller målerdata.'
     }
-    onChange('C6', next)
-  }
-
-  const hasData = Object.values(current).some((value) => value != null)
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>C6 – Udlejede aktiver (upstream)</h2>
-        <p>
-          Estimer energiforbruget og emissionerne fra upstream-lejemål baseret på areal, intensiteter og dokumenterede
-          reduktioner. Brug feltet til fælles services til at fradrage energi, som udlejer selv afholder.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label}
-                {field.unit ? ` (${field.unit})` : ''}
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={field.min}
-                max={field.max}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>
-            Udfyld felterne for at beregne emissioner fra upstream-lejemål og dokumenterede reduktioner.
-          </p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runC6
+})

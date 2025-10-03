@@ -3,193 +3,153 @@
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
-import type { C3Input, ModuleInput, ModuleResult } from '@org/shared'
+import type { C3Input } from '@org/shared'
 import { runC3 } from '@org/shared'
-import type { WizardStepProps } from './StepTemplate'
 
-type FieldKey = keyof C3Input
+import { createConfiguredModuleStep } from './ConfiguredModuleStep'
 
-type FieldConfig = {
-  key: FieldKey
+type EmissionFactorOption = {
+  value: string
   label: string
-  description: string
-  unit: string
-  placeholder?: string
-  min?: number
-  max?: number
+  factor: number
 }
 
-const FIELD_CONFIG: FieldConfig[] = [
+type C3FormState = C3Input & {
+  electricityEmissionFactorSource?: string | null
+  fuelEmissionFactorSource?: string | null
+  documentationQualityPercent?: number | null
+  documentationFileName?: string | null
+}
+
+const ELECTRICITY_OPTIONS: EmissionFactorOption[] = [
   {
-    key: 'purchasedElectricityKwh',
-    label: 'Elforbrug til upstream-beregning',
-    description:
-      'Angiv den del af elforbruget (kWh) hvor der skal beregnes upstream emissioner.',
-    unit: 'kWh',
-    placeholder: 'fx 120 000',
-    min: 0
+    value: 'energinetUpstream',
+    label: 'Energinet – upstream el (0,045 kg CO₂e/kWh)',
+    factor: 0.045
   },
   {
-    key: 'electricityUpstreamEmissionFactorKgPerKwh',
-    label: 'Upstream emissionsfaktor for el',
-    description:
-      'Kg CO2e pr. kWh for upstream emissioner fra el (well-to-tank og T&D).',
-    unit: 'kg CO2e/kWh',
-    placeholder: 'fx 0.045',
-    min: 0
+    value: 'nordicMixUpstream',
+    label: 'Nordisk elmix – upstream (0,052 kg CO₂e/kWh)',
+    factor: 0.052
   },
   {
-    key: 'transmissionLossPercent',
-    label: 'Transmissions- og distributionsspild',
-    description: 'Angiv tab i elnettet. Værdien afgrænses til højst 20%.',
-    unit: '%',
-    placeholder: '0-20',
-    min: 0,
-    max: 20
-  },
-  {
-    key: 'renewableSharePercent',
-    label: 'Dokumenteret vedvarende el',
-    description: 'Reducerer upstream emissioner. Angiv andelen af el med certificeret oprindelse.',
-    unit: '%',
-    placeholder: '0-100',
-    min: 0,
-    max: 100
-  },
-  {
-    key: 'fuelConsumptionKwh',
-    label: 'Brændstofforbrug (kWh)',
-    description:
-      'Brændstofforbrug konverteret til kWh. Indgår fuldt ud i upstream emissionerne.',
-    unit: 'kWh',
-    placeholder: 'fx 35 000',
-    min: 0
-  },
-  {
-    key: 'fuelUpstreamEmissionFactorKgPerKwh',
-    label: 'Upstream emissionsfaktor for brændstof',
-    description: 'Kg CO2e pr. kWh for well-to-tank emissioner fra brændstoffer.',
-    unit: 'kg CO2e/kWh',
-    placeholder: 'fx 0.068',
-    min: 0
+    value: 'europeAverageUpstream',
+    label: 'EU-gennemsnit – upstream (0,060 kg CO₂e/kWh)',
+    factor: 0.06
   }
 ]
 
-const EMPTY_C3: C3Input = {
+const FUEL_OPTIONS: EmissionFactorOption[] = [
+  { value: 'diesel', label: 'Diesel – well-to-tank (0,073 kg CO₂e/kWh)', factor: 0.073 },
+  { value: 'petrol', label: 'Benzin – well-to-tank (0,069 kg CO₂e/kWh)', factor: 0.069 },
+  { value: 'naturalGas', label: 'Naturgas – upstream (0,055 kg CO₂e/kWh)', factor: 0.055 },
+  { value: 'biogas', label: 'Biogas – upstream (0,020 kg CO₂e/kWh)', factor: 0.02 }
+]
+
+const EMPTY_C3: C3FormState = {
   purchasedElectricityKwh: null,
   electricityUpstreamEmissionFactorKgPerKwh: null,
   transmissionLossPercent: null,
   renewableSharePercent: null,
   fuelConsumptionKwh: null,
-  fuelUpstreamEmissionFactorKgPerKwh: null
+  fuelUpstreamEmissionFactorKgPerKwh: null,
+  electricityEmissionFactorSource: null,
+  fuelEmissionFactorSource: null,
+  documentationQualityPercent: null,
+  documentationFileName: null
 }
 
-export function C3Step({ state, onChange }: WizardStepProps): JSX.Element {
-  const current = (state.C3 as C3Input | undefined) ?? EMPTY_C3
-
-  const preview = useMemo<ModuleResult>(() => {
-    return runC3({ C3: current } as ModuleInput)
-  }, [current])
-
-  const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value.replace(',', '.')
-    const parsed = rawValue === '' ? null : Number.parseFloat(rawValue)
-    const next: C3Input = {
-      ...current,
-      [field]: Number.isFinite(parsed) ? parsed : null
+export const C3Step = createConfiguredModuleStep<'C3', C3FormState>({
+  moduleId: 'C3',
+  title: 'C3 – Brændstof- og energirelaterede aktiviteter',
+  description:
+    'Indtast upstream energiforbrug og vælg passende emissionsfaktorer for el og brændstoffer. Der kan angives nettab og dokumenteret vedvarende andel.',
+  emptyState: EMPTY_C3,
+  fields: [
+    {
+      type: 'number',
+      key: 'purchasedElectricityKwh',
+      label: 'Indkøbt elektricitet til upstream-beregning',
+      unit: 'kWh',
+      description: 'Elforbrug hvor upstream emissioner skal beregnes.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'electricityEmissionFactorSource',
+      label: 'Emissionsfaktor – upstream el',
+      description: 'Vælg standardfaktor eller angiv egen værdi.',
+      options: ELECTRICITY_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { electricityUpstreamEmissionFactorKgPerKwh: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'electricityUpstreamEmissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor – el',
+      unit: 'kg CO₂e/kWh',
+      description: 'Automatisk udfyldt men kan justeres manuelt.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'percent',
+      key: 'transmissionLossPercent',
+      label: 'Nettab',
+      description: 'Tab i transmissions- og distributionsnettet (maks 20%).',
+      max: 20
+    },
+    {
+      type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Dokumenteret vedvarende el',
+      description: 'Andel med garantier eller certificeret oprindelse.',
+      max: 100
+    },
+    {
+      type: 'number',
+      key: 'fuelConsumptionKwh',
+      label: 'Brændstofforbrug (omregnet til kWh)',
+      unit: 'kWh',
+      description: 'Omregnet brændstofforbrug der indgår i upstream emissionerne.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'select',
+      key: 'fuelEmissionFactorSource',
+      label: 'Emissionsfaktor – brændstof',
+      description: 'Vælg standardfaktor for brændstoftypen.',
+      options: FUEL_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+        derived: { fuelUpstreamEmissionFactorKgPerKwh: option.factor }
+      })).concat([{ value: 'custom', label: 'Tilpasset emissionsfaktor', derived: {} }])
+    },
+    {
+      type: 'number',
+      key: 'fuelUpstreamEmissionFactorKgPerKwh',
+      label: 'Valgt emissionsfaktor – brændstof',
+      unit: 'kg CO₂e/kWh',
+      description: 'Mulighed for at indtaste leverandørdata.',
+      min: 0,
+      step: 'any'
+    },
+    {
+      type: 'percent',
+      key: 'documentationQualityPercent',
+      label: 'Dokumentationskvalitet',
+      description: 'Vurder kvaliteten af energidata og leverandørfaktorer.'
+    },
+    {
+      type: 'file',
+      key: 'documentationFileName',
+      label: 'Dokumentation',
+      description: 'Upload fakturaer, kontrakter eller energirapporter.'
     }
-    onChange('C3', next)
-  }
-
-  const hasData =
-    current.purchasedElectricityKwh != null ||
-    current.electricityUpstreamEmissionFactorKgPerKwh != null ||
-    current.transmissionLossPercent != null ||
-    current.renewableSharePercent != null ||
-    current.fuelConsumptionKwh != null ||
-    current.fuelUpstreamEmissionFactorKgPerKwh != null
-
-  return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>C3 – Brændstof- og energirelaterede aktiviteter</h2>
-        <p>
-          Beregningen estimerer upstream emissioner fra indkøbt energi og brændstoffer ved at
-          kombinere forbrugstal, emissionsfaktorer og nettab. Vedvarende andele reducerer el-delen
-          proportionalt.
-        </p>
-      </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
-        {FIELD_CONFIG.map((field) => {
-          const value = current[field.key]
-          return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
-                {field.label}
-                {field.unit ? ` (${field.unit})` : ''}
-              </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
-              <input
-                type="number"
-                step="any"
-                value={value ?? ''}
-                placeholder={field.placeholder}
-                onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
-                min={field.min}
-                max={field.max}
-              />
-            </label>
-          )
-        })}
-      </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
-        {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-              {preview.value} {preview.unit}
-            </p>
-            <div>
-              <strong>Antagelser</strong>
-              <ul>
-                {preview.assumptions.map((assumption, index) => (
-                  <li key={index}>{assumption}</li>
-                ))}
-              </ul>
-            </div>
-            {preview.warnings.length > 0 && (
-              <div>
-                <strong>Advarsler</strong>
-                <ul>
-                  {preview.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <details>
-              <summary>Teknisk trace</summary>
-              <ul>
-                {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
-                    {line}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
-        ) : (
-          <p style={{ margin: 0 }}>
-            Udfyld felterne for at se upstream emissioner for brændstof- og energirelaterede
-            aktiviteter.
-          </p>
-        )}
-      </section>
-    </form>
-  )
-}
+  ],
+  runModule: runC3
+})
