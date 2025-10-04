@@ -62,6 +62,13 @@ export const B5Step = createConfiguredModuleStep<'B5', B5FormState>({
       description: 'Angiv mængde i kWh eller konverter til kWh fra anden enhed.'
     },
     {
+      type: 'number',
+      key: 'recoveredEnergyKwh',
+      label: 'Genindvundet energi',
+      unit: 'kWh',
+      description: 'Indtast kWh energi der genindvindes og modregnes i forbruget.'
+    },
+    {
       type: 'select',
       key: 'emissionFactorSource',
       label: 'Emissionsfaktor',
@@ -90,6 +97,12 @@ export const B5Step = createConfiguredModuleStep<'B5', B5FormState>({
       label: 'Valgt emissionsfaktor',
       unit: 'kg CO₂e/kWh',
       description: 'Angiv den faktiske emissionsfaktor hvis den afviger fra standard.'
+    },
+    {
+      type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Andel vedvarende energi',
+      description: 'Angiv hvor stor en andel af leverancen der er dækket af vedvarende energi.'
     },
     {
       type: 'percent',

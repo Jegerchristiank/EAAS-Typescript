@@ -38,6 +38,13 @@ export const B3Step = createConfiguredModuleStep<'B3', B3FormState>({
       description: 'Total indkøbt fjernkøling i perioden.'
     },
     {
+      type: 'number',
+      key: 'recoveredCoolingKwh',
+      label: 'Genindvundet køling',
+      unit: 'kWh',
+      description: 'Angiv mængde frikøling eller anden genindvundet køling, der reducerer forbruget.'
+    },
+    {
       type: 'select',
       key: 'emissionFactorSource',
       label: 'Emissionsfaktor',
@@ -60,6 +67,12 @@ export const B3Step = createConfiguredModuleStep<'B3', B3FormState>({
       label: 'Valgt emissionsfaktor',
       unit: 'kg CO₂e/kWh',
       description: 'Justér hvis leverandør har oplyst anden faktor.'
+    },
+    {
+      type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Andel vedvarende køling',
+      description: 'Angiv hvor stor en del af kølingen der er dækket af vedvarende energikilder.'
     },
     {
       type: 'percent',

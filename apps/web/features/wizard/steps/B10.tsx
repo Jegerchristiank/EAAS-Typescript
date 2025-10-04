@@ -44,6 +44,12 @@ export const B10Step = createConfiguredModuleStep<'B10', B10FormState>({
       description: 'Elforbrug der matches mod PPA-leverancen.'
     },
     {
+      type: 'percent',
+      key: 'marketSettlementPercent',
+      label: 'Afregnet andel',
+      description: 'Angiv hvor stor en procentdel af den matchede mængde der er markedsafregnet.'
+    },
+    {
       type: 'select',
       key: 'residualFactorSource',
       label: 'Residualfaktor',

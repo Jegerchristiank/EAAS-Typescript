@@ -44,6 +44,12 @@ export const B9Step = createConfiguredModuleStep<'B9', B9FormState>({
       description: 'Reelt leveret el der matches mod forbruget.'
     },
     {
+      type: 'percent',
+      key: 'gridLossPercent',
+      label: 'Nettab',
+      description: 'Angiv forventet nettab i procent for at korrigere leverancen.'
+    },
+    {
       type: 'select',
       key: 'residualFactorSource',
       label: 'Residualfaktor',

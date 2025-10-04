@@ -71,6 +71,12 @@ export const B6Step = createConfiguredModuleStep<'B6', B6FormState>({
     },
     {
       type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Andel vedvarende elektricitet',
+      description: 'Angiv procentdelen af nettabet der er dækket af certificeret vedvarende energi.'
+    },
+    {
+      type: 'percent',
       key: 'documentationQualityPercent',
       label: 'Dokumentationskvalitet',
       description: 'Vurdering af kvaliteten af data for nettab.'
