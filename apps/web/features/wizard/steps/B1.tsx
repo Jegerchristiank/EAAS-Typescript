@@ -75,6 +75,12 @@ export const B1Step = createConfiguredModuleStep<'B1', B1FormState>({
       description: 'Automatisk udfyldt fra dropdown men kan erstattes med leverandørdata.'
     },
     {
+      type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Andel vedvarende elektricitet',
+      description: 'Angiv hvor stor en andel af elforbruget der er dækket af dokumenteret vedvarende energi.'
+    },
+    {
       type: 'select',
       key: 'calculationMethod',
       label: 'Beregningsmetode',

@@ -37,6 +37,13 @@ export const B11Step = createConfiguredModuleStep<'B11', B11FormState>({
       description: 'Angiv kWh som dækkes af time-matchede certifikater.'
     },
     {
+      type: 'number',
+      key: 'matchedConsumptionKwh',
+      label: 'Matchet forbrug',
+      unit: 'kWh',
+      description: 'Angiv hvor meget af forbruget der faktisk er matchet med certifikaterne.'
+    },
+    {
       type: 'percent',
       key: 'timeCorrelationPercent',
       label: 'Time match andel',

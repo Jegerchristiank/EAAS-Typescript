@@ -39,6 +39,13 @@ export const B2Step = createConfiguredModuleStep<'B2', B2FormState>({
       description: 'Målt eller faktureret varmeforbrug i den relevante periode.'
     },
     {
+      type: 'number',
+      key: 'recoveredHeatKwh',
+      label: 'Genindvundet varme',
+      unit: 'kWh',
+      description: 'Energi genindvundet og ført tilbage til systemet i perioden.'
+    },
+    {
       type: 'select',
       key: 'emissionFactorSource',
       label: 'Emissionsfaktor',
@@ -61,6 +68,12 @@ export const B2Step = createConfiguredModuleStep<'B2', B2FormState>({
       label: 'Valgt emissionsfaktor',
       unit: 'kg CO₂e/kWh',
       description: 'Kan justeres hvis leverandøren har oplyst anden faktor.'
+    },
+    {
+      type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Andel vedvarende varme',
+      description: 'Angiv procentdelen af varmeforbruget der er dækket af vedvarende energi.'
     },
     {
       type: 'percent',

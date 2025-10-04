@@ -76,6 +76,13 @@ export const B4Step = createConfiguredModuleStep<'B4', B4FormState>({
       }
     },
     {
+      type: 'number',
+      key: 'recoveredSteamKwh',
+      label: 'Genindvundet damp',
+      unit: 'kWh',
+      description: 'Angiv kWh dampenergi der genindvindes og reducerer nettobehovet.'
+    },
+    {
       type: 'select',
       key: 'emissionFactorSource',
       label: 'Emissionsfaktor',
@@ -95,6 +102,12 @@ export const B4Step = createConfiguredModuleStep<'B4', B4FormState>({
       label: 'Valgt emissionsfaktor',
       unit: 'kg CO₂e/kWh',
       description: 'Kan tilpasses ved alternative deklarationer.'
+    },
+    {
+      type: 'percent',
+      key: 'renewableSharePercent',
+      label: 'Andel vedvarende damp',
+      description: 'Angiv procentdelen af dampforbruget der er dækket af vedvarende energi.'
     },
     {
       type: 'percent',
