@@ -57,3 +57,32 @@ Fejltyper vi kender
 • NPM-auth: brug env-variabel i CI. Ingen .env indlæsning i npm.
 • Merge-konflikter: GitHub accepterer ikke filer med `<<<<<<<`/`=======`/`>>>>>>>`. Ryd altid markørerne og bekræft med `rg '<<<<<<<'` før commit.
 
+## 2024-UI-v4 opdatering
+
+### Ændrede filer og formål
+• `apps/web/styles/design-system.css`: fælles designsystem med spacing-, farve- og komponentklasser brugt på tværs af appen.
+• `apps/web/app/layout.tsx`, `apps/web/app/page.tsx`, `apps/web/features/wizard/WizardShell.tsx`: opdateret layout til at bruge designsystemet samt forbedret navigation/landing.
+• `apps/web/components/ui/PrimaryButton.tsx`: knappen er nu klasse-baseret med ghost-variant, så knapper deler styling.
+• `apps/web/features/wizard/steps/B1.tsx` – `B6.tsx`: scope 2-formularer har inline-hjælp, validering, designsystem-klassser og opdaterede summaries.
+• `apps/web/features/wizard/useWizard.ts`: autosave er debounced og persistensen sikres ved `beforeunload`.
+• `apps/web/app/(review)/review/page.tsx` og `apps/web/features/pdf/ReportPreviewClient.tsx`: review-siden viser sekundære moduler, bruger designsystemet og indlejrer PDF-preview.
+• `apps/web/src/modules/wizard/*.tsx`: virksomhedsprofilen styrer hvilke moduler der er aktive i wizard-navigationen.
+
+### Sådan fortsætter du arbejdet
+• Genbrug `ds-*`-klasserne og PrimaryButton-varianten i nye UI-komponenter for konsistens.
+• Når andre modultrin skal redesignes, brug B1–B6 som reference for valideringsmønster og hjælpetekster.
+• Overvej at udvide designsystemet med flere util-klasser i `design-system.css` frem for at bruge inline-styles.
+• Hvis yderligere validering skal tilføjes, kan `TouchedMap`-mønstret fra B1–B6 genbruges og udvides til komplekse trin.
+
+### Tests og builds
+• Kør `pnpm --filter @org/web build` for at validere lint, typer og Next build.
+• Kør `pnpm --filter @org/web test` for at køre UI- og komponenttests.
+
+### Virksomhedsprofil (PreWizardQuestionnaire)
+• Fil: `apps/web/src/modules/wizard/PreWizardQuestionnaire.tsx`  
+• Formål: Identificere relevante ESG-moduler via ja/nej-spørgsmål  
+• Output: `wizardProfile` (lagret i localStorage)  
+• Bruges i: `WizardOverview.tsx` (filtrering af moduler)  
+• Design: Bruger eksisterende komponenter fra `@org/shared` og `design-system.css`  
+• Test: `pnpm --filter @org/web build && pnpm --filter @org/web test`
+
