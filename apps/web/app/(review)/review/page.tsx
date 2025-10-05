@@ -4,22 +4,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, type CSSProperties } from 'react'
+import { useMemo } from 'react'
 
 import { PrimaryButton } from '../../../components/ui/PrimaryButton'
 import { downloadReport } from '../../../features/pdf/downloadClient'
+import ReportPreviewClient from '../../../features/pdf/ReportPreviewClient'
 import { useLiveResults } from '../../../features/results/useLiveResults'
 
 import type { CalculatedModuleResult } from '@org/shared'
-
-const cardStyle: CSSProperties = {
-  padding: '1.5rem',
-  borderRadius: '0.75rem',
-  border: '1px solid #d0d7d5',
-  background: '#fff',
-  display: 'grid',
-  gap: '0.75rem'
-}
 
 export default function ReviewPage(): JSX.Element {
   const { results } = useLiveResults()
@@ -43,48 +35,71 @@ export default function ReviewPage(): JSX.Element {
   }
 
   return (
-    <main style={{ padding: '2rem', display: 'grid', gap: '2rem', alignContent: 'start' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h1>Review og download</h1>
-        <p style={{ maxWidth: '48rem' }}>
-          Et overblik over beregnede Scope 1-, Scope 3- og governance-resultater. D1-modulet leverer en samlet score for metode
-          og governance og følger med i PDF-downloaden.
+    <main className="ds-page ds-stack">
+      <header className="ds-stack-sm">
+        <p className="ds-text-subtle">Version 4 · Resultatoversigt og rapport</p>
+        <h1 className="ds-heading-lg">Review og download</h1>
+        <p className="ds-text-muted">
+          Få et samlet overblik over beregnede Scope 1-, Scope 3- og governance-resultater. D1-modulet leverer en samlet score,
+          som indgår direkte i PDF-rapporten.
         </p>
       </header>
 
       {primaryResults.length > 0 ? (
-        <section style={{ display: 'grid', gap: '1.5rem' }}>
-          {primaryResults.map((entry) => (
-            <ResultCard key={entry.moduleId} entry={entry} />
-          ))}
+        <section className="ds-stack">
+          <h2 className="ds-section-heading">Primære Scope 2-moduler</h2>
+          <div className="ds-stack">
+            {primaryResults.map((entry) => (
+              <ResultCard key={entry.moduleId} entry={entry} />
+            ))}
+          </div>
         </section>
       ) : (
         <EmptyCard />
       )}
 
       {secondaryResults.length > 0 && (
-        <section style={{ display: 'grid', gap: '1rem' }}>
-          <h2>Andre moduler</h2>
-          <p style={{ margin: 0, color: '#555' }}>
-            De øvrige moduler inkluderer både Scope 3-kategorier og governance-scoren fra D1 – Metode &amp; governance.
-          </p>
+        <section className="ds-stack">
+          <div className="ds-stack-sm">
+            <h2 className="ds-section-heading">Andre moduler</h2>
+            <p className="ds-text-subtle">
+              Omfatter Scope 1-, Scope 3- og governance-resultater, som supplerer Scope 2-beregningerne.
+            </p>
+          </div>
+          <div className="ds-stack">
+            {secondaryResults.map((entry) => (
+              <ResultCard key={entry.moduleId} entry={entry} />
+            ))}
+          </div>
         </section>
       )}
 
-      <section style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+      {printable.length > 0 && (
+        <section className="ds-stack">
+          <div className="ds-stack-sm">
+            <h2 className="ds-section-heading">PDF-preview</h2>
+            <p className="ds-text-subtle">
+              Forhåndsvis rapporten direkte i browseren. Download-knappen genererer den samme rapport lokalt.
+            </p>
+          </div>
+          <div className="ds-scroll-panel" data-size="tall">
+            <ReportPreviewClient results={printable} />
+          </div>
+        </section>
+      )}
+
+      <section className="ds-toolbar">
         <PrimaryButton onClick={handleDownload} disabled={!printable.length}>
           Download PDF
         </PrimaryButton>
-        <PrimaryButton as={Link} href="/wizard">
+        <PrimaryButton as={Link} href="/wizard" variant="ghost">
           Tilbage til wizard
         </PrimaryButton>
       </section>
 
-      <details>
+      <details className="ds-card">
         <summary>Se rå data</summary>
-        <pre style={{ background: '#f8faf9', padding: '1rem', borderRadius: '0.5rem' }}>
-          {JSON.stringify(printable, null, 2)}
-        </pre>
+        <pre className="ds-summary ds-code">{JSON.stringify(printable, null, 2)}</pre>
       </details>
     </main>
   )
@@ -93,14 +108,14 @@ export default function ReviewPage(): JSX.Element {
 function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
   const { result } = entry
   return (
-    <section style={cardStyle}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2 style={{ margin: 0 }}>{entry.title}</h2>
-        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600 }}>
+    <section className="ds-card">
+      <header className="ds-stack-sm">
+        <h3 className="ds-heading-sm">{entry.title}</h3>
+        <p className="ds-value">
           {result.value} {result.unit}
         </p>
       </header>
-      <div>
+      <div className="ds-stack-sm">
         <strong>Antagelser</strong>
         <ul>
           {result.assumptions.map((assumption, index) => (
@@ -109,7 +124,7 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
         </ul>
       </div>
       {result.warnings.length > 0 && (
-        <div>
+        <div className="ds-stack-sm">
           <strong>Advarsler</strong>
           <ul>
             {result.warnings.map((warning, index) => (
@@ -118,11 +133,11 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
           </ul>
         </div>
       )}
-      <details>
+      <details className="ds-summary">
         <summary>Trace</summary>
         <ul>
           {result.trace.map((traceEntry, index) => (
-            <li key={`${entry.moduleId}-trace-${index}`} style={{ fontFamily: 'monospace' }}>
+            <li key={`${entry.moduleId}-trace-${index}`} className="ds-code">
               {traceEntry}
             </li>
           ))}
@@ -134,12 +149,11 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
 
 function EmptyCard(): JSX.Element {
   return (
-    <section style={{ ...cardStyle, background: '#f8faf9', borderStyle: 'dashed' }}>
-      <h2 style={{ margin: 0 }}>Ingen data endnu</h2>
-      <p style={{ margin: 0 }}>
-        Når du udfylder de beregningsklare Scope 1- og Scope 3-moduler vises resultaterne her. Governance-modulet D1 beregner en
-        samlet score for metode, screening og politikker.
-
+    <section className="ds-card ds-card--muted">
+      <h2 className="ds-heading-sm">Ingen data endnu</h2>
+      <p>
+        Når du udfylder de beregningsklare moduler vises resultaterne her. Governance-modulet D1 beregner en samlet score for
+        metode, screening og politikker.
       </p>
     </section>
   )

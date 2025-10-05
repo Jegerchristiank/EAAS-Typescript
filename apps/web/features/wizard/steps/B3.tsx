@@ -3,8 +3,8 @@
  */
 'use client'
 
-import { useMemo } from 'react'
-import type { ChangeEvent } from 'react'
+import { useMemo, useState } from 'react'
+import type { ChangeEvent, FocusEvent } from 'react'
 import type { B3Input, ModuleInput, ModuleResult } from '@org/shared'
 import { runB3 } from '@org/shared'
 import type { WizardStepProps } from './StepTemplate'
@@ -17,6 +17,7 @@ type FieldConfig = {
   description: string
   unit: string
   placeholder?: string
+  required?: boolean
 }
 
 const FIELD_CONFIG: FieldConfig[] = [
@@ -24,7 +25,8 @@ const FIELD_CONFIG: FieldConfig[] = [
     key: 'coolingConsumptionKwh',
     label: 'Årligt køleforbrug',
     description: 'Samlet køleenergi leveret fra forsyningen i kWh.',
-    unit: 'kWh'
+    unit: 'kWh',
+    required: true
   },
   {
     key: 'recoveredCoolingKwh',
@@ -37,7 +39,8 @@ const FIELD_CONFIG: FieldConfig[] = [
     label: 'Emissionsfaktor',
     description: 'Kg CO2e pr. kWh i køleleverandørens miljødeklaration.',
     unit: 'kg CO2e/kWh',
-    placeholder: '0.030'
+    placeholder: '0.030',
+    required: true
   },
   {
     key: 'renewableSharePercent',
@@ -55,12 +58,21 @@ const EMPTY_B3: B3Input = {
   renewableSharePercent: null
 }
 
+type TouchedMap = Partial<Record<FieldKey, boolean>>
+
+type ErrorMap = Partial<Record<FieldKey, string>>
+
 export function B3Step({ state, onChange }: WizardStepProps): JSX.Element {
   const current = (state.B3 as B3Input | undefined) ?? EMPTY_B3
+  const [touched, setTouched] = useState<TouchedMap>({})
 
   const preview = useMemo<ModuleResult>(() => {
     return runB3({ B3: current } as ModuleInput)
   }, [current])
+
+  const handleFieldBlur = (field: FieldKey) => (_event: FocusEvent<HTMLInputElement>) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+  }
 
   const handleFieldChange = (field: FieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
     const rawValue = event.target.value.replace(',', '.')
@@ -72,6 +84,36 @@ export function B3Step({ state, onChange }: WizardStepProps): JSX.Element {
     onChange('B3', next)
   }
 
+  const errors = useMemo<ErrorMap>(() => {
+    const nextErrors: ErrorMap = {}
+
+    FIELD_CONFIG.forEach(({ key, required }) => {
+      const value = current[key]
+      if (value == null) {
+        if (required && touched[key]) {
+          nextErrors[key] = 'Feltet er påkrævet.'
+        }
+        return
+      }
+
+      if (Number.isNaN(value)) {
+        nextErrors[key] = 'Angiv et gyldigt tal.'
+        return
+      }
+
+      if (value < 0) {
+        nextErrors[key] = 'Værdien skal være positiv.'
+        return
+      }
+
+      if (key === 'renewableSharePercent' && value > 100) {
+        nextErrors[key] = 'Vedvarende andel kan højst være 100%.'
+      }
+    })
+
+    return nextErrors
+  }, [current, touched])
+
   const hasData =
     preview.trace.some((line) => line.includes('netCoolingConsumptionKwh')) &&
     (current.coolingConsumptionKwh != null ||
@@ -80,46 +122,58 @@ export function B3Step({ state, onChange }: WizardStepProps): JSX.Element {
       current.renewableSharePercent != null)
 
   return (
-    <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '40rem' }}>
-      <header style={{ display: 'grid', gap: '0.5rem' }}>
-        <h2>B3 – Scope 2 køleforbrug</h2>
-        <p>
-          Indtast data for organisationens indkøbte køling. Beregningen korrigerer for frikøling/genindvinding og
-          dokumenteret vedvarende leverancer.
+    <form className="ds-form" noValidate>
+      <header className="ds-stack-sm">
+        <h2 className="ds-heading-sm">B3 – Scope 2 køleforbrug</h2>
+        <p className="ds-text-muted">
+          Indtast data for organisationens indkøbte køling. Beregningen korrigerer for frikøling, genindvinding og dokumenteret
+          vedvarende leverancer.
         </p>
+        <p className="ds-text-subtle">Kontrollér at emissionsfaktoren matcher leverandørens seneste deklaration.</p>
       </header>
-      <section style={{ display: 'grid', gap: '1rem' }}>
+
+      <section className="ds-stack">
         {FIELD_CONFIG.map((field) => {
           const value = current[field.key]
+          const error = errors[field.key]
+          const isInvalid = Boolean(error)
           return (
-            <label key={field.key} style={{ display: 'grid', gap: '0.5rem' }}>
-              <span style={{ fontWeight: 600 }}>
+            <label key={field.key} className="ds-field">
+              <span>
                 {field.label} ({field.unit})
               </span>
-              <span style={{ color: '#555', fontSize: '0.9rem' }}>{field.description}</span>
+              <span className="ds-field-help">{field.description}</span>
               <input
                 type="number"
                 step="any"
                 value={value ?? ''}
                 placeholder={field.placeholder}
                 onChange={handleFieldChange(field.key)}
-                style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #ccc' }}
+                onBlur={handleFieldBlur(field.key)}
+                className="ds-input"
+                data-invalid={isInvalid ? 'true' : 'false'}
                 min={0}
+                aria-invalid={isInvalid}
+                aria-describedby={isInvalid ? `${field.key}-error` : undefined}
               />
+              {isInvalid && (
+                <p id={`${field.key}-error`} className="ds-error">
+                  {error}
+                </p>
+              )}
             </label>
           )
         })}
       </section>
-      <section
-        style={{ display: 'grid', gap: '0.75rem', background: '#f1f5f4', padding: '1rem', borderRadius: '0.75rem' }}
-      >
-        <h3 style={{ margin: 0 }}>Estimat</h3>
+
+      <section className="ds-summary ds-stack-sm">
+        <h3 className="ds-heading-sm">Estimat</h3>
         {hasData ? (
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
+          <div className="ds-stack-sm">
+            <p className="ds-value">
               {preview.value} {preview.unit}
             </p>
-            <div>
+            <div className="ds-stack-sm">
               <strong>Antagelser</strong>
               <ul>
                 {preview.assumptions.map((assumption, index) => (
@@ -128,7 +182,7 @@ export function B3Step({ state, onChange }: WizardStepProps): JSX.Element {
               </ul>
             </div>
             {preview.warnings.length > 0 && (
-              <div>
+              <div className="ds-stack-sm">
                 <strong>Advarsler</strong>
                 <ul>
                   {preview.warnings.map((warning, index) => (
@@ -137,11 +191,11 @@ export function B3Step({ state, onChange }: WizardStepProps): JSX.Element {
                 </ul>
               </div>
             )}
-            <details>
+            <details className="ds-summary">
               <summary>Teknisk trace</summary>
               <ul>
                 {preview.trace.map((line, index) => (
-                  <li key={index} style={{ fontFamily: 'monospace' }}>
+                  <li key={index} className="ds-code">
                     {line}
                   </li>
                 ))}
@@ -149,7 +203,7 @@ export function B3Step({ state, onChange }: WizardStepProps): JSX.Element {
             </details>
           </div>
         ) : (
-          <p style={{ margin: 0 }}>Udfyld felterne for at se beregnet nettoemission.</p>
+          <p className="ds-text-muted">Udfyld felterne for at se beregnet nettoemission.</p>
         )}
       </section>
     </form>

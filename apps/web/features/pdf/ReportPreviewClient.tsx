@@ -29,7 +29,7 @@ export default function ReportPreviewClient({
   }
 
   return (
-    <PDFViewer style={{ width: '100%', height: '80vh' }}>
+    <PDFViewer style={{ width: '100%', height: '100%' }}>
       <DocumentComponent results={printable} />
     </PDFViewer>
   )
