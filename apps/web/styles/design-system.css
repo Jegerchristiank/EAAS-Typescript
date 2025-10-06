@@ -201,6 +201,13 @@ a {
   color: var(--color-text-muted);
 }
 
+.ds-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  display: grid;
+  gap: var(--space-2);
+}
+
 .ds-text-muted {
   color: var(--color-text-muted);
 }
@@ -396,6 +403,89 @@ a {
   color: var(--color-primary-strong);
   border: 1px solid var(--color-border);
   box-shadow: none;
+}
+
+.ds-shell {
+  display: grid;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .ds-shell {
+    grid-template-columns: minmax(18rem, 22rem) 1fr;
+  }
+}
+
+.ds-shell__sidebar {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.ds-shell__main {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.ds-profile-switcher {
+  gap: var(--space-4);
+}
+
+.ds-profile-switcher__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.ds-profile-switcher__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.ds-profile-card {
+  gap: var(--space-3);
+}
+
+.ds-profile-card[data-active='true'] {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface-strong);
+}
+
+.ds-profile-card__heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ds-profile-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.ds-badge[data-active='true'] {
+  background: var(--color-primary-weak);
+  color: var(--color-primary-strong);
 }
 
 .ds-button[data-variant='ghost']:hover:not([disabled]) {

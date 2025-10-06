@@ -5,7 +5,16 @@
 
 
 import type { ModuleInput } from '@org/shared'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import {
   loadWizardStorage,
   persistWizardStorage,
@@ -37,7 +46,7 @@ export type WizardProfileSummary = {
   isActive: boolean
 }
 
-type WizardHook = {
+export type WizardHook = {
   currentStep: number
   state: WizardState
   activeState: WizardState
@@ -122,7 +131,7 @@ export function useWizard(): WizardHook {
       if (!active) {
         return prev
       }
-      return {
+      const nextStorage: PersistedWizardStorage = {
         ...prev,
         profiles: {
           ...prev.profiles,
@@ -133,6 +142,8 @@ export function useWizard(): WizardHook {
           },
         },
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
@@ -142,7 +153,7 @@ export function useWizard(): WizardHook {
       if (!active) {
         return prev
       }
-      return {
+      const nextStorage: PersistedWizardStorage = {
         ...prev,
         profiles: {
           ...prev.profiles,
@@ -153,10 +164,13 @@ export function useWizard(): WizardHook {
           },
         },
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
   const createProfile = useCallback((name?: string) => {
+    setCurrentStep(0)
     setStorage((prev) => {
       const id = generateProfileId()
       const profileName = name?.trim() || `Profil ${Object.keys(prev.profiles).length + 1}`
@@ -170,10 +184,12 @@ export function useWizard(): WizardHook {
         updatedAt: now,
       }
 
-      return {
+      const nextStorage: PersistedWizardStorage = {
         activeProfileId: id,
         profiles: { ...prev.profiles, [id]: newProfile },
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
@@ -182,10 +198,12 @@ export function useWizard(): WizardHook {
       if (!prev.profiles[profileId] || prev.activeProfileId === profileId) {
         return prev
       }
-      return {
+      const nextStorage: PersistedWizardStorage = {
         ...prev,
         activeProfileId: profileId,
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
@@ -199,13 +217,15 @@ export function useWizard(): WizardHook {
       if (trimmed.length === 0 || trimmed === target.name) {
         return prev
       }
-      return {
+      const nextStorage: PersistedWizardStorage = {
         ...prev,
         profiles: {
           ...prev.profiles,
           [profileId]: { ...target, name: trimmed, updatedAt: Date.now() },
         },
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
@@ -225,10 +245,12 @@ export function useWizard(): WizardHook {
         createdAt: now,
         updatedAt: now,
       }
-      return {
+      const nextStorage: PersistedWizardStorage = {
         activeProfileId: id,
         profiles: { ...prev.profiles, [id]: clone },
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
@@ -252,19 +274,23 @@ export function useWizard(): WizardHook {
           createdAt: now,
           updatedAt: now,
         }
-        return {
+        const nextStorage: PersistedWizardStorage = {
           activeProfileId: id,
           profiles: nextProfiles,
         }
+        storageRef.current = nextStorage
+        return nextStorage
       }
 
       const fallbackId = Object.keys(nextProfiles)[0] ?? prev.activeProfileId
       const nextActiveId = profileId === prev.activeProfileId ? fallbackId : prev.activeProfileId
 
-      return {
+      const nextStorage: PersistedWizardStorage = {
         activeProfileId: nextActiveId,
         profiles: nextProfiles,
       }
+      storageRef.current = nextStorage
+      return nextStorage
     })
   }, [])
 
@@ -327,5 +353,30 @@ export function useWizard(): WizardHook {
     updateProfile,
   ])
 
+  useEffect(() => {
+    return () => {
+      persistWizardStorage(storageRef.current)
+    }
+  }, [])
+
   return value
+}
+
+const WizardContext = createContext<WizardHook | undefined>(undefined)
+
+type WizardProviderProps = {
+  children: ReactNode
+}
+
+export function WizardProvider({ children }: WizardProviderProps): JSX.Element {
+  const value = useWizard()
+  return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>
+}
+
+export function useWizardContext(): WizardHook {
+  const context = useContext(WizardContext)
+  if (!context) {
+    throw new Error('useWizardContext skal anvendes inden for en WizardProvider')
+  }
+  return context
 }
