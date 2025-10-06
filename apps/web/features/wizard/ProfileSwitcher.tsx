@@ -7,7 +7,7 @@ import { isModuleRelevant } from '../../src/modules/wizard/profile'
 import { wizardSteps, type WizardScope } from './steps'
 import { useWizardContext } from './useWizard'
 
-const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Governance']
+const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance']
 
 function parseTimestamp(timestamp: number | undefined): Date | null {
   if (typeof timestamp !== 'number') {

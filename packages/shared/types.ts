@@ -49,6 +49,11 @@ import type {
   E3PollutionInput,
   E4BiodiversityInput,
   E5ResourcesInput,
+  S1Input,
+  S2Input,
+  S3Input,
+  S4Input,
+  G1Input,
 } from './schema'
 
 
@@ -88,6 +93,11 @@ export const moduleIds = [
   'E3Pollution',
   'E4Biodiversity',
   'E5Resources',
+  'S1',
+  'S2',
+  'S3',
+  'S4',
+  'G1',
   'D1',
   'D2'
 ] as const
@@ -131,6 +141,11 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   E3Pollution?: E3PollutionInput | null | undefined
   E4Biodiversity?: E4BiodiversityInput | null | undefined
   E5Resources?: E5ResourcesInput | null | undefined
+  S1?: S1Input | null | undefined
+  S2?: S2Input | null | undefined
+  S3?: S3Input | null | undefined
+  S4?: S4Input | null | undefined
+  G1?: G1Input | null | undefined
   D1?: D1Input | null | undefined
   D2?: D2Input | null | undefined
 }
@@ -257,6 +272,11 @@ export type {
   C13Input,
   C14Input,
   C15Input,
+  S1Input,
+  S2Input,
+  S3Input,
+  S4Input,
+  G1Input,
   D2Input,
   D2MaterialTopic,
   D1Input,
@@ -268,6 +288,10 @@ export type {
   E1EnergyMixType,
   E1TargetScope,
   E1TargetStatus,
-  E1ActionStatus
+  E1ActionStatus,
+  E2WaterInput,
+  E3PollutionInput,
+  E4BiodiversityInput,
+  E5ResourcesInput
 }
 

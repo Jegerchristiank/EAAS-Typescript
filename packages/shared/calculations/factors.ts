@@ -346,5 +346,69 @@ export const factors = {
     gapWarningStatuses: ['missing'] as ReadonlyArray<'aligned' | 'partial' | 'missing'>,
     timelineWarningForPriority: true,
     responsibleWarningForPriority: true
+  },
+  s1: {
+    unit: 'social score',
+    resultPrecision: 1,
+    totalHeadcountWeight: 0.35,
+    breakdownWeight: 0.35,
+    coverageWeight: 0.2,
+    labourRightsWeight: 0.1,
+    minSegmentsForFullScore: 4,
+    coverageWarningThresholdPercent: 70,
+    labourRightsWarningThresholdPercent: 60
+  },
+  s2: {
+    unit: 'social score',
+    resultPrecision: 1,
+    parityWeight: 0.6,
+    coverageWeight: 0.2,
+    policyWeight: 0.2,
+    fullParityPercent: 50,
+    severeGapPercent: 20,
+    narrativeLimit: 2000
+  },
+  s3: {
+    unit: 'social score',
+    resultPrecision: 1,
+    fatalityPenalty: 45,
+    lostTimePenalty: 18,
+    recordablePenalty: 8,
+    nearMissCredit: 2,
+    baselineHoursDivisor: 1_000_000,
+    baselineTargetRate: 3,
+    ratePenaltyMultiplier: 12,
+    certificationBonus: 10
+  },
+  s4: {
+    unit: 'social score',
+    resultPrecision: 1,
+    coverageWeight: 0.6,
+    severityWeight: 0.2,
+    grievanceWeight: 0.2,
+    highRiskPenalty: 0.6,
+    mediumRiskPenalty: 0.3
+  },
+  g1: {
+    unit: 'governance score',
+    resultPrecision: 1,
+    policyWeight: 0.4,
+    targetWeight: 0.4,
+    oversightWeight: 0.2,
+    policyStatusScores: {
+      approved: 1,
+      inReview: 0.7,
+      draft: 0.4,
+      missing: 0,
+      retired: 0.2
+    } as const,
+    targetStatusScores: {
+      onTrack: 1,
+      lagging: 0.6,
+      offTrack: 0.2,
+      notStarted: 0.1
+    } as const,
+    minPoliciesForFullScore: 5,
+    minTargetsForFullScore: 5
   }
 } as const

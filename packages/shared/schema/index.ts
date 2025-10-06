@@ -14,6 +14,10 @@ export const e1EnergyMixOptions = ['electricity', 'districtHeat', 'steam', 'cool
 export const e1TargetScopeOptions = ['scope1', 'scope2', 'scope3', 'combined'] as const
 export const e1TargetStatusOptions = ['onTrack', 'lagging', 'atRisk'] as const
 export const e1ActionStatusOptions = ['planned', 'inProgress', 'delayed', 'completed'] as const
+export const s3IncidentTypeOptions = ['fatality', 'lostTime', 'recordable', 'nearMiss'] as const
+export const s4SeverityLevelOptions = ['low', 'medium', 'high'] as const
+export const g1PolicyStatusOptions = ['approved', 'inReview', 'draft', 'retired', 'missing'] as const
+export const g1TargetStatusOptions = ['onTrack', 'lagging', 'offTrack', 'notStarted'] as const
 
 const a1FuelConsumptionSchema = z
   .object({
@@ -477,6 +481,113 @@ export const d1InputSchema = z
   })
   .strict()
 
+const s1HeadcountLineSchema = z
+  .object({
+    segment: z.string().max(120).nullable(),
+    headcount: z.number().min(0).nullable(),
+    femalePercent: z.number().min(0).max(100).nullable(),
+    collectiveAgreementCoveragePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const s1InputSchema = z
+  .object({
+    reportingYear: z.number().min(1900).max(2100).nullable(),
+    totalHeadcount: z.number().min(0).nullable(),
+    dataCoveragePercent: z.number().min(0).max(100).nullable(),
+    headcountBreakdown: z.array(s1HeadcountLineSchema).max(20).optional(),
+    workforceNarrative: z.string().max(2000).nullable()
+  })
+  .strict()
+
+const s2DiversityRowSchema = z
+  .object({
+    level: z.string().max(120).nullable(),
+    femalePercent: z.number().min(0).max(100).nullable(),
+    malePercent: z.number().min(0).max(100).nullable(),
+    otherPercent: z.number().min(0).max(100).nullable(),
+    payGapPercent: z.number().min(-100).max(100).nullable(),
+    targetNarrative: z.string().max(500).nullable()
+  })
+  .strict()
+
+export const s2InputSchema = z
+  .object({
+    genderBalance: z.array(s2DiversityRowSchema).max(30).optional(),
+    dataCoveragePercent: z.number().min(0).max(100).nullable(),
+    equalityPolicyInPlace: z.boolean().nullable(),
+    inclusionInitiativesNarrative: z.string().max(2000).nullable()
+  })
+  .strict()
+
+const s3IncidentSchema = z
+  .object({
+    incidentType: z.enum(s3IncidentTypeOptions),
+    count: z.number().min(0).nullable(),
+    ratePerMillionHours: z.number().min(0).nullable(),
+    description: z.string().max(240).nullable(),
+    rootCauseClosed: z.boolean().nullable()
+  })
+  .strict()
+
+export const s3InputSchema = z
+  .object({
+    incidents: z.array(s3IncidentSchema).max(40).optional(),
+    totalHoursWorked: z.number().min(0).nullable(),
+    safetyCertification: z.boolean().nullable(),
+    safetyNarrative: z.string().max(2000).nullable()
+  })
+  .strict()
+
+const s4ProcessSchema = z
+  .object({
+    area: z.string().max(160).nullable(),
+    coveragePercent: z.number().min(0).max(100).nullable(),
+    lastAssessmentDate: z.string().max(120).nullable(),
+    severityLevel: z.enum(s4SeverityLevelOptions).nullable(),
+    remediationPlan: z.string().max(500).nullable()
+  })
+  .strict()
+
+export const s4InputSchema = z
+  .object({
+    processes: z.array(s4ProcessSchema).max(40).optional(),
+    grievanceMechanismInPlace: z.boolean().nullable(),
+    escalationTimeframeDays: z.number().min(0).nullable(),
+    dueDiligenceNarrative: z.string().max(2000).nullable()
+  })
+  .strict()
+
+const g1PolicySchema = z
+  .object({
+    topic: z.string().max(160).nullable(),
+    status: z.enum(g1PolicyStatusOptions).nullable(),
+    owner: z.string().max(160).nullable(),
+    lastReviewed: z.string().max(120).nullable()
+  })
+  .strict()
+
+const g1TargetSchema = z
+  .object({
+    topic: z.string().max(160).nullable(),
+    baselineYear: z.number().min(1990).max(2100).nullable(),
+    targetYear: z.number().min(1990).max(2100).nullable(),
+    targetValue: z.number().nullable(),
+    unit: z.string().max(40).nullable(),
+    status: z.enum(g1TargetStatusOptions).nullable(),
+    narrative: z.string().max(500).nullable()
+  })
+  .strict()
+
+export const g1InputSchema = z
+  .object({
+    policies: z.array(g1PolicySchema).max(40).optional(),
+    targets: z.array(g1TargetSchema).max(40).optional(),
+    boardOversight: z.boolean().nullable(),
+    governanceNarrative: z.string().max(2000).nullable()
+  })
+  .strict()
+
 const e1EnergyMixLineSchema = z
   .object({
     energyType: z.enum(e1EnergyMixOptions),
@@ -622,6 +733,16 @@ export type D2MaterialTopic = z.infer<typeof d2MaterialTopicSchema>
 export type D2Input = z.infer<typeof d2InputSchema>
 
 export type D1Input = z.infer<typeof d1InputSchema>
+export type S1Input = z.infer<typeof s1InputSchema>
+export type S2Input = z.infer<typeof s2InputSchema>
+export type S3Input = z.infer<typeof s3InputSchema>
+export type S4Input = z.infer<typeof s4InputSchema>
+export type G1Input = z.infer<typeof g1InputSchema>
+
+export type S3IncidentType = (typeof s3IncidentTypeOptions)[number]
+export type S4SeverityLevel = (typeof s4SeverityLevelOptions)[number]
+export type G1PolicyStatus = (typeof g1PolicyStatusOptions)[number]
+export type G1TargetStatus = (typeof g1TargetStatusOptions)[number]
 
 export type E1EnergyMixType = (typeof e1EnergyMixOptions)[number]
 export type E1TargetScope = (typeof e1TargetScopeOptions)[number]
@@ -676,6 +797,11 @@ export const esgInputSchema = z
     E3Pollution: e3PollutionInputSchema.optional(),
     E4Biodiversity: e4BiodiversityInputSchema.optional(),
     E5Resources: e5ResourcesInputSchema.optional(),
+    S1: s1InputSchema.optional(),
+    S2: s2InputSchema.optional(),
+    S3: s3InputSchema.optional(),
+    S4: s4InputSchema.optional(),
+    G1: g1InputSchema.optional(),
     D1: d1InputSchema.optional(),
     D2: d2InputSchema.optional()
   })

@@ -42,6 +42,11 @@ import { runE2Water } from '../modules/runE2Water'
 import { runE3Pollution } from '../modules/runE3Pollution'
 import { runE4Biodiversity } from '../modules/runE4Biodiversity'
 import { runE5Resources } from '../modules/runE5Resources'
+import { runS1 } from '../modules/runS1'
+import { runS2 } from '../modules/runS2'
+import { runS3 } from '../modules/runS3'
+import { runS4 } from '../modules/runS4'
+import { runG1 } from '../modules/runG1'
 import { e1TargetsFixture } from './fixtures/e1Targets'
 
 describe('createDefaultResult', () => {
@@ -266,6 +271,133 @@ describe('runA4', () => {
       'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
       'Ingen gyldige kølemiddellinjer kunne beregnes. Kontrollér indtastningerne.'
     ])
+  })
+})
+
+describe('runS1', () => {
+  it('beregner social score ud fra headcount og dækning', () => {
+    const input: ModuleInput = {
+      S1: {
+        reportingYear: 2024,
+        totalHeadcount: 520,
+        dataCoveragePercent: 90,
+        headcountBreakdown: [
+          { segment: 'Danmark', headcount: 200, femalePercent: 48, collectiveAgreementCoveragePercent: 85 },
+          { segment: 'Sverige', headcount: 120, femalePercent: 52, collectiveAgreementCoveragePercent: 80 },
+          { segment: 'Produktion', headcount: 150, femalePercent: 18, collectiveAgreementCoveragePercent: 70 },
+          { segment: 'HQ', headcount: 50, femalePercent: 60, collectiveAgreementCoveragePercent: 90 }
+        ],
+        workforceNarrative: 'Stabil bemanding med fokus på kollektiv repræsentation.'
+      }
+    }
+
+    const result = runS1(input)
+
+    expect(result.value).toBeCloseTo(96.1)
+    expect(result.assumptions).toContain(
+      'Scoren vægter total headcount (35 %), segmentfordeling (35 %), datadækning (20 %) og faglig repræsentation (10 %).'
+    )
+    expect(result.warnings).toContain(
+      'Segmentet "Produktion" har en kønsfordeling på 18% kvinder – markér indsats i S2 for at adressere ubalancer.'
+    )
+  })
+})
+
+describe('runS2', () => {
+  it('beregner ligestillingsscore med højt datagrundlag', () => {
+    const input: ModuleInput = {
+      S2: {
+        equalityPolicyInPlace: true,
+        dataCoveragePercent: 95,
+        genderBalance: [
+          { level: 'Bestyrelse', femalePercent: 48, malePercent: 52, otherPercent: 0, payGapPercent: 2 },
+          { level: 'Ledelse', femalePercent: 55, malePercent: 45, otherPercent: 0, payGapPercent: -1 }
+        ],
+        inclusionInitiativesNarrative: 'Mentorprogram og målrettet pipeline-udvikling.'
+      }
+    }
+
+    const result = runS2(input)
+
+    expect(result.value).toBeCloseTo(88.5)
+    expect(result.warnings).toHaveLength(0)
+    expect(result.trace).toContain('dataCoveragePercent=95')
+  })
+})
+
+describe('runS3', () => {
+  it('giver høj score ved lav hændelsesrate og certificering', () => {
+    const input: ModuleInput = {
+      S3: {
+        totalHoursWorked: 2_000_000,
+        safetyCertification: true,
+        incidents: [
+          { incidentType: 'lostTime', count: 1, ratePerMillionHours: 0.5, rootCauseClosed: true },
+          { incidentType: 'nearMiss', count: 4, description: 'Indrapporteret af værkstedet', rootCauseClosed: true }
+        ],
+        safetyNarrative: 'Fokus på proaktive observationer og lukning af rodårsager.'
+      }
+    }
+
+    const result = runS3(input)
+
+    expect(result.value).toBeCloseTo(68.3, 1)
+    expect(result.trace).toContain('hoursWorked=2000000')
+    expect(result.assumptions).toContain('ISO 45001 eller tilsvarende certificering udløser +10 bonuspoint.')
+  })
+})
+
+describe('runS4', () => {
+  it('kombinerer coverage, risiko og grievance-mekanismer', () => {
+    const input: ModuleInput = {
+      S4: {
+        grievanceMechanismInPlace: true,
+        escalationTimeframeDays: 21,
+        dueDiligenceNarrative:
+          'Leverandør-screening opdateres årligt med fokus på menneskerettigheder og whistleblower-kanaler.',
+        processes: [
+          {
+            area: 'Leverandører',
+            coveragePercent: 80,
+            severityLevel: 'high',
+            remediationPlan: 'Auditprogram og leverandørtræning'
+          },
+          { area: 'Egnet personale', coveragePercent: 60, severityLevel: 'medium' }
+        ]
+      }
+    }
+
+    const result = runS4(input)
+
+    expect(result.value).toBe(70)
+    expect(result.trace).toContain('process[0]=Leverandører|coverage=80|severity=high')
+    expect(result.warnings).toContain('Højrisiko-området "Egnet personale" mangler remediationsplan.')
+  })
+})
+
+describe('runG1', () => {
+  it('aggregerer politikker, targets og bestyrelsestilsyn', () => {
+    const input: ModuleInput = {
+      G1: {
+        boardOversight: true,
+        governanceNarrative:
+          'Bestyrelsen vurderer ESG-risici kvartalsvis og har etableret incitamenter til ledelsen.',
+        policies: [
+          { topic: 'ESG-politik', status: 'approved', owner: 'Legal', lastReviewed: '2024-02' },
+          { topic: 'Whistleblower', status: 'draft' }
+        ],
+        targets: [
+          { topic: 'CSRD readiness', status: 'lagging', baselineYear: 2023, targetYear: 2025 },
+          { topic: 'Bestyrelsesuddannelse', status: 'onTrack', baselineYear: 2022, targetYear: 2024 }
+        ]
+      }
+    }
+
+    const result = runG1(input)
+
+    expect(result.value).toBeCloseTo(44)
+    expect(result.warnings).toContain('Angiv ejer/ansvarlig for politikken "Whistleblower".')
+    expect(result.trace).toContain('policy[0]=ESG-politik|status=approved|owner=Legal')
   })
 })
 
