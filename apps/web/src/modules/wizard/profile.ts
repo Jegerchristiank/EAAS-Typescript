@@ -372,6 +372,14 @@ export function countPositiveAnswers(profile: WizardProfile): number {
   return ALL_PROFILE_KEYS.reduce((count, key) => (profile[key] ? count + 1 : count), 0)
 }
 
+export function countAnsweredQuestions(profile: WizardProfile): number {
+  return ALL_PROFILE_KEYS.reduce((count, key) => (profile[key] !== null ? count + 1 : count), 0)
+}
+
+export function isProfileComplete(profile: WizardProfile): boolean {
+  return countAnsweredQuestions(profile) === ALL_PROFILE_KEYS.length
+}
+
 export function hasAnyAnswer(profile: WizardProfile): boolean {
   return ALL_PROFILE_KEYS.some((key) => profile[key] !== null)
 }

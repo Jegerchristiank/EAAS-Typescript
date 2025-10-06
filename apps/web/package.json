@@ -24,6 +24,7 @@
     "@org/tsconfig": "workspace:*",
     "@playwright/test": "^1.55.1",
     "@testing-library/jest-dom": "^6.4.5",
+    "@testing-library/react": "^16.2.0",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20.11.30",
     "@types/react": "^18.3.5",

@@ -3,39 +3,65 @@
  */
 'use client'
 
+import dynamic from 'next/dynamic'
+import { createElement } from 'react'
+
 import type { ModuleId } from '@org/shared'
-import type { WizardStepComponent } from './StepTemplate'
-import { A1Step } from './A1'
-import { A2Step } from './A2'
-import { A3Step } from './A3'
-import { A4Step } from './A4'
-import { D1Step } from './D1'
-import { B1Step } from './B1'
-import { B2Step } from './B2'
-import { B3Step } from './B3'
-import { B4Step } from './B4'
-import { B5Step } from './B5'
-import { B6Step } from './B6'
-import { B7Step } from './B7'
-import { B8Step } from './B8'
-import { B9Step } from './B9'
-import { B10Step } from './B10'
-import { B11Step } from './B11'
-import { C1Step } from './C1'
-import { C2Step } from './C2'
-import { C3Step } from './C3'
-import { C4Step } from './C4'
-import { C5Step } from './C5'
-import { C6Step } from './C6'
-import { C7Step } from './C7'
-import { C8Step } from './C8'
-import { C9Step } from './C9'
-import { C10Step } from './C10'
-import { C11Step } from './C11'
-import { C12Step } from './C12'
-import { C13Step } from './C13'
-import { C14Step } from './C14'
-import { C15Step } from './C15'
+import type { WizardStepComponent, WizardStepProps } from './StepTemplate'
+import { WizardStepSkeleton } from './WizardStepSkeleton'
+
+const StepLoading = (): JSX.Element => createElement(WizardStepSkeleton)
+
+function createLazyStep<TModule extends Record<string, unknown>, TExport extends keyof TModule>(
+  loader: () => Promise<TModule>,
+  exportName: TExport
+): WizardStepComponent {
+  const LazyComponent = dynamic<WizardStepProps>(
+    async () => {
+      const module = await loader()
+      const Component = module[exportName]
+      if (typeof Component !== 'function') {
+        throw new Error(`Wizard-trin "${String(exportName)}" kunne ikke indlæses`)
+      }
+      return Component as WizardStepComponent
+    },
+    { ssr: false, loading: StepLoading }
+  )
+
+  return (props) => createElement(LazyComponent, props)
+}
+
+const A1Step = createLazyStep(() => import('./A1'), 'A1Step')
+const A2Step = createLazyStep(() => import('./A2'), 'A2Step')
+const A3Step = createLazyStep(() => import('./A3'), 'A3Step')
+const A4Step = createLazyStep(() => import('./A4'), 'A4Step')
+const B1Step = createLazyStep(() => import('./B1'), 'B1Step')
+const B2Step = createLazyStep(() => import('./B2'), 'B2Step')
+const B3Step = createLazyStep(() => import('./B3'), 'B3Step')
+const B4Step = createLazyStep(() => import('./B4'), 'B4Step')
+const B5Step = createLazyStep(() => import('./B5'), 'B5Step')
+const B6Step = createLazyStep(() => import('./B6'), 'B6Step')
+const B7Step = createLazyStep(() => import('./B7'), 'B7Step')
+const B8Step = createLazyStep(() => import('./B8'), 'B8Step')
+const B9Step = createLazyStep(() => import('./B9'), 'B9Step')
+const B10Step = createLazyStep(() => import('./B10'), 'B10Step')
+const B11Step = createLazyStep(() => import('./B11'), 'B11Step')
+const C1Step = createLazyStep(() => import('./C1'), 'C1Step')
+const C2Step = createLazyStep(() => import('./C2'), 'C2Step')
+const C3Step = createLazyStep(() => import('./C3'), 'C3Step')
+const C4Step = createLazyStep(() => import('./C4'), 'C4Step')
+const C5Step = createLazyStep(() => import('./C5'), 'C5Step')
+const C6Step = createLazyStep(() => import('./C6'), 'C6Step')
+const C7Step = createLazyStep(() => import('./C7'), 'C7Step')
+const C8Step = createLazyStep(() => import('./C8'), 'C8Step')
+const C9Step = createLazyStep(() => import('./C9'), 'C9Step')
+const C10Step = createLazyStep(() => import('./C10'), 'C10Step')
+const C11Step = createLazyStep(() => import('./C11'), 'C11Step')
+const C12Step = createLazyStep(() => import('./C12'), 'C12Step')
+const C13Step = createLazyStep(() => import('./C13'), 'C13Step')
+const C14Step = createLazyStep(() => import('./C14'), 'C14Step')
+const C15Step = createLazyStep(() => import('./C15'), 'C15Step')
+const D1Step = createLazyStep(() => import('./D1'), 'D1Step')
 
 export type WizardStep = {
   id: ModuleId
