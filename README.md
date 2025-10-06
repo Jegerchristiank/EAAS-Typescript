@@ -23,6 +23,12 @@ ESG-as-a-Service (ESG reporting platform)
 - Format code with `pnpm run format` (or check via `pnpm run format:check`).
 - CI kører de samme kvalitetskontroller på hver pull request.
 
+## GitHub checks
+
+- Workflowet [`Validate`](.github/workflows/validate.yml) kører parallelt på pull requests og består af fire checks: `lint`, `typecheck`, `test` og `build` (alle køres via `pnpm -w run <task>`).
+- Workflowet [`Publish`](.github/workflows/publish.yml) kører oven på `Validate` og udgiver pakker, når en release tagges.
+- Begge workflows sætter `CI=true` og deaktiverer telemetry, så lokale og GitHub-kørsler stemmer overens.
+
 ## Moduloverblik
 
 - Scope 2-modulerne B1–B11 er fuldt implementeret med beregninger, UI og tests.
