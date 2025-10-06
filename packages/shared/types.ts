@@ -33,6 +33,8 @@ import type {
   C13Input,
   C14Input,
   C15Input,
+  D2Input,
+  D2MaterialTopic,
   D1Input
 } from './schema'
 
@@ -68,7 +70,8 @@ export const moduleIds = [
   'C13',
   'C14',
   'C15',
-  'D1'
+  'D1',
+  'D2'
 ] as const
 
 export type ModuleId = (typeof moduleIds)[number]
@@ -105,6 +108,7 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   C14?: C14Input | null | undefined
   C15?: C15Input | null | undefined
   D1?: D1Input | null | undefined
+  D2?: D2Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
@@ -156,6 +160,8 @@ export type {
   C13Input,
   C14Input,
   C15Input,
+  D2Input,
+  D2MaterialTopic,
   D1Input
 }
 

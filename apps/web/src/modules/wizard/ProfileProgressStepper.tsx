@@ -36,6 +36,7 @@ const sectionScopeMap: Record<string, WizardScope> = {
   'scope-2': 'Scope 2',
   'scope-3-upstream': 'Scope 3',
   'scope-3-downstream': 'Scope 3',
+  'double-materiality': 'Governance',
   governance: 'Governance',
 }
 
