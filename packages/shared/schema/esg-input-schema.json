@@ -1873,6 +1873,338 @@
       },
       "additionalProperties": false
     },
+    "E1Context": {
+      "type": "object",
+      "title": "E1ContextInput",
+      "description": "Overordnede aktivitetsdata til beregning af emissionsintensitet og energimix.",
+      "properties": {
+        "netRevenueDkk": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Nettoomsætning i regnskabsåret (DKK)."
+        },
+        "productionVolume": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årlig produktionsmængde for primære produkter eller services."
+        },
+        "productionUnit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Enhed for produktionsmængden (fx ton, stk., MWh)."
+        },
+        "employeesFte": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Gennemsnitligt antal fuldtidsansatte (FTE) i perioden."
+        },
+        "totalEnergyConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlet energiforbrug i kWh for organisationen (Scope 1+2)."
+        },
+        "energyProductionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Egenproduceret energi i kWh (fx sol, vind, biomasse)."
+        },
+        "renewableEnergyProductionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Andel af egenproduktion som er vedvarende (kWh)."
+        },
+        "energyMixLines": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "Fordeling af energiforbrug efter type til energimix-beregninger.",
+          "items": {
+            "type": "object",
+            "title": "EnergyMixLine",
+            "properties": {
+              "energyType": {
+                "type": "string",
+                "enum": [
+                  "electricity",
+                  "districtHeat",
+                  "steam",
+                  "cooling",
+                  "biogas",
+                  "diesel",
+                  "other"
+                ],
+                "description": "Kategori for energitypen."
+              },
+              "consumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Forbrug i kWh for energitypen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet for energidata i procent."
+              }
+            },
+            "required": [
+              "energyType"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "previousYearScope1Tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Scope 1 emissioner i ton CO2e for foregående år."
+        },
+        "previousYearScope2Tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Scope 2 emissioner i ton CO2e for foregående år."
+        },
+        "previousYearScope3Tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Scope 3 emissioner i ton CO2e for foregående år."
+        }
+      },
+      "additionalProperties": false
+    },
+    "E1Targets": {
+      "type": "object",
+      "title": "E1TargetsInput",
+      "description": "Klimamål, tidslinjer og planlagte handlinger i henhold til ESRS E1.",
+      "properties": {
+        "targets": {
+          "type": "array",
+          "maxItems": 12,
+          "description": "Liste over klimamål og reduktionsplaner.",
+          "items": {
+            "type": "object",
+            "title": "E1TargetLine",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 24,
+                "description": "Valgfrit internt ID for målet."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Navn eller kort titel for målet."
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "scope1",
+                  "scope2",
+                  "scope3",
+                  "combined"
+                ],
+                "description": "Hvilket scope eller samlet mål der dækkes."
+              },
+              "targetYear": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 2000,
+                "maximum": 2100,
+                "description": "Året hvor målet skal være opfyldt."
+              },
+              "targetValueTonnes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Mål for emissioner i ton CO2e i målåret."
+              },
+              "baselineYear": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 1990,
+                "maximum": 2100,
+                "description": "Baseline-år for målet."
+              },
+              "baselineValueTonnes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissioner i baseline-året i ton CO2e."
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Ansvarlig person eller funktion."
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "onTrack",
+                  "lagging",
+                  "atRisk"
+                ],
+                "description": "Selvvurderet status for målopfyldelse."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Kort beskrivelse af mål eller metode."
+              },
+              "milestones": {
+                "type": "array",
+                "maxItems": 6,
+                "description": "Vigtige milepæle frem mod målopfyldelse.",
+                "items": {
+                  "type": "object",
+                  "title": "E1TargetMilestone",
+                  "properties": {
+                    "label": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 160,
+                      "description": "Kort titel for milepælen."
+                    },
+                    "dueYear": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "minimum": 2000,
+                      "maximum": 2100,
+                      "description": "Forventet år for milepælen."
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "scope"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "actions": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Planlagte handlinger og projekter til målopfyldelse.",
+          "items": {
+            "type": "object",
+            "title": "E1ActionLine",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Kort titel for handlingen."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Detaljer om aktiviteten eller investeringen."
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Ansvarlig for handlingen."
+              },
+              "dueQuarter": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^\\d{4}-Q[1-4]$",
+                "description": "Planlagt afslutning (fx 2025-Q2)."
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "planned",
+                  "inProgress",
+                  "delayed",
+                  "completed"
+                ],
+                "description": "Status for handlingen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "D1": {
       "type": "object",
       "title": "D1Input",

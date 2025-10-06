@@ -3,6 +3,7 @@
  */
 import type { B8Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 type SanitisedB8 = Required<{
   [Key in keyof B8Input]: number
@@ -52,7 +53,7 @@ export function runB8(input: ModuleInput): ModuleResult {
   const signedReductionTonnes = Number((-grossReductionTonnes).toFixed(factors.b8.resultPrecision))
   const value = signedReductionTonnes === 0 ? 0 : signedReductionTonnes
 
-  return {
+  return withE1Insights('B8', input, {
     value,
     unit: factors.b8.unit,
     assumptions,
@@ -67,7 +68,7 @@ export function runB8(input: ModuleInput): ModuleResult {
       `grossReductionTonnes=${grossReductionTonnes}`
     ],
     warnings
-  }
+  })
 }
 
 function normaliseInput(raw: B8Input, warnings: string[]): SanitisedB8 {

@@ -35,7 +35,16 @@ import type {
   C15Input,
   D2Input,
   D2MaterialTopic,
-  D1Input
+  D1Input,
+  E1ContextInput,
+  E1TargetsInput,
+  E1TargetLine,
+  E1TargetMilestone,
+  E1ActionLine,
+  E1EnergyMixType,
+  E1TargetScope,
+  E1TargetStatus,
+  E1ActionStatus
 } from './schema'
 
 
@@ -70,6 +79,7 @@ export const moduleIds = [
   'C13',
   'C14',
   'C15',
+  'E1Targets',
   'D1',
   'D2'
 ] as const
@@ -107,11 +117,80 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   C13?: C13Input | null | undefined
   C14?: C14Input | null | undefined
   C15?: C15Input | null | undefined
+  E1Targets?: E1TargetsInput | null | undefined
+  E1Context?: E1ContextInput | null | undefined
   D1?: D1Input | null | undefined
   D2?: D2Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
+
+export type ModuleIntensityBasis = 'netRevenue' | 'production' | 'energy' | 'employees'
+
+export type ModuleIntensity = {
+  basis: ModuleIntensityBasis
+  label: string
+  value: number
+  unit: string
+  denominatorValue: number
+  denominatorUnit: string
+}
+
+export type ModuleTrend = {
+  label: string
+  previousValue: number | null
+  currentValue: number
+  absoluteChange: number | null
+  percentChange: number | null
+  unit: string
+}
+
+export type ModuleTargetProgress = {
+  targetId: string
+  name: string | null
+  scope: E1TargetScope
+  targetYear: number | null
+  targetValueTonnes: number | null
+  currentValueTonnes: number
+  varianceTonnes: number | null
+  progressPercent: number | null
+  status: E1TargetStatus | null
+  owner: string | null
+}
+
+export type ModuleEnergyMixEntry = {
+  energyType: E1EnergyMixType
+  consumptionKwh: number
+  sharePercent: number
+  documentationQualityPercent: number | null
+}
+
+export type ModuleTargetMilestoneSummary = {
+  label: string | null
+  dueYear: number | null
+}
+
+export type ModuleTargetSummary = {
+  id: string
+  name: string
+  scope: E1TargetScope
+  targetYear: number | null
+  targetValueTonnes: number | null
+  baselineYear: number | null
+  baselineValueTonnes: number | null
+  owner: string | null
+  status: E1TargetStatus | null
+  description: string | null
+  milestones: ModuleTargetMilestoneSummary[]
+}
+
+export type ModuleActionItem = {
+  title: string | null
+  description: string | null
+  owner: string | null
+  dueQuarter: string | null
+  status: E1ActionStatus | null
+}
 
 export type ModuleResult = {
   value: number
@@ -119,6 +198,12 @@ export type ModuleResult = {
   assumptions: string[]
   trace: string[]
   warnings: string[]
+  intensities?: ModuleIntensity[]
+  trend?: ModuleTrend | null
+  targetProgress?: ModuleTargetProgress | null
+  energyMix?: ModuleEnergyMixEntry[]
+  targetsOverview?: ModuleTargetSummary[]
+  plannedActions?: ModuleActionItem[]
 }
 
 export type ModuleCalculator = (input: ModuleInput) => ModuleResult
@@ -162,6 +247,15 @@ export type {
   C15Input,
   D2Input,
   D2MaterialTopic,
-  D1Input
+  D1Input,
+  E1ContextInput,
+  E1TargetsInput,
+  E1TargetLine,
+  E1TargetMilestone,
+  E1ActionLine,
+  E1EnergyMixType,
+  E1TargetScope,
+  E1TargetStatus,
+  E1ActionStatus
 }
 
