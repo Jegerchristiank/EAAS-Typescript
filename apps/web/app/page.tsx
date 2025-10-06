@@ -27,7 +27,7 @@ function LandingContent(): JSX.Element {
     if (entries.length === 0) {
       return undefined
     }
-    return entries.reduce((latest, entry) => (entry.updatedAt > latest.updatedAt ? entry : latest), entries[0])
+    return entries.reduce((latest, entry) => (entry.updatedAt > latest.updatedAt ? entry : latest))
   }, [profiles])
 
   const handleCreateProfile = () => {

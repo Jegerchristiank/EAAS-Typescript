@@ -9,11 +9,18 @@ type WizardOverviewProps = {
   currentStep: number
   onSelect: (index: number) => void
   profile: WizardProfile
+  profileComplete: boolean
 }
 
 const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Governance']
 
-export function WizardOverview({ steps, currentStep, onSelect, profile }: WizardOverviewProps): JSX.Element {
+export function WizardOverview({
+  steps,
+  currentStep,
+  onSelect,
+  profile,
+  profileComplete,
+}: WizardOverviewProps): JSX.Element {
   const relevantCount = steps.filter((step) => isModuleRelevant(profile, step.id)).length
 
   const stepsByScope = scopeOrder
@@ -23,7 +30,11 @@ export function WizardOverview({ steps, currentStep, onSelect, profile }: Wizard
   return (
     <nav className="ds-stack" aria-label="ESG-moduler">
       <div className="ds-summary">
-        {relevantCount > 0 ? (
+        {!profileComplete ? (
+          <p className="ds-text-subtle">
+            Afslut virksomhedsprofilen for at låse op for modulnavigation.
+          </p>
+        ) : relevantCount > 0 ? (
           <p className="ds-text-subtle">{relevantCount} moduler markeret som relevante.</p>
         ) : (
           <p className="ds-text-subtle">Ingen moduler markeret som relevante endnu.</p>
@@ -45,6 +56,7 @@ export function WizardOverview({ steps, currentStep, onSelect, profile }: Wizard
               const isActive = index === currentStep
               const isPlanned = step.status === 'planned'
               const isRelevant = isModuleRelevant(profile, step.id)
+              const isDisabled = !profileComplete || !isRelevant
 
               return (
                 <button
@@ -57,13 +69,15 @@ export function WizardOverview({ steps, currentStep, onSelect, profile }: Wizard
                   aria-pressed={isActive}
                   aria-label={`${step.label}${isPlanned ? ' (planlagt)' : ''}`}
                   title={
-                    !isRelevant
-                      ? 'Ikke relevant for virksomheden baseret på virksomhedsprofilen.'
-                      : isPlanned
-                        ? 'Planlagt modul – beregningslogik følger.'
-                        : undefined
+                    !profileComplete
+                      ? 'Afslut virksomhedsprofilen for at aktivere modulet.'
+                      : !isRelevant
+                        ? 'Ikke relevant for virksomheden baseret på virksomhedsprofilen.'
+                        : isPlanned
+                          ? 'Planlagt modul – beregningslogik følger.'
+                          : undefined
                   }
-                  disabled={!isRelevant}
+                  disabled={isDisabled}
                 >
                   <span>{step.label}</span>
                   {isPlanned && <span className="ds-text-subtle">Planlagt</span>}
