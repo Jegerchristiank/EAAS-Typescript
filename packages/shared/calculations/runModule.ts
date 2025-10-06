@@ -46,6 +46,11 @@ import { runE2Water } from './modules/runE2Water'
 import { runE3Pollution } from './modules/runE3Pollution'
 import { runE4Biodiversity } from './modules/runE4Biodiversity'
 import { runE5Resources } from './modules/runE5Resources'
+import { runS1 } from './modules/runS1'
+import { runS2 } from './modules/runS2'
+import { runS3 } from './modules/runS3'
+import { runS4 } from './modules/runS4'
+import { runG1 } from './modules/runG1'
 import { runD1 } from './modules/runD1'
 import { runD2 } from './modules/runD2'
 
@@ -85,6 +90,11 @@ const moduleTitles: Record<ModuleId, string> = {
   E3Pollution: 'E3 – Emissioner til luft, vand og jord',
   E4Biodiversity: 'E4 – Påvirkning af biodiversitet',
   E5Resources: 'E5 – Ressourcer og materialeforbrug',
+  S1: 'S1 – Arbejdsstyrke & headcount',
+  S2: 'S2 – Diversitet og ligestilling',
+  S3: 'S3 – Arbejdsmiljø og hændelser',
+  S4: 'S4 – Due diligence & menneskerettigheder',
+  G1: 'G1 – Governance-politikker & targets',
   D1: 'D1 – Metode & governance',
   D2: 'D2 – Dobbelt væsentlighed & CSRD-gaps'
 }
@@ -125,6 +135,11 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   E3Pollution: runE3Pollution,
   E4Biodiversity: runE4Biodiversity,
   E5Resources: runE5Resources,
+  S1: runS1,
+  S2: runS2,
+  S3: runS3,
+  S4: runS4,
+  G1: runG1,
   D1: runD1,
   D2: runD2
 }
