@@ -294,7 +294,7 @@ export const factors = {
     priorityThreshold: 4,
     attentionThreshold: 3,
     summaryLimit: 3,
-    gapWarningStatuses: ['missing'],
+    gapWarningStatuses: ['missing'] as ReadonlyArray<'aligned' | 'partial' | 'missing'>,
     timelineWarningForPriority: true,
     responsibleWarningForPriority: true
   }

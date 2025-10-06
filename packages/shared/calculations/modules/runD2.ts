@@ -160,7 +160,8 @@ export function runD2(input: ModuleInput): ModuleResult {
       `Prioriteret emne: ${topic.name} (score ${topic.combinedScore.toFixed(1)}) – ${priorityLabel}.`
     )
 
-    if (d2.gapWarningStatuses.includes(topic.csrdGapStatus ?? '')) {
+    const gapStatus = topic.csrdGapStatus ?? null
+    if (gapStatus && d2.gapWarningStatuses.includes(gapStatus)) {
       warnings.push(`CSRD-gap mangler for ${topic.name}. Fastlæg dokumentation og kontroller krav.`)
     }
 
