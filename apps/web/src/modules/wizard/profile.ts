@@ -397,6 +397,7 @@ const moduleDependencies: Partial<Record<ModuleId, WizardProfileKey[]>> = {
   C13: ['hasInvestments'],
   C14: ['hasProductRecycling'],
   C15: ['producesProducts', 'hasInvestments'],
+  E1Targets: ['hasNetZeroTarget'],
   D1: ['hasEsgPolicy', 'doesEsgReporting', 'hasBoardOversight', 'hasNetZeroTarget'],
   D2: ['hasMaterialTopics', 'hasMaterialRisks', 'hasMaterialOpportunities', 'hasCsrdGapAssessment'],
 }

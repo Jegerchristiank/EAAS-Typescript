@@ -61,6 +61,7 @@ const C12Step = createLazyStep(() => import('./C12'), 'C12Step')
 const C13Step = createLazyStep(() => import('./C13'), 'C13Step')
 const C14Step = createLazyStep(() => import('./C14'), 'C14Step')
 const C15Step = createLazyStep(() => import('./C15'), 'C15Step')
+const E1TargetsStep = createLazyStep(() => import('./E1Targets'), 'E1TargetsStep')
 const D1Step = createLazyStep(() => import('./D1'), 'D1Step')
 const D2Step = createLazyStep(() => import('./D2'), 'D2Step')
 
@@ -107,6 +108,13 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C14', label: 'C14 – Behandling af solgte produkter', component: C14Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'ready' },
+  {
+    id: 'E1Targets',
+    label: 'E1 – Klimamål og handlinger',
+    component: E1TargetsStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
   { id: 'D1', label: 'D1 – Metode & governance', component: D1Step, scope: 'Governance', status: 'ready' },
   {
     id: 'D2',

@@ -10,6 +10,7 @@ import {
   type ModuleResult
 } from '../types'
 import { factors } from './factors'
+import { withE1Insights } from './e1Insights'
 import { runA1 } from './modules/runA1'
 import { runA2 } from './modules/runA2'
 import { runA3 } from './modules/runA3'
@@ -40,6 +41,7 @@ import { runC12 } from './modules/runC12'
 import { runC13 } from './modules/runC13'
 import { runC14 } from './modules/runC14'
 import { runC15 } from './modules/runC15'
+import { runE1Targets } from './modules/runE1Targets'
 import { runD1 } from './modules/runD1'
 import { runD2 } from './modules/runD2'
 
@@ -74,6 +76,7 @@ const moduleTitles: Record<ModuleId, string> = {
   C13: 'C13 – Investeringer og finansielle aktiviteter',
   C14: 'C14 – Behandling af solgte produkter',
   C15: 'C15 – Øvrige kategorioplysninger',
+  E1Targets: 'E1 – Klimamål og handlinger',
   D1: 'D1 – Metode & governance',
   D2: 'D2 – Dobbelt væsentlighed & CSRD-gaps'
 }
@@ -109,6 +112,7 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C13: runC13,
   C14: runC14,
   C15: runC15,
+  E1Targets: runE1Targets,
   D1: runD1,
   D2: runD2
 }
@@ -128,7 +132,16 @@ export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): Mod
 
 export function runModule(moduleId: ModuleId, input: ModuleInput): ModuleResult {
   const calculator = moduleCalculators[moduleId]
-  return calculator(input)
+  const baseResult = calculator(input)
+  if (
+    baseResult.intensities != null ||
+    baseResult.trend != null ||
+    baseResult.targetProgress != null ||
+    baseResult.energyMix != null
+  ) {
+    return baseResult
+  }
+  return withE1Insights(moduleId, input, baseResult)
 }
 
 export function aggregateResults(input: ModuleInput): CalculatedModuleResult[] {

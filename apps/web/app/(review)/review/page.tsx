@@ -164,6 +164,60 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
           {result.value} {result.unit}
         </p>
       </header>
+      {result.intensities && result.intensities.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>E1-intensiteter</strong>
+          <ul>
+            {result.intensities.map((intensity, index) => (
+              <li key={`${entry.moduleId}-intensity-${index}`}>
+                {intensity.label}: {intensity.value} {intensity.unit}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {result.trend && (
+        <div className="ds-stack-sm">
+          <strong>Udvikling</strong>
+          <p>
+            {result.trend.label}: {result.trend.previousValue ?? '–'} → {result.trend.currentValue} {result.trend.unit}
+          </p>
+          {result.trend.absoluteChange != null && (
+            <p>
+              Ændring: {result.trend.absoluteChange} {result.trend.unit} ({
+                result.trend.percentChange != null ? `${result.trend.percentChange}%` : 'n/a'
+              })
+            </p>
+          )}
+        </div>
+      )}
+      {result.targetProgress && (
+        <div className="ds-stack-sm">
+          <strong>Målopfølgning</strong>
+          <p>
+            {result.targetProgress.name ?? 'Mål'} ({result.targetProgress.scope}) – {result.targetProgress.status ?? 'ukendt'}
+          </p>
+          <p>
+            Målværdi {result.targetProgress.targetValueTonnes ?? '–'} tCO2e i {result.targetProgress.targetYear ?? 'ukendt'} –
+            afvigelse {result.targetProgress.varianceTonnes ?? 'n/a'} tCO2e
+          </p>
+          {result.targetProgress.progressPercent != null && (
+            <p>Fremskridt: {result.targetProgress.progressPercent}%</p>
+          )}
+        </div>
+      )}
+      {result.energyMix && result.energyMix.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>Energimix</strong>
+          <ul>
+            {result.energyMix.map((entryMix, index) => (
+              <li key={`${entry.moduleId}-energy-${index}`}>
+                {entryMix.energyType}: {entryMix.sharePercent}% ({entryMix.consumptionKwh} kWh)
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="ds-stack-sm">
         <strong>Antagelser</strong>
         <ul>
@@ -178,6 +232,30 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
           <ul>
             {result.warnings.map((warning, index) => (
               <li key={`${entry.moduleId}-warning-${index}`}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {result.targetsOverview && result.targetsOverview.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>E1-mål</strong>
+          <ul>
+            {result.targetsOverview.map((target, index) => (
+              <li key={`${entry.moduleId}-target-${index}`}>
+                {target.name} ({target.scope}) – mål {target.targetYear ?? 'ukendt'}: {target.targetValueTonnes ?? '–'} tCO2e
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {result.plannedActions && result.plannedActions.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>Planlagte handlinger</strong>
+          <ul>
+            {result.plannedActions.map((action, index) => (
+              <li key={`${entry.moduleId}-action-${index}`}>
+                {action.title ?? 'Handling'} – {action.status ?? 'ukendt'} ({action.dueQuarter ?? 'ukendt'})
+              </li>
             ))}
           </ul>
         </div>

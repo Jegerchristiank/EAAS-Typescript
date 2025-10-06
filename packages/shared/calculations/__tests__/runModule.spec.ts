@@ -37,6 +37,8 @@ import { runC15 } from '../modules/runC15'
 import { runA1 } from '../modules/runA1'
 import { runD1 } from '../modules/runD1'
 import { runD2 } from '../modules/runD2'
+import { runE1Targets } from '../modules/runE1Targets'
+import { e1TargetsFixture } from './fixtures/e1Targets'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -1310,6 +1312,58 @@ describe('runB11', () => {
       ])
     )
   })
+
+  it('tilføjer E1-intensiteter, trend og målstatus når kontekst er udfyldt', () => {
+    const input: ModuleInput = {
+      E1Context: {
+        netRevenueDkk: 50_000_000,
+        productionVolume: 10_000,
+        productionUnit: 'stk.',
+        employeesFte: 200,
+        totalEnergyConsumptionKwh: 180_000,
+        energyProductionKwh: 12_000,
+        renewableEnergyProductionKwh: 12_000,
+        energyMixLines: [
+          { energyType: 'electricity', consumptionKwh: 120_000, documentationQualityPercent: 95 },
+          { energyType: 'districtHeat', consumptionKwh: 60_000, documentationQualityPercent: 80 }
+        ],
+        previousYearScope1Tonnes: null,
+        previousYearScope2Tonnes: 35,
+        previousYearScope3Tonnes: null
+      },
+      E1Targets: {
+        targets: [
+          {
+            id: 'scope2-main',
+            name: 'Scope 2 reduktion',
+            scope: 'scope2',
+            targetYear: 2026,
+            targetValueTonnes: 20,
+            baselineYear: 2023,
+            baselineValueTonnes: 40,
+            owner: 'Energiansvarlig',
+            status: 'lagging',
+            description: null
+          }
+        ]
+      },
+      B1: {
+        electricityConsumptionKwh: 80_000,
+        emissionFactorKgPerKwh: 0.233,
+        renewableSharePercent: 20
+      }
+    }
+
+    const result = runB1(input)
+
+    expect(result.intensities?.map((entry) => entry.basis)).toEqual(
+      expect.arrayContaining(['netRevenue', 'production', 'energy'])
+    )
+    expect(result.trend).toMatchObject({ previousValue: 35, unit: result.unit })
+    expect(result.targetProgress).toMatchObject({ scope: 'scope2', owner: 'Energiansvarlig' })
+    expect(result.energyMix).toBeDefined()
+    expect(result.trace).toEqual(expect.arrayContaining([expect.stringContaining('targetProgress.status=')]))
+  })
 })
 
 describe('runC1', () => {
@@ -1357,6 +1411,20 @@ describe('runC1', () => {
       'Feltet remoteWorkSharePercent er begrænset til 100%.',
       'Feltet emissionFactorKgPerKm kan ikke være negativt. 0 anvendes i stedet.'
     ])
+  })
+})
+
+describe('runE1Targets', () => {
+  it('opsummerer mål og planlagte handlinger', () => {
+    const result = runE1Targets(e1TargetsFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.unit).toBe('mål')
+    expect(result.targetsOverview).toBeDefined()
+    expect(result.targetsOverview?.[0]).toMatchObject({ id: 'scope1-1', scope: 'scope1' })
+    expect(result.plannedActions?.length).toBe(2)
+    expect(result.trace).toEqual(expect.arrayContaining(['targets.onTrack=1', 'targets.lagging=1']))
+    expect(result.warnings).toEqual([])
   })
 })
 

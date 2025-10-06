@@ -10,6 +10,10 @@ const d1DataQualityOptions = ['primary', 'secondary', 'proxy'] as const
 export const materialityRiskOptions = ['risk', 'opportunity', 'both'] as const
 export const materialityTimelineOptions = ['shortTerm', 'mediumTerm', 'longTerm', 'ongoing'] as const
 export const materialityGapStatusOptions = ['aligned', 'partial', 'missing'] as const
+export const e1EnergyMixOptions = ['electricity', 'districtHeat', 'steam', 'cooling', 'biogas', 'diesel', 'other'] as const
+export const e1TargetScopeOptions = ['scope1', 'scope2', 'scope3', 'combined'] as const
+export const e1TargetStatusOptions = ['onTrack', 'lagging', 'atRisk'] as const
+export const e1ActionStatusOptions = ['planned', 'inProgress', 'delayed', 'completed'] as const
 
 const a1FuelConsumptionSchema = z
   .object({
@@ -472,6 +476,73 @@ export const d1InputSchema = z
     strategyDescription: z.string().max(2000).nullable()
   })
   .strict()
+
+const e1EnergyMixLineSchema = z
+  .object({
+    energyType: z.enum(e1EnergyMixOptions),
+    consumptionKwh: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+export const e1ContextInputSchema = z
+  .object({
+    netRevenueDkk: z.number().min(0).nullable(),
+    productionVolume: z.number().min(0).nullable(),
+    productionUnit: z.string().max(32).nullable(),
+    employeesFte: z.number().min(0).nullable(),
+    totalEnergyConsumptionKwh: z.number().min(0).nullable(),
+    energyProductionKwh: z.number().min(0).nullable(),
+    renewableEnergyProductionKwh: z.number().min(0).nullable(),
+    energyMixLines: z.array(e1EnergyMixLineSchema).max(10).optional(),
+    previousYearScope1Tonnes: z.number().min(0).nullable(),
+    previousYearScope2Tonnes: z.number().min(0).nullable(),
+    previousYearScope3Tonnes: z.number().min(0).nullable()
+  })
+  .strict()
+
+const e1TargetMilestoneSchema = z
+  .object({
+    label: z.string().max(160).nullable(),
+    dueYear: z.number().min(2000).max(2100).nullable()
+  })
+  .strict()
+
+const e1TargetLineSchema = z
+  .object({
+    id: z.string().max(24).nullable(),
+    name: z.string().max(120).nullable(),
+    scope: z.enum(e1TargetScopeOptions),
+    targetYear: z.number().min(2000).max(2100).nullable(),
+    targetValueTonnes: z.number().min(0).nullable(),
+    baselineYear: z.number().min(1990).max(2100).nullable(),
+    baselineValueTonnes: z.number().min(0).nullable(),
+    owner: z.string().max(120).nullable(),
+    status: z.enum(e1TargetStatusOptions).nullable(),
+    description: z.string().max(500).nullable(),
+    milestones: z.array(e1TargetMilestoneSchema).max(6).optional()
+  })
+  .strict()
+
+const e1ActionLineSchema = z
+  .object({
+    title: z.string().max(120).nullable(),
+    description: z.string().max(500).nullable(),
+    owner: z.string().max(120).nullable(),
+    dueQuarter: z
+      .string()
+      .regex(/^\d{4}-Q[1-4]$/)
+      .nullable(),
+    status: z.enum(e1ActionStatusOptions).nullable()
+  })
+  .strict()
+
+export const e1TargetsInputSchema = z
+  .object({
+    targets: z.array(e1TargetLineSchema).max(12).optional(),
+    actions: z.array(e1ActionLineSchema).max(20).optional()
+  })
+  .strict()
 export type A1Input = z.infer<typeof a1InputSchema>
 export type A2Input = z.infer<typeof a2InputSchema>
 export type A3Input = z.infer<typeof a3InputSchema>
@@ -507,6 +578,16 @@ export type D2Input = z.infer<typeof d2InputSchema>
 
 export type D1Input = z.infer<typeof d1InputSchema>
 
+export type E1EnergyMixType = (typeof e1EnergyMixOptions)[number]
+export type E1TargetScope = (typeof e1TargetScopeOptions)[number]
+export type E1TargetStatus = (typeof e1TargetStatusOptions)[number]
+export type E1ActionStatus = (typeof e1ActionStatusOptions)[number]
+export type E1ContextInput = z.infer<typeof e1ContextInputSchema>
+export type E1TargetMilestone = z.infer<typeof e1TargetMilestoneSchema>
+export type E1TargetLine = z.infer<typeof e1TargetLineSchema>
+export type E1ActionLine = z.infer<typeof e1ActionLineSchema>
+export type E1TargetsInput = z.infer<typeof e1TargetsInputSchema>
+
 
 export const esgInputSchema = z
   .object({
@@ -540,6 +621,8 @@ export const esgInputSchema = z
     C13: c13InputSchema.optional(),
     C14: c14InputSchema.optional(),
     C15: c15InputSchema.optional(),
+    E1Context: e1ContextInputSchema.optional(),
+    E1Targets: e1TargetsInputSchema.optional(),
     D1: d1InputSchema.optional(),
     D2: d2InputSchema.optional()
   })

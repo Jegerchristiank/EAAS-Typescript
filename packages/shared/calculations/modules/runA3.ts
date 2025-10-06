@@ -3,6 +3,7 @@
  */
 import type { A3Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 export const a3ProcessConfigurations = {
   cementClinker: {
@@ -104,13 +105,13 @@ export function runA3(input: ModuleInput): ModuleResult {
   trace.push(`totalEmissionsKg=${totalEmissionsKg}`)
   trace.push(`totalEmissionsTonnes=${totalEmissionsTonnes}`)
 
-  return {
+  return withE1Insights('A3', input, {
     value,
     unit: factors.a3.unit,
     assumptions,
     trace,
     warnings
-  }
+  })
 }
 
 function normaliseEntry(
