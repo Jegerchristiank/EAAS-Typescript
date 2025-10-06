@@ -118,8 +118,10 @@ export function PreWizardQuestionnaire({ profile, onChange, onContinue }: PreWiz
 
     if (currentSectionIndex < wizardProfileSections.length - 1) {
       const nextSection = wizardProfileSections[currentSectionIndex + 1]
-      setOpenSectionId(nextSection.id)
-      scrollToSection(nextSection.id)
+      if (nextSection) {
+        setOpenSectionId(nextSection.id)
+        scrollToSection(nextSection.id)
+      }
       return
     }
 
