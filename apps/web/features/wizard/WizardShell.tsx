@@ -179,9 +179,9 @@ function WizardShellContent(): JSX.Element {
 
   return (
     <section className="ds-page">
-      <div className="ds-shell ds-shell--wizard">
-        <aside className="ds-shell__sidebar ds-stack">
-          <section className="ds-card ds-stack" aria-label="Status for virksomhedsprofil">
+      <div className="ds-shell ds-shell--wizard ds-layout ds-layout--with-sidebar ds-layout--wizard">
+        <aside className="ds-shell__sidebar ds-stack ds-sidebar ds-sidebar--sticky" data-variant="wizard">
+          <section className="ds-card ds-stack ds-sidebar__section" aria-label="Status for virksomhedsprofil">
             <header className="ds-stack-sm">
               <div className="ds-stack-xs">
                 <p className="ds-text-subtle">Trin 0</p>
@@ -239,6 +239,7 @@ function WizardShellContent(): JSX.Element {
           <ProfileSwitcher
             heading="Profiler"
             description="Skift mellem gemte virksomhedsprofiler."
+            className="ds-sidebar__section"
           />
         </aside>
 
