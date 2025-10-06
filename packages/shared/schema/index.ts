@@ -543,6 +543,51 @@ export const e1TargetsInputSchema = z
     actions: z.array(e1ActionLineSchema).max(20).optional()
   })
   .strict()
+
+export const e2WaterInputSchema = z
+  .object({
+    totalWithdrawalM3: z.number().min(0).nullable(),
+    withdrawalInStressRegionsM3: z.number().min(0).nullable(),
+    dischargeM3: z.number().min(0).nullable(),
+    reusePercent: z.number().min(0).max(100).nullable(),
+    dataQualityPercent: z.number().min(0).max(100).nullable(),
+  })
+  .strict()
+
+export const e3PollutionInputSchema = z
+  .object({
+    airEmissionsTonnes: z.number().min(0).nullable(),
+    airEmissionLimitTonnes: z.number().min(0).nullable(),
+    waterDischargesTonnes: z.number().min(0).nullable(),
+    waterDischargeLimitTonnes: z.number().min(0).nullable(),
+    soilEmissionsTonnes: z.number().min(0).nullable(),
+    soilEmissionLimitTonnes: z.number().min(0).nullable(),
+    reportableIncidents: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable(),
+  })
+  .strict()
+
+export const e4BiodiversityInputSchema = z
+  .object({
+    sitesInOrNearProtectedAreas: z.number().min(0).nullable(),
+    protectedAreaHectares: z.number().min(0).nullable(),
+    restorationHectares: z.number().min(0).nullable(),
+    significantIncidents: z.number().min(0).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable(),
+  })
+  .strict()
+
+export const e5ResourcesInputSchema = z
+  .object({
+    primaryMaterialConsumptionTonnes: z.number().min(0).nullable(),
+    secondaryMaterialConsumptionTonnes: z.number().min(0).nullable(),
+    recycledContentPercent: z.number().min(0).max(100).nullable(),
+    renewableMaterialSharePercent: z.number().min(0).max(100).nullable(),
+    criticalMaterialsSharePercent: z.number().min(0).max(100).nullable(),
+    circularityTargetPercent: z.number().min(0).max(100).nullable(),
+    documentationQualityPercent: z.number().min(0).max(100).nullable(),
+  })
+  .strict()
 export type A1Input = z.infer<typeof a1InputSchema>
 export type A2Input = z.infer<typeof a2InputSchema>
 export type A3Input = z.infer<typeof a3InputSchema>
@@ -587,6 +632,10 @@ export type E1TargetMilestone = z.infer<typeof e1TargetMilestoneSchema>
 export type E1TargetLine = z.infer<typeof e1TargetLineSchema>
 export type E1ActionLine = z.infer<typeof e1ActionLineSchema>
 export type E1TargetsInput = z.infer<typeof e1TargetsInputSchema>
+export type E2WaterInput = z.infer<typeof e2WaterInputSchema>
+export type E3PollutionInput = z.infer<typeof e3PollutionInputSchema>
+export type E4BiodiversityInput = z.infer<typeof e4BiodiversityInputSchema>
+export type E5ResourcesInput = z.infer<typeof e5ResourcesInputSchema>
 
 
 export const esgInputSchema = z
@@ -623,6 +672,10 @@ export const esgInputSchema = z
     C15: c15InputSchema.optional(),
     E1Context: e1ContextInputSchema.optional(),
     E1Targets: e1TargetsInputSchema.optional(),
+    E2Water: e2WaterInputSchema.optional(),
+    E3Pollution: e3PollutionInputSchema.optional(),
+    E4Biodiversity: e4BiodiversityInputSchema.optional(),
+    E5Resources: e5ResourcesInputSchema.optional(),
     D1: d1InputSchema.optional(),
     D2: d2InputSchema.optional()
   })

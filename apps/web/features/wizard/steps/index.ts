@@ -62,6 +62,10 @@ const C13Step = createLazyStep(() => import('./C13'), 'C13Step')
 const C14Step = createLazyStep(() => import('./C14'), 'C14Step')
 const C15Step = createLazyStep(() => import('./C15'), 'C15Step')
 const E1TargetsStep = createLazyStep(() => import('./E1Targets'), 'E1TargetsStep')
+const E2WaterStep = createLazyStep(() => import('./E2Water'), 'E2WaterStep')
+const E3PollutionStep = createLazyStep(() => import('./E3Pollution'), 'E3PollutionStep')
+const E4BiodiversityStep = createLazyStep(() => import('./E4Biodiversity'), 'E4BiodiversityStep')
+const E5ResourcesStep = createLazyStep(() => import('./E5Resources'), 'E5ResourcesStep')
 const D1Step = createLazyStep(() => import('./D1'), 'D1Step')
 const D2Step = createLazyStep(() => import('./D2'), 'D2Step')
 
@@ -73,7 +77,7 @@ export type WizardStep = {
   status: WizardStepStatus
 }
 
-export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Governance'
+export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Environment' | 'Governance'
 
 export type WizardStepStatus = 'ready' | 'planned'
 
@@ -113,6 +117,34 @@ export const wizardSteps: WizardStep[] = [
     label: 'E1 – Klimamål og handlinger',
     component: E1TargetsStep,
     scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'E2Water',
+    label: 'E2 – Vandforbrug og vandstress',
+    component: E2WaterStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'E3Pollution',
+    label: 'E3 – Emissioner til luft, vand og jord',
+    component: E3PollutionStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'E4Biodiversity',
+    label: 'E4 – Påvirkning af biodiversitet',
+    component: E4BiodiversityStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'E5Resources',
+    label: 'E5 – Ressourcer og materialeforbrug',
+    component: E5ResourcesStep,
+    scope: 'Environment',
     status: 'ready'
   },
   { id: 'D1', label: 'D1 – Metode & governance', component: D1Step, scope: 'Governance', status: 'ready' },

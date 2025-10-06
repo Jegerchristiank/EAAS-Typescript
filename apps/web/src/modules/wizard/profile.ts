@@ -30,6 +30,10 @@ export type WizardProfileKey =
   | 'providesCustomerServices'
   | 'hasProductRecycling'
   | 'shipsFinishedGoods'
+  | 'usesLargeWaterVolumes'
+  | 'hasIndustrialEmissions'
+  | 'impactsNatureAreas'
+  | 'managesCriticalMaterials'
   | 'hasInvestments'
   | 'ownsSubsidiaries'
   | 'operatesInternationalOffices'
@@ -75,6 +79,10 @@ export const ALL_PROFILE_KEYS: WizardProfileKey[] = [
   'providesCustomerServices',
   'hasProductRecycling',
   'shipsFinishedGoods',
+  'usesLargeWaterVolumes',
+  'hasIndustrialEmissions',
+  'impactsNatureAreas',
+  'managesCriticalMaterials',
   'hasInvestments',
   'ownsSubsidiaries',
   'operatesInternationalOffices',
@@ -291,6 +299,33 @@ export const wizardProfileSections: WizardProfileSection[] = [
     ],
   },
   {
+    id: 'environment',
+    heading: 'Miljø – Vand, forurening og ressourcer',
+    description: 'Vurder om vand, emissioner, biodiversitet og materialeforbrug skal indgå i ESG-arbejdet.',
+    questions: [
+      {
+        id: 'usesLargeWaterVolumes',
+        label: 'Har virksomheden vandintensive processer eller anlæg i vandstressede områder?',
+        helpText: 'Fx fødevareproduktion, kemi, elektronik eller aktiviteter i regioner med høj vandstress.',
+      },
+      {
+        id: 'hasIndustrialEmissions',
+        label: 'Har virksomheden væsentlige udledninger til luft, vand eller jord med myndighedskrav?',
+        helpText: 'Gælder anlæg med miljøtilladelser, renseanlæg eller procesudledninger.',
+      },
+      {
+        id: 'impactsNatureAreas',
+        label: 'Påvirker aktiviteter naturbeskyttede områder eller kræver biodiversitetstiltag?',
+        helpText: 'Fx infrastrukturprojekter, råstofudvinding eller landbrug tæt på Natura 2000-områder.',
+      },
+      {
+        id: 'managesCriticalMaterials',
+        label: 'Anvender virksomheden større mængder kritiske materialer eller metaller?',
+        helpText: 'Fx elektronik, batterier, magneter eller andre materialer fra EU’s liste over kritiske råstoffer.',
+      },
+    ],
+  },
+  {
     id: 'double-materiality',
     heading: 'Dobbelt væsentlighed og CSRD-gap',
     description:
@@ -398,6 +433,10 @@ const moduleDependencies: Partial<Record<ModuleId, WizardProfileKey[]>> = {
   C14: ['hasProductRecycling'],
   C15: ['producesProducts', 'hasInvestments'],
   E1Targets: ['hasNetZeroTarget'],
+  E2Water: ['usesLargeWaterVolumes'],
+  E3Pollution: ['hasIndustrialEmissions'],
+  E4Biodiversity: ['impactsNatureAreas'],
+  E5Resources: ['managesCriticalMaterials', 'purchasesMaterials'],
   D1: ['hasEsgPolicy', 'doesEsgReporting', 'hasBoardOversight', 'hasNetZeroTarget'],
   D2: ['hasMaterialTopics', 'hasMaterialRisks', 'hasMaterialOpportunities', 'hasCsrdGapAssessment'],
 }

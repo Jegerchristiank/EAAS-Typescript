@@ -38,6 +38,10 @@ import { runA1 } from '../modules/runA1'
 import { runD1 } from '../modules/runD1'
 import { runD2 } from '../modules/runD2'
 import { runE1Targets } from '../modules/runE1Targets'
+import { runE2Water } from '../modules/runE2Water'
+import { runE3Pollution } from '../modules/runE3Pollution'
+import { runE4Biodiversity } from '../modules/runE4Biodiversity'
+import { runE5Resources } from '../modules/runE5Resources'
 import { e1TargetsFixture } from './fixtures/e1Targets'
 
 describe('createDefaultResult', () => {
@@ -1955,5 +1959,126 @@ describe('runD1', () => {
     expect(result.value).toBe(100)
     expect(result.warnings).toHaveLength(0)
     expect(result.trace).toContain('strategyScore=1')
+  })
+})
+
+describe('runE2Water', () => {
+  it('beregner vandstressindeks og advarer ved høj andel i stressede områder', () => {
+    const input: ModuleInput = {
+      E2Water: {
+        totalWithdrawalM3: 5_000,
+        withdrawalInStressRegionsM3: 2_500,
+        dischargeM3: 3_000,
+        reusePercent: 10,
+        dataQualityPercent: 80,
+      },
+    }
+
+    const result = runE2Water(input)
+
+    expect(result.value).toBe(60)
+    expect(result.unit).toBe(factors.e2Water.unit)
+    expect(result.trace).toContain('weightedRisk=0.6000')
+    expect(result.warnings).toContain(
+      'Mere end 40 % af vandudtaget (50.0 %) foregår i vandstressede områder – prioriter risikoplaner.',
+    )
+    expect(result.warnings).not.toContain('Ingen dokumenteret genbrug af vand. Overvej recirkulation eller sekundære kilder.')
+  })
+
+  it('returnerer nul og advarsel ved manglende vandforbrug', () => {
+    const result = runE2Water({} as ModuleInput)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toContain('Intet vandforbrug registreret. Indtast forbrug for at beregne vandstress.')
+  })
+})
+
+describe('runE3Pollution', () => {
+  it('reducerer score ved overskridelse og hændelser', () => {
+    const input: ModuleInput = {
+      E3Pollution: {
+        airEmissionsTonnes: 80,
+        airEmissionLimitTonnes: 50,
+        waterDischargesTonnes: 10,
+        waterDischargeLimitTonnes: null,
+        soilEmissionsTonnes: 2,
+        soilEmissionLimitTonnes: 5,
+        reportableIncidents: 2,
+        documentationQualityPercent: 60,
+      },
+    }
+
+    const result = runE3Pollution(input)
+
+    expect(result.value).toBe(32)
+    expect(result.unit).toBe(factors.e3Pollution.unit)
+    expect(result.trace).toContain('totalExceedPercent=60.00')
+    expect(result.warnings).toContain('Luft: Udledningen på 80.00 t overstiger grænsen på 50.00 t med 60.00 %.')
+    expect(result.warnings).toContain('Vand: Ingen gyldig grænse angivet. Standardgrænsen på 20 t anvendes i beregningen.')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet på 60 % er under anbefalingen på 70 %. Opdater emissionstal med mere robuste kilder.',
+    )
+    expect(result.warnings).toContain(
+      'Der er registreret 2 hændelse(r) med rapporteringspligt. Sikr opfølgning og root-cause analyse.',
+    )
+  })
+})
+
+describe('runE4Biodiversity', () => {
+  it('beregner risiko med restaureringsmitigering', () => {
+    const input: ModuleInput = {
+      E4Biodiversity: {
+        sitesInOrNearProtectedAreas: 3,
+        protectedAreaHectares: 40,
+        restorationHectares: 10,
+        significantIncidents: 1,
+        documentationQualityPercent: 65,
+      },
+    }
+
+    const result = runE4Biodiversity(input)
+
+    expect(result.value).toBe(41)
+    expect(result.trace).toContain('restorationRatio=0.2500')
+    expect(result.warnings).toContain(
+      '3 lokalitet(er) ligger i eller tæt på beskyttede områder. Iværksæt biodiversitetsplaner.',
+    )
+    expect(result.warnings).toContain(
+      '1 væsentlig(e) biodiversitetshændelse(r) registreret. Gennemfør årsagsanalyse og forebyggelse.',
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet på 65 % er under anbefalet niveau på 70 %. Suppler feltdata eller tredjepartsverifikation.',
+    )
+  })
+})
+
+describe('runE5Resources', () => {
+  it('opgør ressourceindeks og fremhæver kritiske materialer', () => {
+    const input: ModuleInput = {
+      E5Resources: {
+        primaryMaterialConsumptionTonnes: 800,
+        secondaryMaterialConsumptionTonnes: 300,
+        recycledContentPercent: 35,
+        renewableMaterialSharePercent: 20,
+        criticalMaterialsSharePercent: 45,
+        circularityTargetPercent: 50,
+        documentationQualityPercent: 60,
+      },
+    }
+
+    const result = runE5Resources(input)
+
+    expect(result.value).toBe(63.5)
+    expect(result.trace).toContain('riskIndex=0.6350')
+    expect(result.warnings).toContain(
+      'Høj andel kritiske materialer (>30 %). Overvej substitution eller leverandørdiversificering.',
+    )
+    expect(result.warnings).toContain(
+      'Genanvendt andel er 15.0 procentpoint under målsætningen. Planlæg nye cirkulære initiativer.',
+    )
+    expect(result.warnings).toContain('Ressourceindekset overstiger 55 point – prioriter cirkularitet i handlingsplanen.')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet på 60 % er under anbefalingen på 70 %. Indhent leverandørdata eller tredjepartsattester.',
+    )
   })
 })
