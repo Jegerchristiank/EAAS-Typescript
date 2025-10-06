@@ -36,6 +36,7 @@ import { runC14 } from '../modules/runC14'
 import { runC15 } from '../modules/runC15'
 import { runA1 } from '../modules/runA1'
 import { runD1 } from '../modules/runD1'
+import { runD2 } from '../modules/runD2'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -259,6 +260,71 @@ describe('runA4', () => {
       'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
       'Ingen gyldige kølemiddellinjer kunne beregnes. Kontrollér indtastningerne.'
     ])
+  })
+})
+
+describe('runD2', () => {
+  it('aggregerer scorer og fremhæver prioriterede emner', () => {
+    const input: ModuleInput = {
+      D2: {
+        materialTopics: [
+          {
+            title: 'Klimarisiko i forsyningskæden',
+            description: 'Leverandører i højrisikoområder',
+            riskType: 'risk',
+            impactScore: 5,
+            financialScore: 4,
+            timeline: 'shortTerm',
+            responsible: 'CFO',
+            csrdGapStatus: 'missing'
+          },
+          {
+            title: 'Cirkulære services',
+            description: 'Nye take-back modeller',
+            riskType: 'opportunity',
+            impactScore: 3,
+            financialScore: 2,
+            timeline: 'longTerm',
+            responsible: null,
+            csrdGapStatus: 'partial'
+          },
+          {
+            title: 'Datastyring',
+            description: 'Mangler moden data governance',
+            riskType: 'risk',
+            impactScore: null,
+            financialScore: null,
+            timeline: null,
+            responsible: null,
+            csrdGapStatus: 'missing'
+          }
+        ]
+      }
+    }
+
+    const result = runD2(input)
+
+    expect(result.value).toBeCloseTo(72, 1)
+    expect(result.unit).toBe(factors.d2.unit)
+    expect(result.assumptions.some((entry) => entry.includes('Top prioriterede emner'))).toBe(true)
+    expect(result.trace).toContain('inputTopics=3')
+    expect(result.trace).toContain('validTopics=2')
+    expect(result.warnings.some((warning) => warning.includes('Prioriteret emne: Klimarisiko'))).toBe(true)
+    expect(result.warnings.some((warning) => warning.includes('CSRD-gap mangler for Klimarisiko'))).toBe(true)
+    expect(
+      result.warnings.some((warning) =>
+        warning.includes('"Datastyring" mangler både impact- og finansiel score')
+      )
+    ).toBe(true)
+  })
+
+  it('returnerer 0 ved manglende emner', () => {
+    const result = runD2({ D2: { materialTopics: [] } })
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toContain(
+      'Ingen væsentlige emner registreret. Tilføj materialitetsemner for at beregne prioritet.'
+    )
   })
 })
 

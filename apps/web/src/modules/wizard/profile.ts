@@ -40,6 +40,10 @@ export type WizardProfileKey =
   | 'isIso14001Certified'
   | 'hasNetZeroTarget'
   | 'hasDataInfrastructure'
+  | 'hasMaterialTopics'
+  | 'hasMaterialRisks'
+  | 'hasMaterialOpportunities'
+  | 'hasCsrdGapAssessment'
 
 export type WizardProfile = Record<WizardProfileKey, boolean | null>
 
@@ -81,6 +85,10 @@ export const ALL_PROFILE_KEYS: WizardProfileKey[] = [
   'isIso14001Certified',
   'hasNetZeroTarget',
   'hasDataInfrastructure',
+  'hasMaterialTopics',
+  'hasMaterialRisks',
+  'hasMaterialOpportunities',
+  'hasCsrdGapAssessment'
 ]
 
 export function createInitialWizardProfile(): WizardProfile {
@@ -283,6 +291,38 @@ export const wizardProfileSections: WizardProfileSection[] = [
     ],
   },
   {
+    id: 'double-materiality',
+    heading: 'Dobbelt væsentlighed og CSRD-gap',
+    description:
+      'Kortlæg om virksomheden har identificeret væsentlige emner, risici/muligheder og status på CSRD-gaps.',
+    questions: [
+      {
+        id: 'hasMaterialTopics',
+        label: 'Har virksomheden en dokumenteret liste over væsentlige ESG-emner?',
+        helpText:
+          'Fx resultat af dobbelt væsentlighedsvurdering eller lignende prioriteringsøvelser.',
+      },
+      {
+        id: 'hasMaterialRisks',
+        label: 'Har virksomheden kortlagt de væsentligste risici (impact & finansielle)?',
+        helpText:
+          'Identificerede risici med scorer, sandsynlighed/påvirkning eller kvalitative vurderinger.',
+      },
+      {
+        id: 'hasMaterialOpportunities',
+        label: 'Har virksomheden kortlagt væsentlige muligheder og forretningspotentialer?',
+        helpText:
+          'Innovationsspor eller investeringer relateret til bæredygtighed, der kræver prioritering.',
+      },
+      {
+        id: 'hasCsrdGapAssessment',
+        label: 'Er der gennemført en CSRD-gap analyse med status på efterlevelse?',
+        helpText:
+          'Fx oversigt over krav, status (align/partial/gap) og planlagt opfølgning.',
+      },
+    ],
+  },
+  {
     id: 'governance',
     heading: 'Governance og rapportering',
     description: 'Vurdér modenhed i styring, målsætninger og rapporteringspraksis.',
@@ -358,6 +398,7 @@ const moduleDependencies: Partial<Record<ModuleId, WizardProfileKey[]>> = {
   C14: ['hasProductRecycling'],
   C15: ['producesProducts', 'hasInvestments'],
   D1: ['hasEsgPolicy', 'doesEsgReporting', 'hasBoardOversight', 'hasNetZeroTarget'],
+  D2: ['hasMaterialTopics', 'hasMaterialRisks', 'hasMaterialOpportunities', 'hasCsrdGapAssessment'],
 }
 
 export function isModuleRelevant(profile: WizardProfile, moduleId: ModuleId): boolean {

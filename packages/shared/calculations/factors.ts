@@ -284,5 +284,18 @@ export const factors = {
     resultPrecision: 1,
     partialTextLength: 120,
     detailedTextLength: 240
+  },
+  d2: {
+    unit: 'prioritets-score (0-100)',
+    maxScore: 5,
+    resultPrecision: 1,
+    impactWeight: 0.6,
+    financialWeight: 0.4,
+    priorityThreshold: 4,
+    attentionThreshold: 3,
+    summaryLimit: 3,
+    gapWarningStatuses: ['missing'] as ReadonlyArray<'aligned' | 'partial' | 'missing'>,
+    timelineWarningForPriority: true,
+    responsibleWarningForPriority: true
   }
 } as const

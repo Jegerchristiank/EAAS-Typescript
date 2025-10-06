@@ -41,6 +41,7 @@ import { runC13 } from './modules/runC13'
 import { runC14 } from './modules/runC14'
 import { runC15 } from './modules/runC15'
 import { runD1 } from './modules/runD1'
+import { runD2 } from './modules/runD2'
 
 const moduleTitles: Record<ModuleId, string> = {
   A1: 'A1 – Scope 1 stationære forbrændingskilder',
@@ -73,7 +74,8 @@ const moduleTitles: Record<ModuleId, string> = {
   C13: 'C13 – Investeringer og finansielle aktiviteter',
   C14: 'C14 – Behandling af solgte produkter',
   C15: 'C15 – Øvrige kategorioplysninger',
-  D1: 'D1 – Metode & governance'
+  D1: 'D1 – Metode & governance',
+  D2: 'D2 – Dobbelt væsentlighed & CSRD-gaps'
 }
 
 export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
@@ -107,7 +109,8 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C13: runC13,
   C14: runC14,
   C15: runC15,
-  D1: runD1
+  D1: runD1,
+  D2: runD2
 }
 
 export function createDefaultResult(moduleId: ModuleId, input: ModuleInput): ModuleResult {

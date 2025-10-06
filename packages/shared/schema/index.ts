@@ -7,6 +7,9 @@ import schema from './esg-input-schema.json'
 const d1BoundaryOptions = ['equityShare', 'financialControl', 'operationalControl'] as const
 const d1Scope2MethodOptions = ['locationBased', 'marketBased'] as const
 const d1DataQualityOptions = ['primary', 'secondary', 'proxy'] as const
+export const materialityRiskOptions = ['risk', 'opportunity', 'both'] as const
+export const materialityTimelineOptions = ['shortTerm', 'mediumTerm', 'longTerm', 'ongoing'] as const
+export const materialityGapStatusOptions = ['aligned', 'partial', 'missing'] as const
 
 const a1FuelConsumptionSchema = z
   .object({
@@ -440,6 +443,25 @@ export const c15InputSchema = z
   })
   .strict()
 
+const d2MaterialTopicSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    description: z.string().max(500).nullable(),
+    riskType: z.enum(materialityRiskOptions).nullable(),
+    impactScore: z.number().min(0).max(5).nullable(),
+    financialScore: z.number().min(0).max(5).nullable(),
+    timeline: z.enum(materialityTimelineOptions).nullable(),
+    responsible: z.string().max(120).nullable(),
+    csrdGapStatus: z.enum(materialityGapStatusOptions).nullable()
+  })
+  .strict()
+
+export const d2InputSchema = z
+  .object({
+    materialTopics: z.array(d2MaterialTopicSchema).max(50).optional()
+  })
+  .strict()
+
 export const d1InputSchema = z
   .object({
     organizationalBoundary: z.enum(d1BoundaryOptions).nullable(),
@@ -480,6 +502,8 @@ export type C12Input = z.infer<typeof c12InputSchema>
 export type C13Input = z.infer<typeof c13InputSchema>
 export type C14Input = z.infer<typeof c14InputSchema>
 export type C15Input = z.infer<typeof c15InputSchema>
+export type D2MaterialTopic = z.infer<typeof d2MaterialTopicSchema>
+export type D2Input = z.infer<typeof d2InputSchema>
 
 export type D1Input = z.infer<typeof d1InputSchema>
 
@@ -516,7 +540,8 @@ export const esgInputSchema = z
     C13: c13InputSchema.optional(),
     C14: c14InputSchema.optional(),
     C15: c15InputSchema.optional(),
-    D1: d1InputSchema.optional()
+    D1: d1InputSchema.optional(),
+    D2: d2InputSchema.optional()
   })
   .passthrough()
 
