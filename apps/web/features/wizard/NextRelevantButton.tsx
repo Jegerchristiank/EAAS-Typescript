@@ -4,20 +4,25 @@ import { useMemo } from 'react'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
 import { isModuleRelevant } from '../../src/modules/wizard/profile'
-import { wizardSteps } from './steps'
+import { wizardSteps, type WizardStep } from './steps'
 import { useWizardContext } from './useWizard'
 
-function findNextRelevantIndex(currentIndex: number, profile: Parameters<typeof isModuleRelevant>[0]): number {
+type NextRelevantStep = { index: number; step: WizardStep }
+
+function findNextRelevantStep(
+  currentIndex: number,
+  profile: Parameters<typeof isModuleRelevant>[0],
+): NextRelevantStep | null {
   for (let index = currentIndex + 1; index < wizardSteps.length; index += 1) {
     const candidate = wizardSteps[index]
-    if (candidate.status !== 'ready') {
+    if (!candidate || candidate.status !== 'ready') {
       continue
     }
     if (isModuleRelevant(profile, candidate.id)) {
-      return index
+      return { index, step: candidate }
     }
   }
-  return -1
+  return null
 }
 
 type NextRelevantButtonProps = {
@@ -27,15 +32,11 @@ type NextRelevantButtonProps = {
 export function NextRelevantButton({ className }: NextRelevantButtonProps): JSX.Element | null {
   const { currentStep, goToStep, profile } = useWizardContext()
 
-  const nextRelevant = useMemo(() => {
+  const nextRelevant = useMemo<NextRelevantStep | null>(() => {
     if (currentStep < 0 || currentStep >= wizardSteps.length) {
       return null
     }
-    const nextIndex = findNextRelevantIndex(currentStep, profile)
-    if (nextIndex === -1) {
-      return null
-    }
-    return { index: nextIndex, step: wizardSteps[nextIndex] }
+    return findNextRelevantStep(currentStep, profile)
   }, [currentStep, profile])
 
   if (!nextRelevant) {
