@@ -9,15 +9,27 @@ import { useWizardContext } from './useWizard'
 
 const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Governance']
 
-function formatTimestamp(timestamp: number): string {
+function parseTimestamp(timestamp: number | undefined): Date | null {
+  if (typeof timestamp !== 'number') {
+    return null
+  }
+  const parsed = new Date(timestamp)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function formatTimestamp(date: Date | null): string {
+  if (!date) {
+    return 'Ukendt tidspunkt'
+  }
+
   try {
     return new Intl.DateTimeFormat('da-DK', {
       dateStyle: 'medium',
       timeStyle: 'short',
-    }).format(new Date(timestamp))
+    }).format(date)
   } catch (error) {
     console.warn('Kunne ikke formatere tidspunkt', error)
-    return new Date(timestamp).toLocaleString()
+    return date.toLocaleString()
   }
 }
 
@@ -46,10 +58,12 @@ export function ProfileSwitcher({
         if (b.id === activeProfileId) {
           return 1
         }
-        if (a.updatedAt === b.updatedAt) {
+        const updatedA = parseTimestamp(a.updatedAt)?.getTime() ?? 0
+        const updatedB = parseTimestamp(b.updatedAt)?.getTime() ?? 0
+        if (updatedA === updatedB) {
           return a.name.localeCompare(b.name)
         }
-        return b.updatedAt - a.updatedAt
+        return updatedB - updatedA
       }),
     [activeProfileId, profiles]
   )
@@ -117,7 +131,9 @@ export function ProfileSwitcher({
       <ul className="ds-profile-switcher__list" role="list">
         {sortedProfiles.map((profile) => {
           const scopes = computeScopeCoverage(profile.id)
-          const lastUpdated = formatTimestamp(profile.updatedAt)
+          const lastUpdatedDate = parseTimestamp(profile.updatedAt)
+          const lastUpdated = formatTimestamp(lastUpdatedDate)
+          const isoUpdatedAt = lastUpdatedDate?.toISOString()
           const isActive = profile.id === activeProfileId
 
           return (
@@ -129,15 +145,27 @@ export function ProfileSwitcher({
               <div className="ds-stack-sm">
                 <div className="ds-profile-card__heading">
                   <h3 className="ds-heading-sm">{profile.name}</h3>
-                  {isActive && <span className="ds-badge" data-active="true">Aktiv</span>}
+                  {isActive && (
+                    <span className="ds-status-badge" data-status="active">
+                      Aktiv
+                    </span>
+                  )}
                 </div>
-                <p className="ds-text-subtle">Senest opdateret {lastUpdated}</p>
+                <div className="ds-profile-card__meta">
+                  <time
+                    className="ds-status-badge"
+                    data-status="timestamp"
+                    dateTime={isoUpdatedAt ?? undefined}
+                  >
+                    Sidst opdateret {lastUpdated}
+                  </time>
+                </div>
                 <div className="ds-cluster">
                   {scopes.map((entry) => (
                     <span
                       key={`${profile.id}-${entry.scope}`}
-                      className="ds-badge"
-                      data-active={entry.isActive ? 'true' : undefined}
+                      className="ds-status-badge"
+                      data-status={entry.isActive ? 'active' : 'inactive'}
                     >
                       {entry.scope}
                     </span>

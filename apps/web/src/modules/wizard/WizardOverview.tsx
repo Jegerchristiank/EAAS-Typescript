@@ -111,9 +111,9 @@ export function WizardOverview({
       </section>
 
       {notRelevantGroups.length > 0 && (
-        <details className="ds-panel ds-collapse" aria-label="Ikke relevante moduler">
-          <summary className="ds-collapse__summary">Ikke relevante</summary>
-          <div className="ds-stack-sm">
+        <details className="ds-foldout" aria-label="Ikke relevante moduler">
+          <summary className="ds-foldout__summary">Ikke relevante</summary>
+          <div className="ds-foldout__content ds-stack-sm">
             {notRelevantGroups.map((group) => (
               <section key={group.scope} className="ds-stack-xs">
                 <p className="ds-text-subtle">{group.scope}</p>
@@ -142,7 +142,7 @@ export function WizardOverview({
                 <span className="ds-pill" data-planned="true">
                   {step.label}
                 </span>
-                <span className="ds-badge" data-variant="planned">
+                <span className="ds-status-badge" data-status="planned">
                   Planlagt
                 </span>
               </li>
