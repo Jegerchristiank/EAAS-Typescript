@@ -31,7 +31,7 @@ type PreWizardQuestionnaireProps = {
 
 type SectionRefs = MutableRefObject<Record<string, HTMLDetailsElement | null>>
 
-const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Governance']
+const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Governance']
 
 export function PreWizardQuestionnaire({ profile, onChange, onContinue }: PreWizardQuestionnaireProps): JSX.Element {
   const totalQuestions = ALL_PROFILE_KEYS.length

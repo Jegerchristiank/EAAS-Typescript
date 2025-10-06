@@ -14,7 +14,7 @@ type WizardOverviewProps = {
   profileComplete: boolean
 }
 
-const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Governance']
+const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Governance']
 
 type StepGroup = {
   scope: WizardScope

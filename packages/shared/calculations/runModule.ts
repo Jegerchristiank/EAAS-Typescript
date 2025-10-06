@@ -42,6 +42,10 @@ import { runC13 } from './modules/runC13'
 import { runC14 } from './modules/runC14'
 import { runC15 } from './modules/runC15'
 import { runE1Targets } from './modules/runE1Targets'
+import { runE2Water } from './modules/runE2Water'
+import { runE3Pollution } from './modules/runE3Pollution'
+import { runE4Biodiversity } from './modules/runE4Biodiversity'
+import { runE5Resources } from './modules/runE5Resources'
 import { runD1 } from './modules/runD1'
 import { runD2 } from './modules/runD2'
 
@@ -77,6 +81,10 @@ const moduleTitles: Record<ModuleId, string> = {
   C14: 'C14 – Behandling af solgte produkter',
   C15: 'C15 – Øvrige kategorioplysninger',
   E1Targets: 'E1 – Klimamål og handlinger',
+  E2Water: 'E2 – Vandforbrug og vandstress',
+  E3Pollution: 'E3 – Emissioner til luft, vand og jord',
+  E4Biodiversity: 'E4 – Påvirkning af biodiversitet',
+  E5Resources: 'E5 – Ressourcer og materialeforbrug',
   D1: 'D1 – Metode & governance',
   D2: 'D2 – Dobbelt væsentlighed & CSRD-gaps'
 }
@@ -113,6 +121,10 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C14: runC14,
   C15: runC15,
   E1Targets: runE1Targets,
+  E2Water: runE2Water,
+  E3Pollution: runE3Pollution,
+  E4Biodiversity: runE4Biodiversity,
+  E5Resources: runE5Resources,
   D1: runD1,
   D2: runD2
 }
