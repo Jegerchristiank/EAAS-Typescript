@@ -13,11 +13,20 @@ import {
   hasAnyAnswer,
   isModuleRelevant,
 } from '../../src/modules/wizard/profile'
+import { ProfileSwitcher } from './ProfileSwitcher'
 import { wizardSteps } from './steps'
-import { useWizard } from './useWizard'
+import { WizardProvider, useWizardContext } from './useWizard'
 
 export function WizardShell(): JSX.Element {
-  const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizard()
+  return (
+    <WizardProvider>
+      <WizardShellContent />
+    </WizardProvider>
+  )
+}
+
+function WizardShellContent(): JSX.Element {
+  const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizardContext()
   const [isProfileOpen, setIsProfileOpen] = useState(() => !hasAnyAnswer(profile))
   const StepComponent = wizardSteps[currentStep]?.component
   const firstRelevantStepIndex = useMemo(
@@ -54,63 +63,71 @@ export function WizardShell(): JSX.Element {
   }
 
   return (
-    <section className="ds-page ds-stack">
-      <header className="ds-stack">
-        <div className="ds-question-card__header">
-          <div className="ds-stack-sm">
-            <p className="ds-text-subtle">Version 4 · Opdateret wizard-oplevelse</p>
-            <h1 className="ds-heading-lg">ESG-beregninger</h1>
-            <p className="ds-text-muted">
-              Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og hvert
-              modul viser relevante hjælpetekster og validering.
-            </p>
-          </div>
-          <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
-            Rediger profil
-          </PrimaryButton>
+    <section className="ds-page">
+      <div className="ds-shell">
+        <aside className="ds-shell__sidebar">
+          <ProfileSwitcher heading="Profiler" description="Skift mellem gemte virksomhedsprofiler." />
+        </aside>
+
+        <div className="ds-shell__main ds-stack">
+          <header className="ds-stack">
+            <div className="ds-question-card__header">
+              <div className="ds-stack-sm">
+                <p className="ds-text-subtle">Version 4 · Opdateret wizard-oplevelse</p>
+                <h1 className="ds-heading-lg">ESG-beregninger</h1>
+                <p className="ds-text-muted">
+                  Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og
+                  hvert modul viser relevante hjælpetekster og validering.
+                </p>
+              </div>
+              <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
+                Rediger profil
+              </PrimaryButton>
+            </div>
+          </header>
+
+          {isProfileOpen ? (
+            <PreWizardQuestionnaire
+              profile={profile}
+              onChange={updateProfile}
+              onContinue={handleCompleteProfile}
+            />
+          ) : (
+            <>
+              <WizardOverview
+                steps={wizardSteps}
+                currentStep={currentStep}
+                onSelect={goToStep}
+                profile={profile}
+              />
+
+              <div>
+                {StepComponent ? (
+                  <StepComponent state={state} onChange={updateField} />
+                ) : (
+                  <p className="ds-text-muted">Ingen trin fundet.</p>
+                )}
+              </div>
+
+              <footer className="ds-toolbar">
+                <PrimaryButton
+                  onClick={() => goToStep(Math.max(0, currentStep - 1))}
+                  disabled={currentStep === 0}
+                  variant="ghost"
+                >
+                  Forrige trin
+                </PrimaryButton>
+                <PrimaryButton
+                  onClick={() => goToStep(Math.min(wizardSteps.length - 1, currentStep + 1))}
+                  disabled={currentStep === wizardSteps.length - 1}
+                >
+                  Næste trin
+                </PrimaryButton>
+              </footer>
+            </>
+          )}
         </div>
-      </header>
-
-      {isProfileOpen ? (
-        <PreWizardQuestionnaire
-          profile={profile}
-          onChange={updateProfile}
-          onContinue={handleCompleteProfile}
-        />
-      ) : (
-        <>
-          <WizardOverview
-            steps={wizardSteps}
-            currentStep={currentStep}
-            onSelect={goToStep}
-            profile={profile}
-          />
-
-          <div>
-            {StepComponent ? (
-              <StepComponent state={state} onChange={updateField} />
-            ) : (
-              <p className="ds-text-muted">Ingen trin fundet.</p>
-            )}
-          </div>
-
-          <footer className="ds-toolbar">
-            <PrimaryButton
-              onClick={() => goToStep(Math.max(0, currentStep - 1))}
-              disabled={currentStep === 0}
-              variant="ghost"
-            >
-              Forrige trin
-            </PrimaryButton>
-            <PrimaryButton
-              onClick={() => goToStep(Math.min(wizardSteps.length - 1, currentStep + 1))}
-              disabled={currentStep === wizardSteps.length - 1}
-            >
-              Næste trin
-            </PrimaryButton>
-          </footer>
-        </>
-      )}
+      </div>
     </section>
   )
 }
