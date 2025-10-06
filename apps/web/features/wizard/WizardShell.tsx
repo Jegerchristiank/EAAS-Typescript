@@ -3,15 +3,16 @@
  */
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
+import { ProfileProgressStepper } from '../../src/modules/wizard/ProfileProgressStepper'
 import { PreWizardQuestionnaire } from '../../src/modules/wizard/PreWizardQuestionnaire'
 import { WizardOverview } from '../../src/modules/wizard/WizardOverview'
 import {
   findFirstRelevantStepIndex,
-  hasAnyAnswer,
   isModuleRelevant,
+  isProfileComplete,
 } from '../../src/modules/wizard/profile'
 import { ProfileSwitcher } from './ProfileSwitcher'
 import { wizardSteps } from './steps'
@@ -27,15 +28,16 @@ export function WizardShell(): JSX.Element {
 
 function WizardShellContent(): JSX.Element {
   const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizardContext()
-  const [isProfileOpen, setIsProfileOpen] = useState(() => !hasAnyAnswer(profile))
+  const [isProfileOpen, setIsProfileOpen] = useState(() => !isProfileComplete(profile))
   const StepComponent = wizardSteps[currentStep]?.component
   const firstRelevantStepIndex = useMemo(
     () => findFirstRelevantStepIndex(wizardSteps, profile),
     [profile]
   )
+  const profileComplete = useMemo(() => isProfileComplete(profile), [profile])
 
   useEffect(() => {
-    if (!hasAnyAnswer(profile)) {
+    if (!isProfileComplete(profile)) {
       setIsProfileOpen(true)
     }
   }, [profile])
@@ -62,6 +64,19 @@ function WizardShellContent(): JSX.Element {
     goToStep(firstRelevantStepIndex)
   }
 
+  const handleSelectStep = useCallback(
+    (index: number) => {
+      if (!profileComplete) {
+        setIsProfileOpen(true)
+        return
+      }
+      goToStep(index)
+    },
+    [goToStep, profileComplete]
+  )
+
+  const activeStepperStep = isProfileOpen ? 'profile' : wizardSteps[currentStep]?.scope ?? 'profile'
+
   return (
     <section className="ds-page">
       <div className="ds-shell">
@@ -84,6 +99,7 @@ function WizardShellContent(): JSX.Element {
                 Rediger profil
               </PrimaryButton>
             </div>
+            <ProfileProgressStepper profile={profile} activeStep={activeStepperStep} />
           </header>
 
           {isProfileOpen ? (
@@ -97,8 +113,9 @@ function WizardShellContent(): JSX.Element {
               <WizardOverview
                 steps={wizardSteps}
                 currentStep={currentStep}
-                onSelect={goToStep}
+                onSelect={handleSelectStep}
                 profile={profile}
+                profileComplete={profileComplete}
               />
 
               <div>
