@@ -14,7 +14,7 @@ import type { WizardScope } from '../../../features/wizard/steps'
 
 type StepStatus = 'not-started' | 'in-progress' | 'complete'
 
-type StepIdentifier = 'profile' | WizardScope
+export type StepIdentifier = 'profile' | WizardScope
 
 type StepData = {
   id: StepIdentifier
@@ -28,6 +28,7 @@ type StepData = {
 type ProfileProgressStepperProps = {
   profile: WizardProfile
   activeStep?: StepIdentifier
+  onSelectStep?: (step: StepIdentifier) => void
 }
 
 const sectionScopeMap: Record<string, WizardScope> = {
@@ -59,6 +60,7 @@ function resolveStatus(answered: number, total: number): StepStatus {
 export function ProfileProgressStepper({
   profile,
   activeStep = 'profile',
+  onSelectStep,
 }: ProfileProgressStepperProps): JSX.Element {
   const steps = useMemo<StepData[]>(() => {
     const scopeBuckets = orderedScopes.map<StepData>((scope) => {
@@ -102,26 +104,39 @@ export function ProfileProgressStepper({
 
   return (
     <ol className="ds-stepper" role="list" aria-label="Fremdrift for ESG-profilscope">
-      {steps.map((step) => (
-        <li
-          key={step.id}
-          className="ds-stepper__step"
-          data-status={step.status}
-          data-active={step.id === activeStep ? 'true' : undefined}
-        >
-          <div className="ds-stepper__header">
-            <span className="ds-stepper__label">{step.label}</span>
-            <span className="ds-stepper__status">{statusLabels[step.status]}</span>
-          </div>
-          <p className="ds-stepper__meta">
-            {step.id === 'profile'
-              ? `${step.positives} relevante valg`
-              : `${step.positives} relevante aktiviteter`}
-            <span aria-hidden="true"> · </span>
-            {step.answered}/{step.total} besvaret
-          </p>
-        </li>
-      ))}
+      {steps.map((step) => {
+        const handleClick = () => {
+          onSelectStep?.(step.id)
+        }
+
+        return (
+          <li
+            key={step.id}
+            className="ds-stepper__step"
+            data-status={step.status}
+            data-active={step.id === activeStep ? 'true' : undefined}
+          >
+            <button
+              type="button"
+              className="ds-stepper__trigger"
+              onClick={handleClick}
+              aria-current={step.id === activeStep ? 'step' : undefined}
+            >
+              <div className="ds-stepper__header">
+                <span className="ds-stepper__label">{step.label}</span>
+                <span className="ds-stepper__status">{statusLabels[step.status]}</span>
+              </div>
+              <p className="ds-stepper__meta">
+                {step.id === 'profile'
+                  ? `${step.positives} relevante valg`
+                  : `${step.positives} relevante aktiviteter`}
+                <span aria-hidden="true"> · </span>
+                {step.answered}/{step.total} besvaret
+              </p>
+            </button>
+          </li>
+        )
+      })}
     </ol>
   )
 }
