@@ -16,7 +16,7 @@ function createLazyStep<TModule extends Record<string, unknown>, TExport extends
   loader: () => Promise<TModule>,
   exportName: TExport
 ): WizardStepComponent {
-  return dynamic<WizardStepProps>(
+  const LazyComponent = dynamic<WizardStepProps>(
     async () => {
       const module = await loader()
       const Component = module[exportName]
@@ -27,6 +27,8 @@ function createLazyStep<TModule extends Record<string, unknown>, TExport extends
     },
     { ssr: false, loading: StepLoading }
   )
+
+  return (props) => createElement(LazyComponent, props)
 }
 
 const A1Step = createLazyStep(() => import('./A1'), 'A1Step')
