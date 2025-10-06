@@ -66,6 +66,11 @@ const E2WaterStep = createLazyStep(() => import('./E2Water'), 'E2WaterStep')
 const E3PollutionStep = createLazyStep(() => import('./E3Pollution'), 'E3PollutionStep')
 const E4BiodiversityStep = createLazyStep(() => import('./E4Biodiversity'), 'E4BiodiversityStep')
 const E5ResourcesStep = createLazyStep(() => import('./E5Resources'), 'E5ResourcesStep')
+const S1Step = createLazyStep(() => import('./S1'), 'S1Step')
+const S2Step = createLazyStep(() => import('./S2'), 'S2Step')
+const S3Step = createLazyStep(() => import('./S3'), 'S3Step')
+const S4Step = createLazyStep(() => import('./S4'), 'S4Step')
+const G1Step = createLazyStep(() => import('./G1'), 'G1Step')
 const D1Step = createLazyStep(() => import('./D1'), 'D1Step')
 const D2Step = createLazyStep(() => import('./D2'), 'D2Step')
 
@@ -77,7 +82,7 @@ export type WizardStep = {
   status: WizardStepStatus
 }
 
-export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Environment' | 'Governance'
+export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Environment' | 'Social' | 'Governance'
 
 export type WizardStepStatus = 'ready' | 'planned'
 
@@ -145,6 +150,23 @@ export const wizardSteps: WizardStep[] = [
     label: 'E5 – Ressourcer og materialeforbrug',
     component: E5ResourcesStep,
     scope: 'Environment',
+    status: 'ready'
+  },
+  { id: 'S1', label: 'S1 – Arbejdsstyrke & headcount', component: S1Step, scope: 'Social', status: 'ready' },
+  { id: 'S2', label: 'S2 – Diversitet og ligestilling', component: S2Step, scope: 'Social', status: 'ready' },
+  { id: 'S3', label: 'S3 – Arbejdsmiljø og hændelser', component: S3Step, scope: 'Social', status: 'ready' },
+  {
+    id: 'S4',
+    label: 'S4 – Due diligence & menneskerettigheder',
+    component: S4Step,
+    scope: 'Social',
+    status: 'ready'
+  },
+  {
+    id: 'G1',
+    label: 'G1 – Governance-politikker & targets',
+    component: G1Step,
+    scope: 'Governance',
     status: 'ready'
   },
   { id: 'D1', label: 'D1 – Metode & governance', component: D1Step, scope: 'Governance', status: 'ready' },

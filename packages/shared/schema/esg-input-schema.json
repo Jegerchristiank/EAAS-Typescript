@@ -2205,6 +2205,360 @@
       },
       "additionalProperties": false
     },
+    "S1": {
+      "type": "object",
+      "title": "S1Input",
+      "description": "Arbejdskraft og headcount",
+      "properties": {
+        "reportingYear": {
+          "type": ["number", "null"],
+          "minimum": 1900,
+          "maximum": 2100,
+          "description": "Rapporteringsår for headcount-data."
+        },
+        "totalHeadcount": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Samlet antal medarbejdere (headcount)."
+        },
+        "dataCoveragePercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Hvor stor en andel af arbejdsstyrken data dækker."
+        },
+        "headcountBreakdown": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Segmenteret headcount (fx lande, funktioner).",
+          "items": {
+            "type": "object",
+            "title": "S1HeadcountLine",
+            "properties": {
+              "segment": {
+                "type": ["string", "null"],
+                "maxLength": 120,
+                "description": "Navn på segmentet."
+              },
+              "headcount": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "description": "Headcount i segmentet."
+              },
+              "femalePercent": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Andel kvinder i procent."
+              },
+              "collectiveAgreementCoveragePercent": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dækning af kollektive aftaler eller medarbejderrepræsentation."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "workforceNarrative": {
+          "type": ["string", "null"],
+          "maxLength": 2000,
+          "description": "Narrativ uddybning af headcount-udviklingen."
+        }
+      },
+      "additionalProperties": false
+    },
+    "S2": {
+      "type": "object",
+      "title": "S2Input",
+      "description": "Diversitet, ligestilling og inklusion",
+      "properties": {
+        "genderBalance": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "Kønsfordeling for centrale niveauer.",
+          "items": {
+            "type": "object",
+            "title": "S2DiversityRow",
+            "properties": {
+              "level": {
+                "type": ["string", "null"],
+                "maxLength": 120,
+                "description": "Navn på niveau/gruppe (fx bestyrelse)."
+              },
+              "femalePercent": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Andel kvinder i procent."
+              },
+              "malePercent": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Andel mænd i procent."
+              },
+              "otherPercent": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Andel øvrige/ikke-binære i procent."
+              },
+              "payGapPercent": {
+                "type": ["number", "null"],
+                "minimum": -100,
+                "maximum": 100,
+                "description": "Løngab i procent (kvinder vs. mænd)."
+              },
+              "targetNarrative": {
+                "type": ["string", "null"],
+                "maxLength": 500,
+                "description": "Noter om targets/indsatser for niveauet."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "dataCoveragePercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af arbejdsstyrken med tilgængelige diversitetsdata."
+        },
+        "equalityPolicyInPlace": {
+          "type": ["boolean", "null"],
+          "description": "Angiver om virksomheden har en formaliseret ligestillingspolitik."
+        },
+        "inclusionInitiativesNarrative": {
+          "type": ["string", "null"],
+          "maxLength": 2000,
+          "description": "Narrativ beskrivelse af igangværende initiativer."
+        }
+      },
+      "additionalProperties": false
+    },
+    "S3": {
+      "type": "object",
+      "title": "S3Input",
+      "description": "Arbejdsmiljø og hændelser",
+      "properties": {
+        "incidents": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Registrerede arbejdsmiljøhændelser.",
+          "items": {
+            "type": "object",
+            "title": "S3Incident",
+            "properties": {
+              "incidentType": {
+                "type": "string",
+                "enum": ["fatality", "lostTime", "recordable", "nearMiss"],
+                "description": "Type af hændelse."
+              },
+              "count": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "description": "Antal hændelser af typen."
+              },
+              "ratePerMillionHours": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "description": "Rate pr. million arbejdstimer."
+              },
+              "description": {
+                "type": ["string", "null"],
+                "maxLength": 240,
+                "description": "Kort beskrivelse eller lokation."
+              },
+              "rootCauseClosed": {
+                "type": ["boolean", "null"],
+                "description": "Angiver om rodårsagsanalyser er afsluttet."
+              }
+            },
+            "required": ["incidentType"],
+            "additionalProperties": false
+          }
+        },
+        "totalHoursWorked": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Arbejdstimer i rapporteringsåret."
+        },
+        "safetyCertification": {
+          "type": ["boolean", "null"],
+          "description": "Om virksomheden har arbejdsmiljøcertificering (fx ISO 45001)."
+        },
+        "safetyNarrative": {
+          "type": ["string", "null"],
+          "maxLength": 2000,
+          "description": "Narrativ opfølgning på arbejdsmiljøindsatser."
+        }
+      },
+      "additionalProperties": false
+    },
+    "S4": {
+      "type": "object",
+      "title": "S4Input",
+      "description": "Due diligence og menneskerettigheder",
+      "properties": {
+        "processes": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Kortlægning af due diligence-processer.",
+          "items": {
+            "type": "object",
+            "title": "S4Process",
+            "properties": {
+              "area": {
+                "type": ["string", "null"],
+                "maxLength": 160,
+                "description": "Område eller risikotype (fx leverandører)."
+              },
+              "coveragePercent": {
+                "type": ["number", "null"],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dækningsgrad i procent."
+              },
+              "lastAssessmentDate": {
+                "type": ["string", "null"],
+                "maxLength": 120,
+                "description": "Dato/år for seneste vurdering."
+              },
+              "severityLevel": {
+                "type": ["string", "null"],
+                "enum": ["low", "medium", "high", null],
+                "description": "Vurderet risikoniveau."
+              },
+              "remediationPlan": {
+                "type": ["string", "null"],
+                "maxLength": 500,
+                "description": "Opsummering af plan for remediation."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "grievanceMechanismInPlace": {
+          "type": ["boolean", "null"],
+          "description": "Om virksomheden har en klage-/henvendelsesmekanisme."
+        },
+        "escalationTimeframeDays": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Typisk behandlingstid i dage."
+        },
+        "dueDiligenceNarrative": {
+          "type": ["string", "null"],
+          "maxLength": 2000,
+          "description": "Narrativ opsummering af due diligence-arbejdet."
+        }
+      },
+      "additionalProperties": false
+    },
+    "G1": {
+      "type": "object",
+      "title": "G1Input",
+      "description": "Governance-politikker og targets",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Politikker relateret til ESG/CSRD.",
+          "items": {
+            "type": "object",
+            "title": "G1Policy",
+            "properties": {
+              "topic": {
+                "type": ["string", "null"],
+                "maxLength": 160,
+                "description": "Navn på politikken."
+              },
+              "status": {
+                "type": ["string", "null"],
+                "enum": ["approved", "inReview", "draft", "retired", "missing", null],
+                "description": "Status for politikken."
+              },
+              "owner": {
+                "type": ["string", "null"],
+                "maxLength": 160,
+                "description": "Ansvarlig rolle eller afdeling."
+              },
+              "lastReviewed": {
+                "type": ["string", "null"],
+                "maxLength": 120,
+                "description": "Seneste gennemgangsdato."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Governance- og compliance-targets.",
+          "items": {
+            "type": "object",
+            "title": "G1Target",
+            "properties": {
+              "topic": {
+                "type": ["string", "null"],
+                "maxLength": 160,
+                "description": "Navn på target."
+              },
+              "baselineYear": {
+                "type": ["number", "null"],
+                "minimum": 1990,
+                "maximum": 2100,
+                "description": "Baselineår for målet."
+              },
+              "targetYear": {
+                "type": ["number", "null"],
+                "minimum": 1990,
+                "maximum": 2100,
+                "description": "Målår for opfyldelse."
+              },
+              "targetValue": {
+                "type": ["number", "null"],
+                "description": "Talværdi for målet."
+              },
+              "unit": {
+                "type": ["string", "null"],
+                "maxLength": 40,
+                "description": "Enhed for target (fx %)."
+              },
+              "status": {
+                "type": ["string", "null"],
+                "enum": ["onTrack", "lagging", "offTrack", "notStarted", null],
+                "description": "Status for target."
+              },
+              "narrative": {
+                "type": ["string", "null"],
+                "maxLength": 500,
+                "description": "Uddybende noter om target."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "boardOversight": {
+          "type": ["boolean", "null"],
+          "description": "Om bestyrelsen fører tilsyn med ESG/CSRD."
+        },
+        "governanceNarrative": {
+          "type": ["string", "null"],
+          "maxLength": 2000,
+          "description": "Narrativ om governance-struktur og roller."
+        }
+      },
+      "additionalProperties": false
+    },
     "D1": {
       "type": "object",
       "title": "D1Input",
