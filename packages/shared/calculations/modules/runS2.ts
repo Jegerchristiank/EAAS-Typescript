@@ -48,8 +48,9 @@ export function runS2(input: ModuleInput): ModuleResult {
     s2.auditWeight * auditScore +
     s2.grievanceWeight * mechanismScore
 
-  const penalty = s2.incidentWeight * Math.min(1, incidentPenalty + grievancePenalty)
-  const value = Number((Math.max(0, Math.min(1, baseScore - penalty)) * 100).toFixed(s2.resultPrecision))
+  const penaltyRatio = Math.min(1, incidentPenalty + grievancePenalty)
+  const incidentScore = s2.incidentWeight * (1 - penaltyRatio)
+  const value = Number((Math.max(0, Math.min(1, baseScore + incidentScore)) * 100).toFixed(s2.resultPrecision))
 
   if (incidents.length === 0) {
     trace.push('incidents=0')

@@ -49,7 +49,9 @@ export function runS3(input: ModuleInput): ModuleResult {
     s3.grievanceWeight * grievanceScore +
     s3.engagementWeight * engagementScore
 
-  const value = Number((Math.max(0, Math.min(1, baseScore - s3.incidentWeight * Math.min(1, incidentPenalty))) * 100).toFixed(s3.resultPrecision))
+  const penaltyRatio = Math.min(1, incidentPenalty)
+  const incidentScore = s3.incidentWeight * (1 - penaltyRatio)
+  const value = Number((Math.max(0, Math.min(1, baseScore + incidentScore)) * 100).toFixed(s3.resultPrecision))
 
   if (impacts.length === 0) {
     trace.push('impacts=0')

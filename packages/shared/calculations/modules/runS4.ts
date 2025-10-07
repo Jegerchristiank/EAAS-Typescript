@@ -48,11 +48,9 @@ export function runS4(input: ModuleInput): ModuleResult {
     s4.mechanismWeight * mechanismScore +
     s4.dataProtectionWeight * dataProtectionScore
 
-  const value = Number(
-    (
-      Math.max(0, Math.min(1, baseScore - s4.incidentWeight * Math.min(1, incidentPenalty + additionalPenalty))) * 100
-    ).toFixed(s4.resultPrecision)
-  )
+  const penaltyRatio = Math.min(1, incidentPenalty + additionalPenalty)
+  const incidentScore = s4.incidentWeight * (1 - penaltyRatio)
+  const value = Number((Math.max(0, Math.min(1, baseScore + incidentScore)) * 100).toFixed(s4.resultPrecision))
 
   if (issues.length === 0) {
     trace.push('issues=0')
