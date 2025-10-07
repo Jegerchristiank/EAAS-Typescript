@@ -3,6 +3,7 @@
  */
 import type { B11Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 type SanitisedB11 = Required<{
   [Key in keyof B11Input]: number
@@ -50,7 +51,7 @@ export function runB11(input: ModuleInput): ModuleResult {
   const signedReductionTonnes = Number((-grossReductionTonnes).toFixed(factors.b11.resultPrecision))
   const value = signedReductionTonnes === 0 ? 0 : signedReductionTonnes
 
-  return {
+  return withE1Insights('B11', input, {
     value,
     unit: factors.b11.unit,
     assumptions,
@@ -67,7 +68,7 @@ export function runB11(input: ModuleInput): ModuleResult {
       `grossReductionTonnes=${grossReductionTonnes}`
     ],
     warnings
-  }
+  })
 }
 
 function normaliseInput(raw: B11Input, warnings: string[]): SanitisedB11 {

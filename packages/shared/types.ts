@@ -33,7 +33,27 @@ import type {
   C13Input,
   C14Input,
   C15Input,
-  D1Input
+  D2Input,
+  D2MaterialTopic,
+  D1Input,
+  E1ContextInput,
+  E1TargetsInput,
+  E1TargetLine,
+  E1TargetMilestone,
+  E1ActionLine,
+  E1EnergyMixType,
+  E1TargetScope,
+  E1TargetStatus,
+  E1ActionStatus,
+  E2WaterInput,
+  E3PollutionInput,
+  E4BiodiversityInput,
+  E5ResourcesInput,
+  S1Input,
+  S2Input,
+  S3Input,
+  S4Input,
+  G1Input,
 } from './schema'
 
 
@@ -68,7 +88,18 @@ export const moduleIds = [
   'C13',
   'C14',
   'C15',
-  'D1'
+  'E1Targets',
+  'E2Water',
+  'E3Pollution',
+  'E4Biodiversity',
+  'E5Resources',
+  'S1',
+  'S2',
+  'S3',
+  'S4',
+  'G1',
+  'D1',
+  'D2'
 ] as const
 
 export type ModuleId = (typeof moduleIds)[number]
@@ -104,10 +135,122 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   C13?: C13Input | null | undefined
   C14?: C14Input | null | undefined
   C15?: C15Input | null | undefined
+  E1Targets?: E1TargetsInput | null | undefined
+  E1Context?: E1ContextInput | null | undefined
+  E2Water?: E2WaterInput | null | undefined
+  E3Pollution?: E3PollutionInput | null | undefined
+  E4Biodiversity?: E4BiodiversityInput | null | undefined
+  E5Resources?: E5ResourcesInput | null | undefined
+  S1?: S1Input | null | undefined
+  S2?: S2Input | null | undefined
+  S3?: S3Input | null | undefined
+  S4?: S4Input | null | undefined
+  G1?: G1Input | null | undefined
   D1?: D1Input | null | undefined
+  D2?: D2Input | null | undefined
 }
 
 export type ModuleInput = ModuleInputBase & Record<string, unknown>
+
+export type ModuleIntensityBasis = 'netRevenue' | 'production' | 'energy' | 'employees'
+
+export type ModuleIntensity = {
+  basis: ModuleIntensityBasis
+  label: string
+  value: number
+  unit: string
+  denominatorValue: number
+  denominatorUnit: string
+}
+
+export type ModuleTrend = {
+  label: string
+  previousValue: number | null
+  currentValue: number
+  absoluteChange: number | null
+  percentChange: number | null
+  unit: string
+}
+
+export type ModuleTargetProgress = {
+  targetId: string
+  name: string | null
+  scope: E1TargetScope
+  targetYear: number | null
+  targetValueTonnes: number | null
+  currentValueTonnes: number
+  varianceTonnes: number | null
+  progressPercent: number | null
+  status: E1TargetStatus | null
+  owner: string | null
+}
+
+export type ModuleEnergyMixEntry = {
+  energyType: E1EnergyMixType
+  consumptionKwh: number
+  sharePercent: number
+  documentationQualityPercent: number | null
+}
+
+export type ModuleTargetMilestoneSummary = {
+  label: string | null
+  dueYear: number | null
+}
+
+export type ModuleTargetSummary = {
+  id: string
+  name: string
+  scope: E1TargetScope
+  targetYear: number | null
+  targetValueTonnes: number | null
+  baselineYear: number | null
+  baselineValueTonnes: number | null
+  owner: string | null
+  status: E1TargetStatus | null
+  description: string | null
+  milestones: ModuleTargetMilestoneSummary[]
+}
+
+export type ModuleActionItem = {
+  title: string | null
+  description: string | null
+  owner: string | null
+  dueQuarter: string | null
+  status: E1ActionStatus | null
+}
+
+export type ModuleNarrative = {
+  label: string
+  content: string
+}
+
+export type ModuleResponsibility = {
+  subject: string
+  owner: string
+  role?: string | null
+}
+
+export type ModuleNote = {
+  label: string
+  detail: string
+}
+
+export type ModuleDoubleMaterialityTopic = {
+  name: string
+  impactScore: number
+  financialScore: number
+  combinedScore: number
+  riskType: string | null
+  timeline: string | null
+  responsible: string | null
+  csrdGapStatus: string | null
+}
+
+export type ModuleDoubleMateriality = {
+  summary: string
+  topics: ModuleDoubleMaterialityTopic[]
+  gapAlerts: string[]
+}
 
 export type ModuleResult = {
   value: number
@@ -115,6 +258,16 @@ export type ModuleResult = {
   assumptions: string[]
   trace: string[]
   warnings: string[]
+  intensities?: ModuleIntensity[]
+  trend?: ModuleTrend | null
+  targetProgress?: ModuleTargetProgress | null
+  energyMix?: ModuleEnergyMixEntry[]
+  targetsOverview?: ModuleTargetSummary[]
+  plannedActions?: ModuleActionItem[]
+  narratives?: ModuleNarrative[]
+  responsibilities?: ModuleResponsibility[]
+  notes?: ModuleNote[]
+  doubleMateriality?: ModuleDoubleMateriality | null
 }
 
 export type ModuleCalculator = (input: ModuleInput) => ModuleResult
@@ -156,6 +309,26 @@ export type {
   C13Input,
   C14Input,
   C15Input,
-  D1Input
+  S1Input,
+  S2Input,
+  S3Input,
+  S4Input,
+  G1Input,
+  D2Input,
+  D2MaterialTopic,
+  D1Input,
+  E1ContextInput,
+  E1TargetsInput,
+  E1TargetLine,
+  E1TargetMilestone,
+  E1ActionLine,
+  E1EnergyMixType,
+  E1TargetScope,
+  E1TargetStatus,
+  E1ActionStatus,
+  E2WaterInput,
+  E3PollutionInput,
+  E4BiodiversityInput,
+  E5ResourcesInput
 }
 
