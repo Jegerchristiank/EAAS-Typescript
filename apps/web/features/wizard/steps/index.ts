@@ -153,15 +153,9 @@ export const wizardSteps: WizardStep[] = [
     status: 'ready'
   },
   { id: 'S1', label: 'S1 – Arbejdsstyrke & headcount', component: S1Step, scope: 'Social', status: 'ready' },
-  { id: 'S2', label: 'S2 – Diversitet og ligestilling', component: S2Step, scope: 'Social', status: 'ready' },
-  { id: 'S3', label: 'S3 – Arbejdsmiljø og hændelser', component: S3Step, scope: 'Social', status: 'ready' },
-  {
-    id: 'S4',
-    label: 'S4 – Due diligence & menneskerettigheder',
-    component: S4Step,
-    scope: 'Social',
-    status: 'ready'
-  },
+  { id: 'S2', label: 'S2 – Værdikædearbejdere', component: S2Step, scope: 'Social', status: 'ready' },
+  { id: 'S3', label: 'S3 – Lokalsamfund og påvirkninger', component: S3Step, scope: 'Social', status: 'ready' },
+  { id: 'S4', label: 'S4 – Forbrugere og slutbrugere', component: S4Step, scope: 'Social', status: 'ready' },
   {
     id: 'G1',
     label: 'G1 – Governance-politikker & targets',

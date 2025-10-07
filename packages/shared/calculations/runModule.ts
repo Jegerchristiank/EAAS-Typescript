@@ -91,9 +91,9 @@ const moduleTitles: Record<ModuleId, string> = {
   E4Biodiversity: 'E4 – Påvirkning af biodiversitet',
   E5Resources: 'E5 – Ressourcer og materialeforbrug',
   S1: 'S1 – Arbejdsstyrke & headcount',
-  S2: 'S2 – Diversitet og ligestilling',
-  S3: 'S3 – Arbejdsmiljø og hændelser',
-  S4: 'S4 – Due diligence & menneskerettigheder',
+  S2: 'S2 – Værdikædearbejdere',
+  S3: 'S3 – Lokalsamfund og påvirkninger',
+  S4: 'S4 – Forbrugere og slutbrugere',
   G1: 'G1 – Governance-politikker & targets',
   D1: 'D1 – Metode & governance',
   D2: 'D2 – Dobbelt væsentlighed & CSRD-gaps'

@@ -10,26 +10,45 @@ Denne guide beskriver inputfelter og UI-flow for de sociale moduler i wizard-tri
 - Segmentkortene giver felt for segmentnavn, headcount, andel kvinder og kollektiv dækning.
 - Narrative feltet bruges til kontekst og samarbejde med medarbejderrepræsentanter.
 
-<a id="s2-diversitet"></a>
+<a id="esrs-mapping"></a>
 
-## S2 – Diversitet & ligestilling
+## ESRS S2–S4 datapunkter og felter
 
-- `S2Step` understøtter toggle for ligestillingspolitik og datadækning.
-- Hvert niveau har felter for kønsfordeling, løngab og narrative noter.
-- Preview-kortet viser score og warnings i realtid.
+| ESRS datapunkt | Felter i formularen |
+| -------------- | ------------------- |
+| **S2-2.2** – Dækning af risikovurderinger | `valueChainCoveragePercent`, `highRiskSupplierSharePercent` |
+| **S2-2.3** – Sociale audits | `socialAuditsCompletedPercent`, hændelseslisten `incidents` |
+| **S2-5** – Arbejdsvilkår og klagemekanismer | `livingWageCoveragePercent`, `collectiveBargainingCoveragePercent`, `grievancesOpenCount`, `grievanceMechanismForWorkers` |
+| **S3-2** – Konsekvensanalyser | `impactAssessmentsCoveragePercent`, `communitiesIdentifiedCount` |
+| **S3-3** – Negative impacts og klager | `incidents` (lokalsamfund), `grievancesOpenCount` |
+| **S3-5** – Afhjælpning | `remedyNarrative`, remedieringsstatus i `incidents` |
+| **S4-2** – Risikovurdering af produkter | `productsAssessedPercent`, `issues` |
+| **S4-3** – Klagehåndtering | `complaintsResolvedPercent`, `grievanceMechanismInPlace`, `escalationTimeframeDays` |
+| **S4-4** – Datasikkerhedsbrud | `dataBreachesCount`, hændelser med `issueType = dataPrivacy` |
+| **S4-5** – Alvorlige hændelser | `severeIncidentsCount`, `recallsCount`, `issues` |
 
-<a id="s3-haendelser"></a>
+> Øvrige datapunkter om mål og KPI’er (fx S2-6 og S4-6) håndteres via G1/E1-modulerne og er ikke en del af S2–S4-formularerne.
 
-## S3 – Arbejdsmiljø & hændelser
+<a id="s2-vaerdikaede"></a>
 
-- Formularen giver input for arbejdstimer, certificering samt hændelsesliste.
-- Hændelsestyper vælges fra `s3IncidentTypeOptions`; near miss giver kredit.
-- Tekstfeltet bruges til at dokumentere læring og forebyggelse.
+## S2 – Værdikædearbejdere
 
-<a id="s4-due-diligence"></a>
+- `S2Step` indsamler antal arbejdstagere, dækning af risikovurderinger og sociale audits.
+- Incident-tabellen registrerer leverandører, hændelsestyper og remedieringsstatus for ESRS S2-kravene.
+- To narrative felter dækker dialogprogrammer og kompensation/afhjælpning.
 
-## S4 – Due diligence & menneskerettigheder
+<a id="s3-lokalsamfund"></a>
 
-- `S4Step` indsamler klagemekanisme, behandlingstid og processer.
-- Hver proces har felter for område, dækning, vurdering, risikoniveau og remediationsplan.
-- Narrativt felt beskriver governance, samarbejde og næste skridt.
+## S3 – Lokalsamfund og påvirkninger
+
+- Formularen giver tal for identificerede lokalsamfund, dækningsgrad af analyser og antal åbne klager.
+- Hver påvirkning dokumenterer community, type, antal husholdninger og remediering.
+- Narrativerne beskriver engagement (FPIC, dialog) og samarbejde om afhjælpning.
+
+<a id="s4-forbrugere"></a>
+
+## S4 – Forbrugere og slutbrugere
+
+- `S4Step` samler risikovurderingsdækning, klagehåndtering, datasikkerhedsbrud og tilbagekald.
+- Hændelseslisten håndterer produktsikkerhed, data-privacy m.m. med antal berørte brugere og status.
+- Narrativerne fokuserer på støtte til udsatte brugergrupper og proaktivt engagement.

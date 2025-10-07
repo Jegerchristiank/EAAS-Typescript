@@ -1,24 +1,25 @@
-# Runbook – S2 diversitet & ligestilling
+# Runbook – S2 værdikædearbejdere
 
-Modulet samler kønsbalancer, løngab og narrative indsatser. Resultatet viser en social score (0-100), hvor paritet, datadækning
-og politikker vægtes.
+Modulet samler ESRS S2 datapunkter om leverandørarbejdere: dækningsgrad af risikovurderinger, sociale audits, klagemekanismer og registrerede hændelser. Resultatet er en social score (0-100) med fokus på dækning, arbejdstagerbeskyttelse og hændelsesstyring.
 
 ## Inputfelter
 
-- **Datadækning (%)** – andel af arbejdsstyrken med registreret diversitetsdata.
-- **Formel ligestillingspolitik** – ja/nej/ikke angivet.
-- **Kønsfordeling pr. niveau** – liste over niveauer med procentfordeling, løngab og optional narrativ.
-- **Narrativ beskrivelse** – tekst om initiativer, pipeline og barrierer.
+- **Arbejdstagere i værdikæden** og **udsatte arbejdstagere** – bruges til at dimensionere hændelser og warnings.
+- **Risikodækning (%)** og **andel højrisiko-leverandører (%)** – dokumenterer ESRS S2-2.2.
+- **Leve-/mindsteløn (%)** og **kollektive aftaler (%)** – afdækker arbejdstagerrettigheder (S2-5).
+- **Sociale audits (%)**, **åbne klager** og **klagemekanisme** – viser opfølgning og remediering (S2-2.3 og S2-5).
+- **Hændelseslisten** – registrerer leverandør/site, hændelsestype, antal berørte, alvorlighed og remedieringsstatus.
+- **Narrativer** – dialog/kapacitetsopbygning samt kompensation og opfølgning.
 
 ## Beregningsoverblik
 
-1. Paritetsscore (60 %) beregnes som gennemsnit af niveauers afvigelse fra 50/50 (nul score ved ±20 procentpoint).
-2. Datadækning (20 %) normaliseres 0-100 %.
-3. Politikscore (20 %) belønner formaliseret ligestillingspolitik og giver baseline-score for "ikke angivet".
-4. Warnings udsendes ved lave datadækninger, store afvigelser (>10 procentpoint) eller løngab over 5 %.
+1. Dækningsscore (35 %) bygger på `valueChainCoveragePercent` (warning under 70 %).
+2. Beskyttelsesscore (25 %) er gennemsnit af `livingWageCoveragePercent` og `collectiveBargainingCoveragePercent`.
+3. Audit- og klagemekanisme (30 %) kombinerer `socialAuditsCompletedPercent`, `grievanceMechanismForWorkers` og åbne klager.
+4. Hændelser reducerer scoren ud fra alvorlighed, antal berørte og remediering. Højrisiko uden afsluttet remediering udløser warnings.
 
 ## QA og test
 
-- Unit-testen `runS2` i `runModule.spec.ts` dækker et scenarie med høj score og kontrollerer warnings.
-- `S2Step` i webappen understøtter tabelformular med flere niveauer, pay gap og narrativer.
-- Schema-validering ligger i `s2InputSchema` og JSON schema, så nye felter skal opdateres begge steder.
+- Unit-testen `runS2` i `runModule.spec.ts` dækker scenario med flere hændelser og kontrollerer trace/warnings.
+- UI (`S2Step`) understøtter alle datapunkter samt incident-tabellen og narrativer.
+- Validering findes i `s2InputSchema` og `esg-input-schema.json`; husk at opdatere begge ved schemaændringer.

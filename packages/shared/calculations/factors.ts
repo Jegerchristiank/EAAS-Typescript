@@ -361,33 +361,65 @@ export const factors = {
   s2: {
     unit: 'social score',
     resultPrecision: 1,
-    parityWeight: 0.6,
-    coverageWeight: 0.2,
-    policyWeight: 0.2,
-    fullParityPercent: 50,
-    severeGapPercent: 20,
-    narrativeLimit: 2000
+    coverageWeight: 0.35,
+    protectionWeight: 0.25,
+    auditWeight: 0.15,
+    grievanceWeight: 0.15,
+    incidentWeight: 0.1,
+    severityWeights: {
+      high: 1,
+      medium: 0.6,
+      low: 0.3
+    } as const,
+    resolvedMitigation: 0.4,
+    inProgressMitigation: 0.7,
+    defaultIncidentScale: 0.05,
+    openGrievancePenaltyPerCase: 0.03,
+    mechanismUnknownScore: 0.5,
+    coverageWarningThresholdPercent: 70,
+    livingWageWarningThresholdPercent: 60,
+    bargainingWarningThresholdPercent: 50,
+    auditWarningThresholdPercent: 60
   },
   s3: {
     unit: 'social score',
     resultPrecision: 1,
-    fatalityPenalty: 45,
-    lostTimePenalty: 18,
-    recordablePenalty: 8,
-    nearMissCredit: 2,
-    baselineHoursDivisor: 1_000_000,
-    baselineTargetRate: 3,
-    ratePenaltyMultiplier: 12,
-    certificationBonus: 10
+    assessmentWeight: 0.35,
+    highRiskWeight: 0.2,
+    grievanceWeight: 0.15,
+    engagementWeight: 0.15,
+    incidentWeight: 0.15,
+    severityWeights: {
+      high: 1.1,
+      medium: 0.6,
+      low: 0.3
+    } as const,
+    resolvedMitigation: 0.4,
+    inProgressMitigation: 0.7,
+    defaultIncidentScale: 0.04,
+    openGrievancePenaltyPerCase: 0.04,
+    assessmentWarningThresholdPercent: 60,
+    highRiskWarningThresholdPercent: 30
   },
   s4: {
     unit: 'social score',
     resultPrecision: 1,
-    coverageWeight: 0.6,
-    severityWeight: 0.2,
-    grievanceWeight: 0.2,
-    highRiskPenalty: 0.6,
-    mediumRiskPenalty: 0.3
+    coverageWeight: 0.3,
+    complaintResolutionWeight: 0.2,
+    mechanismWeight: 0.1,
+    incidentWeight: 0.25,
+    dataProtectionWeight: 0.15,
+    severityWeights: {
+      high: 1,
+      medium: 0.5,
+      low: 0.2
+    } as const,
+    resolvedMitigation: 0.4,
+    inProgressMitigation: 0.7,
+    defaultIncidentScale: 0.03,
+    complaintResolutionWarningPercent: 70,
+    escalationWarningDays: 30,
+    productsCoverageWarningPercent: 60
   },
   g1: {
     unit: 'governance score',

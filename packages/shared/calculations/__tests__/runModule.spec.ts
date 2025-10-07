@@ -304,107 +304,139 @@ describe('runS1', () => {
 })
 
 describe('runS2', () => {
-  it('beregner ligestillingsscore med højt datagrundlag', () => {
+  it('beregner social score for værdikædearbejdere og giver relevante warnings', () => {
     const input: ModuleInput = {
       S2: {
-        equalityPolicyInPlace: true,
-        dataCoveragePercent: 95,
-        genderBalance: [
+        valueChainWorkersCount: 2400,
+        workersAtRiskCount: 180,
+        valueChainCoveragePercent: 85,
+        highRiskSupplierSharePercent: 22,
+        livingWageCoveragePercent: 88,
+        collectiveBargainingCoveragePercent: 60,
+        socialAuditsCompletedPercent: 92,
+        grievancesOpenCount: 1,
+        grievanceMechanismForWorkers: true,
+        incidents: [
           {
-            level: 'Bestyrelse',
-            femalePercent: 48,
-            malePercent: 52,
-            otherPercent: 0,
-            payGapPercent: 2,
-            targetNarrative: null
+            supplier: 'Alpha Textiles',
+            country: 'Bangladesh',
+            issueType: 'wagesAndBenefits',
+            workersAffected: 60,
+            severityLevel: 'medium',
+            remediationStatus: 'inProgress',
+            description: 'Løn ligger under aftalt minimum – forbedringsplan igangsat.'
           },
           {
-            level: 'Ledelse',
-            femalePercent: 55,
-            malePercent: 45,
-            otherPercent: 0,
-            payGapPercent: -1,
-            targetNarrative: null
+            supplier: 'Omega Plast',
+            country: 'Malaysia',
+            issueType: 'healthAndSafety',
+            workersAffected: 20,
+            severityLevel: 'low',
+            remediationStatus: 'completed',
+            description: null
           }
         ],
-        inclusionInitiativesNarrative: 'Mentorprogram og målrettet pipeline-udvikling.'
+        socialDialogueNarrative:
+          'Leverandørprogram med kvartalsvise dialogmøder, træning i arbejdsmiljø og co-funding af fagforeningsarbejde.',
+        remediationNarrative:
+          'Kompensation til påvirkede syersker samt auditopfølgning med fokus på lønjusteringer og forbedret tilsyn.'
       }
     }
 
     const result = runS2(input)
 
-    expect(result.value).toBeCloseTo(88.5)
-    expect(result.warnings).toHaveLength(0)
-    expect(result.trace).toContain('dataCoveragePercent=95')
+    expect(result.value).toBeGreaterThan(70)
+    expect(result.trace).toContain('valueChainCoveragePercent=85')
+    expect(result.warnings).toContain('1 klager fra leverandørarbejdere er åbne. Følg op og luk dem for at undgå ESRS S2 advarsler.')
   })
 })
 
 describe('runS3', () => {
-  it('giver høj score ved lav hændelsesrate og certificering', () => {
+  it('prioriterer konsekvensanalyser og håndtering af lokalsamfundsimpacts', () => {
     const input: ModuleInput = {
       S3: {
-        totalHoursWorked: 2_000_000,
-        safetyCertification: true,
+        communitiesIdentifiedCount: 5,
+        impactAssessmentsCoveragePercent: 80,
+        highRiskCommunitySharePercent: 25,
+        grievancesOpenCount: 0,
         incidents: [
           {
-            incidentType: 'lostTime',
-            count: 1,
-            ratePerMillionHours: 0.5,
-            description: null,
-            rootCauseClosed: true
+            community: 'Fjordbyen',
+            geography: 'Norge',
+            impactType: 'environmentalDamage',
+            householdsAffected: 40,
+            severityLevel: 'medium',
+            remediationStatus: 'inProgress',
+            description: 'Udslip fra byggeplads påvirker fiskeri – midlertidig kompensation igangsat.'
           },
           {
-            incidentType: 'nearMiss',
-            count: 4,
-            ratePerMillionHours: null,
-            description: 'Indrapporteret af værkstedet',
-            rootCauseClosed: true
+            community: 'Skovlandsbyen',
+            geography: 'Sverige',
+            impactType: 'landRights',
+            householdsAffected: 12,
+            severityLevel: 'low',
+            remediationStatus: 'completed',
+            description: 'Aftale om adgangsveje indgået med lokalsamfundet.'
           }
         ],
-        safetyNarrative: 'Fokus på proaktive observationer og lukning af rodårsager.'
+        engagementNarrative:
+          'Årlige FPIC-dialoger, borgerpaneler og samarbejde med lokale NGO’er for at sikre inklusion.',
+        remedyNarrative:
+          'Kompensationsfonde samt investering i infrastruktur projekter for de mest påvirkede områder.'
       }
     }
 
     const result = runS3(input)
 
-    expect(result.value).toBeCloseTo(68.3, 1)
-    expect(result.trace).toContain('hoursWorked=2000000')
-    expect(result.assumptions).toContain('ISO 45001 eller tilsvarende certificering udløser +10 bonuspoint.')
+    expect(result.value).toBeGreaterThan(60)
+    expect(result.trace).toContain('impactAssessmentsCoveragePercent=80')
+    expect(result.warnings).not.toContain('Ingen påvirkninger registreret endnu.')
   })
 })
 
 describe('runS4', () => {
-  it('kombinerer coverage, risiko og grievance-mekanismer', () => {
+  it('kombinerer risikovurdering, klagehåndtering og hændelsesstyring', () => {
     const input: ModuleInput = {
       S4: {
+        productsAssessedPercent: 70,
+        complaintsResolvedPercent: 85,
+        dataBreachesCount: 1,
+        severeIncidentsCount: 1,
+        recallsCount: 0,
         grievanceMechanismInPlace: true,
-        escalationTimeframeDays: 21,
-        dueDiligenceNarrative:
-          'Leverandør-screening opdateres årligt med fokus på menneskerettigheder og whistleblower-kanaler.',
-        processes: [
+        escalationTimeframeDays: 20,
+        issues: [
           {
-            area: 'Leverandører',
-            coveragePercent: 80,
-            lastAssessmentDate: '2024-01-15',
-            severityLevel: 'high',
-            remediationPlan: 'Auditprogram og leverandørtræning'
+            productOrService: 'SmartHome Hub',
+            market: 'EU',
+            issueType: 'productSafety',
+            usersAffected: 120,
+            severityLevel: 'medium',
+            remediationStatus: 'completed',
+            description: 'Firmwareopdatering reducerer risiko for overophedning.'
           },
           {
-            area: 'Egnet personale',
-            coveragePercent: 60,
-            lastAssessmentDate: null,
-            severityLevel: 'medium',
-            remediationPlan: null
+            productOrService: 'Cloud Backup',
+            market: 'Global',
+            issueType: 'dataPrivacy',
+            usersAffected: 50,
+            severityLevel: 'high',
+            remediationStatus: 'inProgress',
+            description: 'Dataeksponering under undersøgelse, midlertidige kontroller implementeret.'
           }
-        ]
+        ],
+        vulnerableUsersNarrative:
+          'Udvikler forenklet supportlinje og subsidier til seniorer samt handicapvenlige grænseflader.',
+        consumerEngagementNarrative:
+          'Kvartalsvise webinarer og samarbejde med forbrugerorganisationer om klare sikkerhedsanbefalinger.'
       }
     }
 
     const result = runS4(input)
 
-    expect(result.value).toBe(70)
-    expect(result.trace).toContain('process[0]=Leverandører|coverage=80|severity=high')
-    expect(result.warnings).toContain('Højrisiko-området "Egnet personale" mangler remediationsplan.')
+    expect(result.value).toBeGreaterThan(50)
+    expect(result.trace).toContain('productsAssessedPercent=70')
+    expect(result.warnings).toContain('1 alvorlige hændelser rapporteret – offentliggør detaljer og kompensation.')
   })
 })
 
