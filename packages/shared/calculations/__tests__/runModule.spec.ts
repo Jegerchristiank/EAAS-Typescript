@@ -2136,26 +2136,70 @@ describe('runD1', () => {
         scope3ScreeningCompleted: false,
         dataQuality: 'proxy',
         materialityAssessmentDescription: 'Kort note om væsentlighed',
-        strategyDescription: null
+        strategyDescription: null,
+        strategy: {
+          businessModelSummary: 'Kort beskrivelse',
+          sustainabilityIntegration: null,
+          resilienceDescription: null,
+          stakeholderEngagement: null
+        },
+        governance: {
+          oversight: 'Kort note',
+          managementRoles: null,
+          esgExpertise: null,
+          incentives: null,
+          policies: null,
+          hasEsgCommittee: false
+        },
+        impactsRisksOpportunities: {
+          processDescription: null,
+          prioritisationCriteria: null,
+          integrationIntoManagement: null,
+          mitigationActions: null,
+          valueChainCoverage: 'ownOperations',
+          timeHorizons: ['shortTerm']
+        },
+        targetsAndKpis: {
+          hasQuantitativeTargets: false,
+          governanceIntegration: null,
+          progressDescription: null,
+          kpis: [
+            {
+              name: 'CO₂-reduktion',
+              kpi: 'Ton CO₂e',
+              unit: 't',
+              baselineYear: 2020,
+              baselineValue: 100,
+              targetYear: 2030,
+              targetValue: 50,
+              comments: null
+            }
+          ]
+        }
       }
     }
 
     const result = runD1(input)
 
-    expect(result.value).toBe(50)
     expect(result.assumptions[0]).toContain('Governance-scoren er gennemsnittet')
-    expect(result.warnings).toContain(
-      'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
+    expect(result.value).toBeCloseTo(41.1, 1)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.',
+        'Uddyb væsentlighedsvurderingen med centrale risici og muligheder.',
+        'Beskriv strategi, målsætninger og politikker for ESG-governance.',
+        'Markér screening som gennemført, når scope 3 kategorier er vurderet.',
+        'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.',
+        'Tilføj flere KPI’er for at dække alle væsentlige mål.'
+      ])
     )
-    expect(result.warnings).toContain('Uddyb væsentlighedsvurderingen med centrale risici og muligheder.')
-    expect(result.warnings).toContain('Beskriv strategi, målsætninger og politikker for ESG-governance.')
-    expect(result.warnings).toContain('Markér screening som gennemført, når scope 3 kategorier er vurderet.')
-    expect(result.trace).toContain('materialityAssessmentScore=0.6')
+    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=0.6')
   })
 
   it('giver fuld score ved best practice governance', () => {
     const detailedText = 'Detaljeret beskrivelse af processer og kontroller. '.repeat(8)
     const strategyText = 'Strategi og politikker for hele organisationen med klare mål. '.repeat(8)
+    const longNote = 'Lang beskrivelse af robust governance-setup og processer. '.repeat(8)
     const input: ModuleInput = {
       D1: {
         organizationalBoundary: 'operationalControl',
@@ -2163,7 +2207,66 @@ describe('runD1', () => {
         scope3ScreeningCompleted: true,
         dataQuality: 'primary',
         materialityAssessmentDescription: detailedText,
-        strategyDescription: strategyText
+        strategyDescription: strategyText,
+        strategy: {
+          businessModelSummary: longNote,
+          sustainabilityIntegration: longNote,
+          resilienceDescription: longNote,
+          stakeholderEngagement: longNote
+        },
+        governance: {
+          oversight: longNote,
+          managementRoles: longNote,
+          esgExpertise: longNote,
+          incentives: longNote,
+          policies: longNote,
+          hasEsgCommittee: true
+        },
+        impactsRisksOpportunities: {
+          processDescription: longNote,
+          prioritisationCriteria: longNote,
+          integrationIntoManagement: longNote,
+          mitigationActions: longNote,
+          valueChainCoverage: 'fullValueChain',
+          timeHorizons: ['shortTerm', 'mediumTerm', 'longTerm']
+        },
+        targetsAndKpis: {
+          hasQuantitativeTargets: true,
+          governanceIntegration: longNote,
+          progressDescription: longNote,
+          kpis: [
+            {
+              name: 'CO₂-intensitet',
+              kpi: 'kg CO₂e/omsætning',
+              unit: 'kg/kr',
+              baselineYear: 2020,
+              baselineValue: 10,
+              targetYear: 2025,
+              targetValue: 5,
+              comments: 'Reduceret via energiprojekter'
+            },
+            {
+              name: 'Andel vedvarende energi',
+              kpi: 'Procent',
+              unit: '%',
+              baselineYear: 2020,
+              baselineValue: 30,
+              targetYear: 2027,
+              targetValue: 80,
+              comments: 'Indkøb af grøn strøm og PPAs'
+            },
+            {
+              name: 'Leverandør-audits',
+              kpi: 'Antal audits',
+              unit: 'antal',
+              baselineYear: 2021,
+              baselineValue: 20,
+              targetYear: 2026,
+              targetValue: 60,
+              comments: 'Udvidet auditprogram' 
+            }
+          ]
+        }
       }
     }
 
@@ -2171,7 +2274,9 @@ describe('runD1', () => {
 
     expect(result.value).toBe(100)
     expect(result.warnings).toHaveLength(0)
-    expect(result.trace).toContain('strategyScore=1')
+    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=1')
+    expect(result.trace).toContain('valueChainCoverageScore=1')
+    expect(result.trace).toContain('kpiCoverageScore=1')
   })
 })
 
