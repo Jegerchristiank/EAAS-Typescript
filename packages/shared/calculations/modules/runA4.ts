@@ -3,6 +3,7 @@
  */
 import type { A4Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 export const a4RefrigerantConfigurations = {
   hfc134a: {
@@ -122,13 +123,13 @@ export function runA4(input: ModuleInput): ModuleResult {
   trace.push(`totalEmissionsKg=${totalEmissionsKg}`)
   trace.push(`totalEmissionsTonnes=${totalEmissionsTonnes}`)
 
-  return {
+  return withE1Insights('A4', input, {
     value,
     unit: factors.a4.unit,
     assumptions,
     trace,
     warnings
-  }
+  })
 }
 
 function normaliseEntry(

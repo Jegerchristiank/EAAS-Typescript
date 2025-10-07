@@ -3,6 +3,7 @@
  */
 import type { A2Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 export const a2FuelConfigurations = {
   benzin: {
@@ -131,13 +132,13 @@ export function runA2(input: ModuleInput): ModuleResult {
     trace.push(`fleetEmissionsKgPerKm=${totalEmissionsKg / totalDistanceKm}`)
   }
 
-  return {
+  return withE1Insights('A2', input, {
     value,
     unit: factors.a2.unit,
     assumptions,
     trace,
     warnings
-  }
+  })
 }
 
 function normaliseEntry(

@@ -9,6 +9,23 @@ import type { ModuleInput } from '@org/shared'
 
 type UnknownRecord = Record<string, unknown>
 
+export type WizardFieldRevision = {
+  id: string
+  field: string
+  timestamp: number
+  summary: string
+  updatedBy: string | null
+}
+
+export type WizardFieldHistory = Record<string, WizardFieldRevision[]>
+
+export type WizardResponsibilityEntry = {
+  path: string
+  value: string
+}
+
+export type WizardResponsibilityIndex = Record<string, WizardResponsibilityEntry[]>
+
 export type PersistedWizardProfile = {
   id: string
   name: string
@@ -16,6 +33,8 @@ export type PersistedWizardProfile = {
   profile: WizardProfile
   createdAt: number
   updatedAt: number
+  history: WizardFieldHistory
+  responsibilities: WizardResponsibilityIndex
 }
 
 export type PersistedWizardStorage = {
@@ -66,7 +85,92 @@ function sanitiseWizardProfile(value: unknown): WizardProfile {
   return base
 }
 
-function createProfileEntry(id: string, name: string, state: ModuleInput = {} as ModuleInput): PersistedWizardProfile {
+function normaliseHistory(value: unknown): WizardFieldHistory {
+  if (!isRecord(value)) {
+    return {}
+  }
+
+  const entries = value as UnknownRecord
+  return Object.entries(entries).reduce<WizardFieldHistory>((acc, [field, raw]) => {
+    if (!Array.isArray(raw)) {
+      return acc
+    }
+
+    const revisions = raw
+      .map((item) => {
+        if (!isRecord(item)) {
+          return null
+        }
+
+        const record = item as UnknownRecord
+        const timestamp = typeof record['timestamp'] === 'number' ? (record['timestamp'] as number) : Date.now()
+        const summary = typeof record['summary'] === 'string' ? (record['summary'] as string) : ''
+        const updatedBy =
+          typeof record['updatedBy'] === 'string' || record['updatedBy'] === null
+            ? (record['updatedBy'] as string | null)
+            : null
+        const id = typeof record['id'] === 'string' ? (record['id'] as string) : `${field}-${timestamp}`
+
+        return {
+          id,
+          field,
+          timestamp,
+          summary,
+          updatedBy,
+        }
+      })
+      .filter((revision): revision is WizardFieldRevision => revision !== null)
+
+    if (revisions.length > 0) {
+      acc[field] = revisions
+    }
+
+    return acc
+  }, {})
+}
+
+function normaliseResponsibilities(value: unknown): WizardResponsibilityIndex {
+  if (!isRecord(value)) {
+    return {}
+  }
+
+  const entries = value as UnknownRecord
+  return Object.entries(entries).reduce<WizardResponsibilityIndex>((acc, [field, raw]) => {
+    if (!Array.isArray(raw)) {
+      return acc
+    }
+
+    const responsibilities = raw
+      .map((item) => {
+        if (!isRecord(item)) {
+          return null
+        }
+
+        const record = item as UnknownRecord
+        const path = typeof record['path'] === 'string' ? (record['path'] as string) : null
+        const value = typeof record['value'] === 'string' ? (record['value'] as string) : null
+
+        if (!path || !value) {
+          return null
+        }
+
+        return { path, value }
+      })
+      .filter((entry): entry is WizardResponsibilityEntry => entry !== null)
+
+    if (responsibilities.length > 0) {
+      acc[field] = responsibilities
+    }
+
+    return acc
+  }, {})
+}
+
+function createProfileEntry(
+  id: string,
+  name: string,
+  state: ModuleInput = {} as ModuleInput,
+): PersistedWizardProfile {
   const now = Date.now()
   return {
     id,
@@ -75,6 +179,8 @@ function createProfileEntry(id: string, name: string, state: ModuleInput = {} as
     profile: createInitialWizardProfile(),
     createdAt: now,
     updatedAt: now,
+    history: {},
+    responsibilities: {},
   }
 }
 
@@ -100,6 +206,8 @@ function normaliseProfile(id: string, value: unknown, fallbackName: string): Per
     profile: parsedProfile,
     createdAt,
     updatedAt,
+    history: normaliseHistory(record['history']),
+    responsibilities: normaliseResponsibilities(record['responsibilities']),
   }
 }
 
