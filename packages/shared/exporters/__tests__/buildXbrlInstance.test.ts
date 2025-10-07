@@ -51,7 +51,7 @@ describe('buildXbrlInstance', () => {
 
     const instance = buildXbrlInstance(results, baseOptions)
     const parser = new XMLParser({ ignoreAttributes: false })
-    const parsed = parser.parse(instance)
+    const parsed = parser.parse(instance) as Record<string, any>
 
     const xbrl = parsed['xbrli:xbrl']
     expect(xbrl).toBeDefined()

@@ -17,7 +17,9 @@ const unitIds = buildUnitIdSet(utrXml)
 describe('ESRS taksonomi reference', () => {
   it('indeholder alle koncepter og de korrekte periodetyper', () => {
     for (const { definition } of esrsConceptList) {
-      const localName = definition.qname.split(':')[1] ?? definition.qname
+      const localName = definition.qname.includes(':')
+        ? (definition.qname.split(':')[1] as string)
+        : definition.qname
       const declaration = elementDeclarations.get(localName)
       expect(declaration, `Konceptet ${definition.qname} findes ikke i esrs_cor.xsd`).toBeTruthy()
 
@@ -35,7 +37,10 @@ function buildElementMap(xml: string): Map<string, string> {
   const elementRegex = /<xsd:element\b[^>]*name="([^"]+)"[^>]*>/g
   let match: RegExpExecArray | null
   while ((match = elementRegex.exec(xml)) !== null) {
-    map.set(match[1], match[0])
+    const [, elementName] = match
+    if (elementName) {
+      map.set(elementName, match[0])
+    }
   }
   return map
 }
@@ -45,7 +50,10 @@ function buildUnitIdSet(xml: string): Set<string> {
   const unitRegex = /<unitId>([^<]+)<\/unitId>/g
   let match: RegExpExecArray | null
   while ((match = unitRegex.exec(xml)) !== null) {
-    set.add(match[1])
+    const [, unitId] = match
+    if (unitId) {
+      set.add(unitId)
+    }
   }
   return set
 }

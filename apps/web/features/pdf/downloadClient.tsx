@@ -13,7 +13,6 @@ import {
   EsgReportPdf,
   type ModuleInput,
   type ReportPackageOptions,
-  type XbrlInstanceOptions,
 } from '@org/shared'
 
 export async function downloadReport(state: ModuleInput): Promise<void> {
@@ -45,7 +44,17 @@ export async function downloadCsrdPackage(state: ModuleInput, options: ReportPac
     return
   }
 
-  const pkg = buildCsrdReportPackage(printable, options)
+  if (!options.reportingPeriod || !options.entityIdentifier) {
+    console.warn('CSRD-pakken kræver rapporteringsperiode og entity-identifikator.')
+    return
+  }
+
+  const pkg = buildCsrdReportPackage({
+    results: printable,
+    reportingPeriod: options.reportingPeriod,
+    entity: options.entityIdentifier,
+    ...(typeof options.decimals === 'number' ? { decimals: options.decimals } : {}),
+  })
   const blob = new Blob([JSON.stringify(pkg, null, 2)], { type: 'application/json' })
   const filename = `csrd-${options.profileId}.json`
   saveAs(blob, filename)
@@ -58,23 +67,18 @@ export async function downloadXbrl(state: ModuleInput, options: ReportPackageOpt
     return
   }
 
-  const xbrlOptions: XbrlInstanceOptions = {
+  if (!options.reportingPeriod || !options.entityIdentifier) {
+    console.warn('XBRL-eksport kræver rapporteringsperiode og entity-identifikator.')
+    return
+  }
+
+  const instance = buildXbrlInstance(printable, {
     profileId: options.profileId,
-  }
-
-  if (options.organisation) {
-    xbrlOptions.organisation = options.organisation
-  }
-
-  if (options.reportingPeriod) {
-    xbrlOptions.reportingPeriod = options.reportingPeriod
-  }
-
-  if (options.entityIdentifier) {
-    xbrlOptions.entityIdentifier = options.entityIdentifier
-  }
-
-  const instance = buildXbrlInstance(printable, xbrlOptions)
+    organisation: options.organisation ?? null,
+    reportingPeriod: options.reportingPeriod,
+    entityIdentifier: options.entityIdentifier,
+    ...(typeof options.decimals === 'number' ? { decimals: options.decimals } : {}),
+  })
   const blob = new Blob([instance], { type: 'application/xml' })
   const filename = `csrd-${options.profileId}.xbrl`
   saveAs(blob, filename)
