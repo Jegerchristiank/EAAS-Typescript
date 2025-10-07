@@ -7,6 +7,14 @@ import schema from './esg-input-schema.json'
 const d1BoundaryOptions = ['equityShare', 'financialControl', 'operationalControl'] as const
 const d1Scope2MethodOptions = ['locationBased', 'marketBased'] as const
 const d1DataQualityOptions = ['primary', 'secondary', 'proxy'] as const
+const d1TimeHorizonOptions = ['shortTerm', 'mediumTerm', 'longTerm'] as const
+const d1ValueChainCoverageOptions = [
+  'ownOperations',
+  'upstreamOnly',
+  'downstreamOnly',
+  'upstreamAndDownstream',
+  'fullValueChain'
+] as const
 export const materialityRiskOptions = ['risk', 'opportunity', 'both'] as const
 export const materialityTimelineOptions = ['shortTerm', 'mediumTerm', 'longTerm', 'ongoing'] as const
 export const materialityGapStatusOptions = ['aligned', 'partial', 'missing'] as const
@@ -497,6 +505,59 @@ export const d2InputSchema = z
   })
   .strict()
 
+const d1StrategySchema = z
+  .object({
+    businessModelSummary: z.string().max(2000).nullable(),
+    sustainabilityIntegration: z.string().max(2000).nullable(),
+    resilienceDescription: z.string().max(2000).nullable(),
+    stakeholderEngagement: z.string().max(2000).nullable()
+  })
+  .strict()
+
+const d1GovernancePracticesSchema = z
+  .object({
+    oversight: z.string().max(2000).nullable(),
+    managementRoles: z.string().max(2000).nullable(),
+    esgExpertise: z.string().max(2000).nullable(),
+    incentives: z.string().max(2000).nullable(),
+    policies: z.string().max(2000).nullable(),
+    hasEsgCommittee: z.boolean().nullable()
+  })
+  .strict()
+
+const d1ImpactsRisksOpportunitiesSchema = z
+  .object({
+    processDescription: z.string().max(2000).nullable(),
+    prioritisationCriteria: z.string().max(2000).nullable(),
+    integrationIntoManagement: z.string().max(2000).nullable(),
+    mitigationActions: z.string().max(2000).nullable(),
+    valueChainCoverage: z.enum(d1ValueChainCoverageOptions).nullable(),
+    timeHorizons: z.array(z.enum(d1TimeHorizonOptions)).max(3).optional()
+  })
+  .strict()
+
+const d1TargetLineSchema = z
+  .object({
+    name: z.string().max(120).nullable(),
+    kpi: z.string().max(120).nullable(),
+    unit: z.string().max(40).nullable(),
+    baselineYear: z.number().min(1900).max(2100).nullable(),
+    baselineValue: z.number().nullable(),
+    targetYear: z.number().min(1900).max(2100).nullable(),
+    targetValue: z.number().nullable(),
+    comments: z.string().max(500).nullable()
+  })
+  .strict()
+
+const d1TargetsAndKpisSchema = z
+  .object({
+    hasQuantitativeTargets: z.boolean().nullable(),
+    governanceIntegration: z.string().max(2000).nullable(),
+    progressDescription: z.string().max(2000).nullable(),
+    kpis: z.array(d1TargetLineSchema).max(20).optional()
+  })
+  .strict()
+
 export const d1InputSchema = z
   .object({
     organizationalBoundary: z.enum(d1BoundaryOptions).nullable(),
@@ -504,7 +565,11 @@ export const d1InputSchema = z
     scope3ScreeningCompleted: z.boolean().nullable(),
     dataQuality: z.enum(d1DataQualityOptions).nullable(),
     materialityAssessmentDescription: z.string().max(2000).nullable(),
-    strategyDescription: z.string().max(2000).nullable()
+    strategyDescription: z.string().max(2000).nullable(),
+    strategy: d1StrategySchema.optional(),
+    governance: d1GovernancePracticesSchema.optional(),
+    impactsRisksOpportunities: d1ImpactsRisksOpportunitiesSchema.optional(),
+    targetsAndKpis: d1TargetsAndKpisSchema.optional()
   })
   .strict()
 

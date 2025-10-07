@@ -3003,6 +3003,278 @@
           ],
           "maxLength": 2000,
           "description": "Strategi, målsætninger og politikker for ESG-governance."
+        },
+        "strategy": {
+          "type": "object",
+          "properties": {
+            "businessModelSummary": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Beskrivelse af forretningsmodel og væsentlige bæredygtighedsafhængigheder."
+            },
+            "sustainabilityIntegration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan bæredygtighedsforhold er integreret i strategi og beslutninger."
+            },
+            "resilienceDescription": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Robusthed og scenarieanalyser for strategi og forretningsmodel."
+            },
+            "stakeholderEngagement": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan interessenter inddrages i strategiudvikling."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "governance": {
+          "type": "object",
+          "properties": {
+            "oversight": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Bestyrelsens tilsyn og rapportering."
+            },
+            "managementRoles": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Ledelsesroller og ansvar for ESG."
+            },
+            "esgExpertise": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Kompetencer og træning i bestyrelse og ledelse."
+            },
+            "incentives": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Incitamentsordninger koblet til bæredygtighedsmål."
+            },
+            "policies": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Governance-politikker og kontrolsystemer."
+            },
+            "hasEsgCommittee": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Om der er et dedikeret ESG-/bæredygtighedsudvalg."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "impactsRisksOpportunities": {
+          "type": "object",
+          "properties": {
+            "processDescription": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Proces for identifikation og vurdering af impacts, risici og muligheder."
+            },
+            "prioritisationCriteria": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Kriterier for prioritering og væsentlighed."
+            },
+            "integrationIntoManagement": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan resultaterne bruges i strategi, risikostyring og beslutninger."
+            },
+            "mitigationActions": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Planer og handlinger til håndtering af væsentlige impacts."
+            },
+            "valueChainCoverage": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "ownOperations",
+                "upstreamOnly",
+                "downstreamOnly",
+                "upstreamAndDownstream",
+                "fullValueChain",
+                null
+              ],
+              "description": "Dækning på tværs af værdikæden i analysen."
+            },
+            "timeHorizons": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "maxItems": 3,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "shortTerm",
+                  "mediumTerm",
+                  "longTerm"
+                ]
+              },
+              "description": "Tids-horisonter der er analyseret (kort/mellem/lang)."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "targetsAndKpis": {
+          "type": "object",
+          "properties": {
+            "hasQuantitativeTargets": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Om der er kvantitative mål for væsentlige emner."
+            },
+            "governanceIntegration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan mål og KPI’er er forankret i governance-processer."
+            },
+            "progressDescription": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Status og fremdrift på mål og KPI’er."
+            },
+            "kpis": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 120,
+                    "description": "Navn på mål eller KPI."
+                  },
+                  "kpi": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 120,
+                    "description": "KPI-navn eller indikator."
+                  },
+                  "unit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 40,
+                    "description": "Enhed for KPI’en."
+                  },
+                  "baselineYear": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 1900,
+                    "maximum": 2100,
+                    "description": "Baseline-år for KPI."
+                  },
+                  "baselineValue": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "Baseline-værdi."
+                  },
+                  "targetYear": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 1900,
+                    "maximum": 2100,
+                    "description": "År hvor målet skal nås."
+                  },
+                  "targetValue": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "Forventet mål-værdi."
+                  },
+                  "comments": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500,
+                    "description": "Supplerende noter."
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              "description": "Liste over mål og KPI’er relateret til governance."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
