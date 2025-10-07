@@ -6,7 +6,7 @@ import { factors } from '../factors'
 
 type ImpactsDetails = NonNullable<D1Input['impactsRisksOpportunities']>
 type TargetsDetails = NonNullable<D1Input['targetsAndKpis']>
-type TargetLine = TargetsDetails['kpis'] extends Array<infer Item> ? Item : never
+type TargetLine = NonNullable<NonNullable<D1Input['targetsAndKpis']>['kpis']>[number]
 type ValueChainCoverage = NonNullable<ImpactsDetails['valueChainCoverage']>
 type TimeHorizonValue = NonNullable<ImpactsDetails['timeHorizons']>[number]
 
@@ -163,7 +163,7 @@ export function runD1(input: ModuleInput): ModuleResult {
   const valueChainCoverage = impacts?.valueChainCoverage ?? null
   const timeHorizons = impacts?.timeHorizons ?? []
   const quantitativeTargets = targets?.hasQuantitativeTargets ?? null
-  const rawKpis = targets?.kpis ?? []
+  const rawKpis: TargetLine[] = targets?.kpis ?? []
   const meaningfulKpis = rawKpis.filter(hasAnyKpiData)
 
   const hasAnyInput =
@@ -210,42 +210,50 @@ export function runD1(input: ModuleInput): ModuleResult {
   }
 
   const warnings: string[] = []
+  const boundaryWarning =
+    boundary == null
+      ? 'Vælg et konsolideringsprincip for at dokumentere organisatorisk afgrænsning.'
+      : undefined
+
+  const scope2Warning =
+    scope2Method == null
+      ? 'Vælg primær Scope 2 metode (location- eller market-based).'
+      : undefined
+
+  const scope3Warning =
+    screeningCompleted === true
+      ? undefined
+      : screeningCompleted === false
+        ? 'Markér screening som gennemført, når scope 3 kategorier er vurderet.'
+        : 'Angiv om Scope 3 screening er gennemført.'
+
+  const dataQualityWarning =
+    dataQuality == null
+      ? 'Vælg dominerende datakvalitet for rapporteringen.'
+      : dataQuality === 'proxy'
+        ? 'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
+        : undefined
+
   const metrics: Array<{ label: string; score: number; warning?: string }> = [
     {
       label: 'organizationalBoundary',
       score: boundary == null ? 0 : boundaryScores[boundary] ?? 0,
-      warning:
-        boundary == null
-          ? 'Vælg et konsolideringsprincip for at dokumentere organisatorisk afgrænsning.'
-          : undefined
+      ...(boundaryWarning ? { warning: boundaryWarning } : {})
     },
     {
       label: 'scope2Method',
       score: scope2Method == null ? 0 : scope2MethodScores[scope2Method] ?? 0,
-      warning:
-        scope2Method == null
-          ? 'Vælg primær Scope 2 metode (location- eller market-based).'
-          : undefined
+      ...(scope2Warning ? { warning: scope2Warning } : {})
     },
     {
       label: 'scope3ScreeningCompleted',
       score: screeningCompleted === true ? 1 : screeningCompleted === false ? 0.4 : 0,
-      warning:
-        screeningCompleted === true
-          ? undefined
-          : screeningCompleted === false
-            ? 'Markér screening som gennemført, når scope 3 kategorier er vurderet.'
-            : 'Angiv om Scope 3 screening er gennemført.'
+      ...(scope3Warning ? { warning: scope3Warning } : {})
     },
     {
       label: 'dataQuality',
       score: dataQuality == null ? 0 : dataQualityScores[dataQuality] ?? 0,
-      warning:
-        dataQuality == null
-          ? 'Vælg dominerende datakvalitet for rapporteringen.'
-          : dataQuality === 'proxy'
-            ? 'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
-            : undefined
+      ...(dataQualityWarning ? { warning: dataQualityWarning } : {})
     }
   ]
 
@@ -272,15 +280,17 @@ export function runD1(input: ModuleInput): ModuleResult {
   trace.push(...governanceGroup.traceEntries)
 
   const hasCommittee = governance?.hasEsgCommittee ?? null
+  const committeeWarning =
+    hasCommittee === true
+      ? undefined
+      : hasCommittee === false
+        ? 'Dokumentér mandatet for ESG-/bæredygtighedsudvalget for at styrke governance.'
+        : 'Angiv om der er et dedikeret ESG-/bæredygtighedsudvalg.'
+
   metrics.push({
     label: 'esgCommittee',
     score: hasCommittee === true ? 1 : hasCommittee === false ? 0.6 : 0,
-    warning:
-      hasCommittee === true
-        ? undefined
-        : hasCommittee === false
-          ? 'Dokumentér mandatet for ESG-/bæredygtighedsudvalget for at styrke governance.'
-          : 'Angiv om der er et dedikeret ESG-/bæredygtighedsudvalg.'
+    ...(committeeWarning ? { warning: committeeWarning } : {})
   })
 
   const impactsGroup = evaluateTextGroup('impactsProcess', impactsEntries)
@@ -288,19 +298,21 @@ export function runD1(input: ModuleInput): ModuleResult {
   warnings.push(...impactsGroup.warnings)
   trace.push(...impactsGroup.traceEntries)
 
+  const valueChainWarning =
+    valueChainCoverage == null
+      ? 'Angiv hvor stor en del af værdikæden analysen dækker.'
+      : valueChainCoverage === 'ownOperations'
+        ? 'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.'
+        : valueChainCoverage === 'upstreamOnly' || valueChainCoverage === 'downstreamOnly'
+          ? 'Dæk både upstream og downstream for at opnå fuld score.'
+          : valueChainCoverage === 'upstreamAndDownstream'
+            ? 'Dokumentér fuld værdikædedækning for at opnå 100 % score.'
+            : undefined
+
   metrics.push({
     label: 'valueChainCoverage',
     score: valueChainCoverage == null ? 0 : valueChainCoverageScores[valueChainCoverage] ?? 0,
-    warning:
-      valueChainCoverage == null
-        ? 'Angiv hvor stor en del af værdikæden analysen dækker.'
-        : valueChainCoverage === 'ownOperations'
-          ? 'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.'
-          : valueChainCoverage === 'upstreamOnly' || valueChainCoverage === 'downstreamOnly'
-            ? 'Dæk både upstream og downstream for at opnå fuld score.'
-            : valueChainCoverage === 'upstreamAndDownstream'
-              ? 'Dokumentér fuld værdikædedækning for at opnå 100 % score.'
-              : undefined
+    ...(valueChainWarning ? { warning: valueChainWarning } : {})
   })
 
   const uniqueHorizons = Array.from(new Set(timeHorizons))
@@ -323,7 +335,7 @@ export function runD1(input: ModuleInput): ModuleResult {
   metrics.push({
     label: 'timeHorizons',
     score: timeHorizonScore,
-    warning: timeHorizonWarning
+    ...(timeHorizonWarning ? { warning: timeHorizonWarning } : {})
   })
 
   const targetGroup = evaluateTextGroup('targetsNarrative', targetEntries)
@@ -331,15 +343,17 @@ export function runD1(input: ModuleInput): ModuleResult {
   warnings.push(...targetGroup.warnings)
   trace.push(...targetGroup.traceEntries)
 
+  const quantitativeWarning =
+    quantitativeTargets === true
+      ? undefined
+      : quantitativeTargets === false
+        ? 'Overvej at opstille kvantitative mål for væsentlige impacts og risici.'
+        : 'Angiv om organisationen har kvantitative mål.'
+
   metrics.push({
     label: 'quantitativeTargets',
     score: quantitativeTargets === true ? 1 : quantitativeTargets === false ? 0.6 : 0,
-    warning:
-      quantitativeTargets === true
-        ? undefined
-        : quantitativeTargets === false
-          ? 'Overvej at opstille kvantitative mål for væsentlige impacts og risici.'
-          : 'Angiv om organisationen har kvantitative mål.'
+    ...(quantitativeWarning ? { warning: quantitativeWarning } : {})
   })
 
   const kpiScore =
@@ -358,7 +372,11 @@ export function runD1(input: ModuleInput): ModuleResult {
         ? 'Tilføj flere KPI’er for at dække alle væsentlige mål.'
         : undefined
 
-  metrics.push({ label: 'kpiCoverage', score: kpiScore, warning: kpiWarning })
+  metrics.push({
+    label: 'kpiCoverage',
+    score: kpiScore,
+    ...(kpiWarning ? { warning: kpiWarning } : {})
+  })
 
   const totalScore = metrics.reduce((sum, metric) => sum + metric.score, 0)
   const averageScore = totalScore / metrics.length
@@ -495,11 +513,7 @@ function evaluateTextGroup(label: string, entries: TextGroupEntry[]): TextGroupR
   }
 }
 
-function hasAnyKpiData(line: TargetLine | null | undefined): boolean {
-  if (!line) {
-    return false
-  }
-
+function hasAnyKpiData(line: TargetLine): boolean {
   return (
     normaliseText(line.name).length > 0 ||
     normaliseText(line.kpi).length > 0 ||
