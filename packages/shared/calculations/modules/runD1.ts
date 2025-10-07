@@ -5,7 +5,6 @@ import type { D1Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
 
 type ImpactsDetails = NonNullable<D1Input['impactsRisksOpportunities']>
-type TargetsDetails = NonNullable<D1Input['targetsAndKpis']>
 type TargetLine = NonNullable<NonNullable<D1Input['targetsAndKpis']>['kpis']>[number]
 type ValueChainCoverage = NonNullable<ImpactsDetails['valueChainCoverage']>
 type TimeHorizonValue = NonNullable<ImpactsDetails['timeHorizons']>[number]
