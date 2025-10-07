@@ -219,6 +219,39 @@ export type ModuleActionItem = {
   status: E1ActionStatus | null
 }
 
+export type ModuleNarrative = {
+  label: string
+  content: string
+}
+
+export type ModuleResponsibility = {
+  subject: string
+  owner: string
+  role?: string | null
+}
+
+export type ModuleNote = {
+  label: string
+  detail: string
+}
+
+export type ModuleDoubleMaterialityTopic = {
+  name: string
+  impactScore: number
+  financialScore: number
+  combinedScore: number
+  riskType: string | null
+  timeline: string | null
+  responsible: string | null
+  csrdGapStatus: string | null
+}
+
+export type ModuleDoubleMateriality = {
+  summary: string
+  topics: ModuleDoubleMaterialityTopic[]
+  gapAlerts: string[]
+}
+
 export type ModuleResult = {
   value: number
   unit: string
@@ -231,6 +264,10 @@ export type ModuleResult = {
   energyMix?: ModuleEnergyMixEntry[]
   targetsOverview?: ModuleTargetSummary[]
   plannedActions?: ModuleActionItem[]
+  narratives?: ModuleNarrative[]
+  responsibilities?: ModuleResponsibility[]
+  notes?: ModuleNote[]
+  doubleMateriality?: ModuleDoubleMateriality | null
 }
 
 export type ModuleCalculator = (input: ModuleInput) => ModuleResult

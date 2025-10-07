@@ -58,6 +58,68 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
     warnings,
     targetsOverview: sanitisedTargets,
     plannedActions: sanitisedActions,
+    narratives: [
+      ...sanitisedTargets
+        .map((target) => {
+          if (!target.description) {
+            return null
+          }
+          return {
+            label: target.name,
+            content: target.description,
+          }
+        })
+        .filter((entry): entry is { label: string; content: string } => entry !== null),
+      ...sanitisedActions
+        .map((action) => {
+          if (!action.description) {
+            return null
+          }
+          return {
+            label: action.title ?? 'Handling',
+            content: action.description,
+          }
+        })
+        .filter((entry): entry is { label: string; content: string } => entry !== null),
+    ],
+    responsibilities: [
+      ...sanitisedTargets
+        .map((target) => {
+          if (!target.owner) {
+            return null
+          }
+          return {
+            subject: target.name,
+            owner: target.owner,
+            role: `Mål (${target.scope})`,
+          }
+        })
+        .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null),
+      ...sanitisedActions
+        .map((action) => {
+          if (!action.owner) {
+            return null
+          }
+          return {
+            subject: action.title ?? 'Handling',
+            owner: action.owner,
+            role: 'Klimahandling',
+          }
+        })
+        .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null),
+    ],
+    notes: [
+      ...sanitisedTargets.map((target) => ({
+        label: `${target.name} (${target.scope})`,
+        detail: `Baseline ${target.baselineYear ?? 'n/a'}: ${target.baselineValueTonnes ?? 'n/a'} t · Mål ${
+          target.targetYear ?? 'n/a'
+        }: ${target.targetValueTonnes ?? 'n/a'} t · Status: ${target.status ?? 'ukendt'}`,
+      })),
+      ...sanitisedActions.map((action, index) => ({
+        label: action.title ?? `Handling ${index + 1}`,
+        detail: `Deadline: ${action.dueQuarter ?? 'ukendt'} · Status: ${action.status ?? 'ukendt'}`,
+      })),
+    ],
   }
 }
 

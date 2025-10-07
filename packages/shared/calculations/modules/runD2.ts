@@ -18,6 +18,7 @@ type NormalisedTopic = {
   timeline: MaterialityTopic['timeline']
   responsible: MaterialityTopic['responsible']
   csrdGapStatus: MaterialityTopic['csrdGapStatus']
+  description: string | null
   missingImpact: boolean
   missingFinancial: boolean
 }
@@ -82,6 +83,8 @@ export function runD2(input: ModuleInput): ModuleResult {
     const combinedScore =
       resolvedImpact * d2.impactWeight + resolvedFinancial * d2.financialWeight
 
+    const description = typeof topic?.description === 'string' ? topic.description.trim() : null
+
     normalisedTopics.push({
       index,
       name,
@@ -92,6 +95,7 @@ export function runD2(input: ModuleInput): ModuleResult {
       timeline: topic?.timeline ?? null,
       responsible: topic?.responsible ?? null,
       csrdGapStatus: topic?.csrdGapStatus ?? null,
+      description: description && description.length > 0 ? description : null,
       missingImpact,
       missingFinancial
     })
@@ -179,12 +183,65 @@ export function runD2(input: ModuleInput): ModuleResult {
   trace.push(`prioritised=${prioritisedTopics.length}`)
   trace.push(`attention=${attentionTopics.length}`)
 
+  const narratives = normalisedTopics
+    .map((topic) => {
+      if (!topic.description) {
+        return null
+      }
+      return {
+        label: topic.name,
+        content: topic.description,
+      }
+    })
+    .filter((entry): entry is { label: string; content: string } => entry !== null)
+
+  const responsibilities = normalisedTopics
+    .map((topic) => {
+      if (!topic.responsible) {
+        return null
+      }
+      return {
+        subject: topic.name,
+        owner: topic.responsible,
+        role: 'Materialitet',
+      }
+    })
+    .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null)
+
+  const notes = normalisedTopics.map((topic) => ({
+    label: topic.name,
+    detail: `Tidslinje: ${topic.timeline ?? 'ukendt'} · Risiko: ${topic.riskType ?? 'ukendt'} · CSRD-gap: ${
+      topic.csrdGapStatus ?? 'ukendt'
+    }`,
+  }))
+
+  const gapAlerts = normalisedTopics
+    .filter((topic) => topic.csrdGapStatus === 'missing')
+    .map((topic) => topic.name)
+
   return {
     value,
     unit: d2.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    narratives,
+    responsibilities,
+    notes,
+    doubleMateriality: {
+      summary: `Prioriterede emner: ${prioritisedTopics.length} · Observationer: ${normalisedTopics.length}`,
+      topics: normalisedTopics.map((topic) => ({
+        name: topic.name,
+        impactScore: topic.impactScore,
+        financialScore: topic.financialScore,
+        combinedScore: Number(topic.combinedScore.toFixed(2)),
+        riskType: topic.riskType ?? null,
+        timeline: topic.timeline ?? null,
+        responsible: topic.responsible ?? null,
+        csrdGapStatus: topic.csrdGapStatus ?? null,
+      })),
+      gapAlerts,
+    },
   }
 }
 
