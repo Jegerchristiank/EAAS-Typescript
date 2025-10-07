@@ -1,40 +1,61 @@
 /**
- * Wizardtrin for modul S2 – diversitet, ligestilling og inklusion.
+ * Wizardtrin for modul S2 – værdikædearbejdere og arbejdsforhold.
  */
 'use client'
 
 import { useMemo } from 'react'
 import type { ChangeEvent } from 'react'
 
-import { runS2, type ModuleInput, type ModuleResult, type S2Input } from '@org/shared'
+import {
+  incidentSeverityLevelOptions,
+  remediationStatusOptions,
+  runS2,
+  s2IssueTypeOptions,
+  type ModuleInput,
+  type ModuleResult,
+  type S2Input
+} from '@org/shared'
 
 import type { WizardStepProps } from './StepTemplate'
 
 const EMPTY_S2: S2Input = {
-  genderBalance: [],
-  dataCoveragePercent: null,
-  equalityPolicyInPlace: null,
-  inclusionInitiativesNarrative: null
+  valueChainWorkersCount: null,
+  workersAtRiskCount: null,
+  valueChainCoveragePercent: null,
+  highRiskSupplierSharePercent: null,
+  livingWageCoveragePercent: null,
+  collectiveBargainingCoveragePercent: null,
+  socialAuditsCompletedPercent: null,
+  grievancesOpenCount: null,
+  grievanceMechanismForWorkers: null,
+  incidents: [],
+  socialDialogueNarrative: null,
+  remediationNarrative: null
 }
 
-type DiversityRow = NonNullable<S2Input['genderBalance']>[number]
+type IncidentRow = NonNullable<S2Input['incidents']>[number]
 
-type NumericField = 'dataCoveragePercent'
+type NumericField =
+  | 'valueChainWorkersCount'
+  | 'workersAtRiskCount'
+  | 'valueChainCoveragePercent'
+  | 'highRiskSupplierSharePercent'
+  | 'livingWageCoveragePercent'
+  | 'collectiveBargainingCoveragePercent'
+  | 'socialAuditsCompletedPercent'
+  | 'grievancesOpenCount'
 
-type RowNumericField = 'femalePercent' | 'malePercent' | 'otherPercent' | 'payGapPercent'
+const MAX_NARRATIVE_LENGTH = 2000
 
-type RowTextField = 'level'
-
-const MAX_INITIATIVE_TEXT = 2000
-
-function createEmptyRow(): DiversityRow {
+function createEmptyIncident(): IncidentRow {
   return {
-    level: '',
-    femalePercent: null,
-    malePercent: null,
-    otherPercent: null,
-    payGapPercent: null,
-    targetNarrative: null
+    supplier: '',
+    country: '',
+    issueType: null,
+    workersAffected: null,
+    severityLevel: 'medium',
+    remediationStatus: null,
+    description: null
   }
 }
 
@@ -49,7 +70,7 @@ function parseNumber(value: string): number | null {
 
 export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
   const current = (state.S2 as S2Input | undefined) ?? EMPTY_S2
-  const rows = current.genderBalance ?? []
+  const incidents = current.incidents ?? []
 
   const preview = useMemo<ModuleResult>(() => runS2({ S2: current } as ModuleInput), [current])
 
@@ -57,265 +78,464 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
     onChange('S2', { ...current, ...partial })
   }
 
-  const handleCoverageChange = (event: ChangeEvent<HTMLInputElement>) => {
-    updateRoot({ dataCoveragePercent: parseNumber(event.target.value) })
+  const handleNumericChange = (field: NumericField) => (event: ChangeEvent<HTMLInputElement>) => {
+    updateRoot({ [field]: parseNumber(event.target.value) } as Partial<S2Input>)
   }
 
-  const handlePolicyChange = (value: boolean | null) => () => {
-    updateRoot({ equalityPolicyInPlace: value })
+  const handleMechanismChange = (value: boolean | null) => () => {
+    updateRoot({ grievanceMechanismForWorkers: value })
   }
 
-  const handleNarrativeChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    const text = event.target.value.slice(0, MAX_INITIATIVE_TEXT)
-    updateRoot({ inclusionInitiativesNarrative: text.trim() === '' ? null : text })
+  const handleNarrativeChange = (field: 'socialDialogueNarrative' | 'remediationNarrative') => (
+    event: ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const text = event.target.value.slice(0, MAX_NARRATIVE_LENGTH)
+    updateRoot({ [field]: text.trim() === '' ? null : text } as Partial<S2Input>)
   }
 
-  const handleAddRow = () => {
-    updateRoot({ genderBalance: [...rows, createEmptyRow()] })
+  const handleAddIncident = () => {
+    updateRoot({ incidents: [...incidents, createEmptyIncident()] })
   }
 
-  const handleRemoveRow = (index: number) => () => {
-    updateRoot({ genderBalance: rows.filter((_, rowIndex) => rowIndex !== index) })
+  const handleRemoveIncident = (index: number) => () => {
+    updateRoot({ incidents: incidents.filter((_, rowIndex) => rowIndex !== index) })
   }
 
-  const handleRowTextChange = (index: number, field: RowTextField) => (
+  const handleIncidentTextChange = (index: number, field: 'supplier' | 'country') => (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const next = rows.map((row, rowIndex) =>
+    const limit = field === 'supplier' ? 160 : 120
+    const value = event.target.value.slice(0, limit)
+    const next = incidents.map((incident, rowIndex) =>
       rowIndex === index
         ? {
-            ...row,
-            [field]: event.target.value.slice(0, 120)
+            ...incident,
+            [field]: value.trim() === '' ? '' : value
           }
-        : row
+        : incident
     )
-    updateRoot({ genderBalance: next })
+    updateRoot({ incidents: next })
   }
 
-  const handleRowNumericChange = (index: number, field: RowNumericField) => (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleIncidentNumericChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
     const parsed = parseNumber(event.target.value)
-    const next = rows.map((row, rowIndex) =>
+    const next = incidents.map((incident, rowIndex) =>
       rowIndex === index
         ? {
-            ...row,
-            [field]: parsed
+            ...incident,
+            workersAffected: parsed
           }
-        : row
+        : incident
     )
-    updateRoot({ genderBalance: next })
+    updateRoot({ incidents: next })
   }
 
-  const handleRowNarrativeChange = (index: number) => (
-    event: ChangeEvent<HTMLInputElement>
+  const handleIncidentSelectChange = (index: number, field: 'issueType' | 'severityLevel' | 'remediationStatus') => (
+    event: ChangeEvent<HTMLSelectElement>
   ) => {
-    const value = event.target.value.slice(0, 500)
-    const next = rows.map((row, rowIndex) =>
+    const value = event.target.value
+    const next = incidents.map((incident, rowIndex) =>
       rowIndex === index
         ? {
-            ...row,
-            targetNarrative: value.trim() === '' ? null : value
+            ...incident,
+            [field]: value === '' ? null : (value as IncidentRow[typeof field])
           }
-        : row
+        : incident
     )
-    updateRoot({ genderBalance: next })
+    updateRoot({ incidents: next })
   }
 
-  const hasRows = rows.length > 0
+  const handleIncidentDescriptionChange = (index: number) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const text = event.target.value.slice(0, 500)
+    const next = incidents.map((incident, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...incident,
+            description: text.trim() === '' ? null : text
+          }
+        : incident
+    )
+    updateRoot({ incidents: next })
+  }
+
+  const hasIncidents = incidents.length > 0
   const hasInput =
-    hasRows ||
-    current.dataCoveragePercent != null ||
-    current.equalityPolicyInPlace != null ||
-    (current.inclusionInitiativesNarrative ?? '').length > 0
+    hasIncidents ||
+    current.valueChainWorkersCount != null ||
+    current.valueChainCoveragePercent != null ||
+    current.grievanceMechanismForWorkers != null ||
+    (current.socialDialogueNarrative ?? '').length > 0 ||
+    (current.remediationNarrative ?? '').length > 0
 
   return (
     <form className="ds-form ds-stack" noValidate>
       <header className="ds-stack-sm">
-        <h2 className="ds-heading-sm">S2 – Diversitet og ligestilling</h2>
+        <h2 className="ds-heading-sm">S2 – Værdikædearbejdere</h2>
         <p className="ds-text-muted">
-          Indtast kønsfordeling for centrale ledelsesniveauer samt løngab og initiativer. Modulet beregner automatisk score og
-          flagger ubalancer.
+          Kortlæg antal arbejdstagere i værdikæden, dækning af sociale audits og klagemekanismer. Registrér alvorlige hændelser,
+          så ESRS S2-kravene kan dokumenteres og følges op.
         </p>
       </header>
 
-      <section className="ds-card ds-stack" aria-label="Diversitetsdata">
+      <section className="ds-card ds-stack" aria-label="Nøgletal for værdikædearbejdere">
         <div className="ds-stack-sm ds-stack--responsive">
           <label className="ds-field">
-            <span>Datadækning (%)</span>
+            <span>Arbejdstagere i værdikæden</span>
             <input
               type="number"
-              value={current.dataCoveragePercent ?? ''}
-              onChange={handleCoverageChange}
+              value={current.valueChainWorkersCount ?? ''}
+              onChange={handleNumericChange('valueChainWorkersCount')}
+              className="ds-input"
+              min={0}
+              placeholder="2500"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Særligt udsatte arbejdstagere</span>
+            <input
+              type="number"
+              value={current.workersAtRiskCount ?? ''}
+              onChange={handleNumericChange('workersAtRiskCount')}
+              className="ds-input"
+              min={0}
+              placeholder="120"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Risikodækning (%)</span>
+            <input
+              type="number"
+              value={current.valueChainCoveragePercent ?? ''}
+              onChange={handleNumericChange('valueChainCoveragePercent')}
               className="ds-input"
               min={0}
               max={100}
-              placeholder="95"
+              placeholder="75"
             />
           </label>
-
-          <fieldset className="ds-field" style={{ border: 'none', padding: 0 }}>
-            <legend>Formel ligestillingspolitik</legend>
-            <div className="ds-stack-xs ds-stack--horizontal">
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.equalityPolicyInPlace === true ? 'primary' : 'ghost'}
-                onClick={handlePolicyChange(true)}
-              >
-                Ja
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.equalityPolicyInPlace === false ? 'primary' : 'ghost'}
-                onClick={handlePolicyChange(false)}
-              >
-                Nej
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.equalityPolicyInPlace == null ? 'primary' : 'ghost'}
-                onClick={handlePolicyChange(null)}
-              >
-                Ikke angivet
-              </button>
-            </div>
-          </fieldset>
+          <label className="ds-field">
+            <span>Højrisiko-leverandører (%)</span>
+            <input
+              type="number"
+              value={current.highRiskSupplierSharePercent ?? ''}
+              onChange={handleNumericChange('highRiskSupplierSharePercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="18"
+            />
+          </label>
         </div>
 
-        <div className="ds-stack">
-          <header className="ds-stack-xs">
-            <h3 className="ds-heading-xs">Kønsfordeling pr. niveau</h3>
-            <p className="ds-text-subtle">
-              Registrér de vigtigste niveauer fra bestyrelse til samlet medarbejdergruppe. Tilføj løngab og narrative noter for
-              tiltag.
-            </p>
-            <button type="button" className="ds-button" onClick={handleAddRow}>
-              Tilføj niveau
+        <div className="ds-stack-sm ds-stack--responsive">
+          <label className="ds-field">
+            <span>Dækning med leve-/mindsteløn (%)</span>
+            <input
+              type="number"
+              value={current.livingWageCoveragePercent ?? ''}
+              onChange={handleNumericChange('livingWageCoveragePercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="82"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Kollektive aftaler (%)</span>
+            <input
+              type="number"
+              value={current.collectiveBargainingCoveragePercent ?? ''}
+              onChange={handleNumericChange('collectiveBargainingCoveragePercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="55"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Sociale audits gennemført (%)</span>
+            <input
+              type="number"
+              value={current.socialAuditsCompletedPercent ?? ''}
+              onChange={handleNumericChange('socialAuditsCompletedPercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="90"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Åbne klager</span>
+            <input
+              type="number"
+              value={current.grievancesOpenCount ?? ''}
+              onChange={handleNumericChange('grievancesOpenCount')}
+              className="ds-input"
+              min={0}
+              placeholder="2"
+            />
+          </label>
+        </div>
+
+        <fieldset className="ds-field" style={{ border: 'none', padding: 0 }}>
+          <legend>Klagemekanisme for leverandørarbejdere</legend>
+          <div className="ds-stack-xs ds-stack--horizontal">
+            <button
+              type="button"
+              className="ds-button"
+              data-variant={current.grievanceMechanismForWorkers === true ? 'primary' : 'ghost'}
+              onClick={handleMechanismChange(true)}
+            >
+              Etableret
             </button>
-          </header>
+            <button
+              type="button"
+              className="ds-button"
+              data-variant={current.grievanceMechanismForWorkers === false ? 'primary' : 'ghost'}
+              onClick={handleMechanismChange(false)}
+            >
+              Mangler
+            </button>
+            <button
+              type="button"
+              className="ds-button"
+              data-variant={current.grievanceMechanismForWorkers == null ? 'primary' : 'ghost'}
+              onClick={handleMechanismChange(null)}
+            >
+              Ikke angivet
+            </button>
+          </div>
+        </fieldset>
+      </section>
 
-          {hasRows ? (
-            <div className="ds-stack" role="group" aria-label="Ligestillingsdata">
-              {rows.map((row, index) => (
-                <div key={index} className="ds-card ds-stack-sm" data-variant="subtle">
-                  <div className="ds-stack-sm ds-stack--responsive">
-                    <label className="ds-field">
-                      <span>Niveau</span>
-                      <input
-                        value={row.level ?? ''}
-                        onChange={handleRowTextChange(index, 'level')}
-                        className="ds-input"
-                        placeholder="Ledelse"
-                      />
-                    </label>
-                    <label className="ds-field">
-                      <span>Kvinder (%)</span>
-                      <input
-                        type="number"
-                        value={row.femalePercent ?? ''}
-                        onChange={handleRowNumericChange(index, 'femalePercent')}
-                        className="ds-input"
-                        min={0}
-                        max={100}
-                        placeholder="45"
-                      />
-                    </label>
-                    <label className="ds-field">
-                      <span>Mænd (%)</span>
-                      <input
-                        type="number"
-                        value={row.malePercent ?? ''}
-                        onChange={handleRowNumericChange(index, 'malePercent')}
-                        className="ds-input"
-                        min={0}
-                        max={100}
-                        placeholder="55"
-                      />
-                    </label>
-                    <label className="ds-field">
-                      <span>Øvrige (%)</span>
-                      <input
-                        type="number"
-                        value={row.otherPercent ?? ''}
-                        onChange={handleRowNumericChange(index, 'otherPercent')}
-                        className="ds-input"
-                        min={0}
-                        max={100}
-                        placeholder="0"
-                      />
-                    </label>
-                    <label className="ds-field">
-                      <span>Løngab (%)</span>
-                      <input
-                        type="number"
-                        value={row.payGapPercent ?? ''}
-                        onChange={handleRowNumericChange(index, 'payGapPercent')}
-                        className="ds-input"
-                        min={-100}
-                        max={100}
-                        placeholder="2"
-                      />
-                    </label>
-                  </div>
+      <section className="ds-card ds-stack" aria-label="Registrerede hændelser">
+        <header className="ds-stack-xs">
+          <h3 className="ds-heading-xs">Alvorlige hændelser i værdikæden</h3>
+          <p className="ds-text-subtle">
+            Registrér leverandører eller sites med identificerede påvirkninger. Tilføj antal berørte arbejdstagere, alvorlighed
+            og status for remediering.
+          </p>
+          <button type="button" className="ds-button" onClick={handleAddIncident}>
+            Tilføj hændelse
+          </button>
+        </header>
 
+        {hasIncidents ? (
+          <div className="ds-stack" role="group" aria-label="Hændelsesliste">
+            {incidents.map((incident, index) => (
+              <div key={index} className="ds-card ds-stack-sm" data-variant="subtle">
+                <div className="ds-stack-sm ds-stack--responsive">
                   <label className="ds-field">
-                    <span>Indsatser/targets</span>
+                    <span>Leverandør/site</span>
                     <input
-                      value={row.targetNarrative ?? ''}
-                      onChange={handleRowNarrativeChange(index)}
+                      value={incident.supplier ?? ''}
+                      onChange={handleIncidentTextChange(index, 'supplier')}
                       className="ds-input"
-                      placeholder="Mentorprogram, mål om 45% kvinder i 2026"
+                      placeholder="Fx ABC Textiles"
                     />
                   </label>
-
-                  <div className="ds-stack-xs">
-                    <button type="button" className="ds-button ds-button--ghost" onClick={handleRemoveRow(index)}>
-                      Fjern niveau
-                    </button>
-                  </div>
+                  <label className="ds-field">
+                    <span>Land/område</span>
+                    <input
+                      value={incident.country ?? ''}
+                      onChange={handleIncidentTextChange(index, 'country')}
+                      className="ds-input"
+                      placeholder="Bangladesh"
+                    />
+                  </label>
+                  <label className="ds-field">
+                    <span>Hændelsestype</span>
+                    <select
+                      className="ds-input"
+                      value={incident.issueType ?? ''}
+                      onChange={handleIncidentSelectChange(index, 'issueType')}
+                    >
+                      <option value="">Vælg</option>
+                      {s2IssueTypeOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateIssueType(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="ds-field">
+                    <span>Berørte arbejdstagere</span>
+                    <input
+                      type="number"
+                      value={incident.workersAffected ?? ''}
+                      onChange={handleIncidentNumericChange(index)}
+                      className="ds-input"
+                      min={0}
+                      placeholder="45"
+                    />
+                  </label>
+                  <label className="ds-field">
+                    <span>Alvorlighed</span>
+                    <select
+                      className="ds-input"
+                      value={incident.severityLevel ?? ''}
+                      onChange={handleIncidentSelectChange(index, 'severityLevel')}
+                    >
+                      <option value="">Vælg</option>
+                      {incidentSeverityLevelOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateSeverity(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="ds-field">
+                    <span>Remediering</span>
+                    <select
+                      className="ds-input"
+                      value={incident.remediationStatus ?? ''}
+                      onChange={handleIncidentSelectChange(index, 'remediationStatus')}
+                    >
+                      <option value="">Vælg</option>
+                      {remediationStatusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateRemediation(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
-              ))}
+
+                <label className="ds-field">
+                  <span>Beskrivelse</span>
+                  <textarea
+                    value={incident.description ?? ''}
+                    onChange={handleIncidentDescriptionChange(index)}
+                    className="ds-textarea"
+                    rows={3}
+                    maxLength={500}
+                    placeholder="Kort beskrivelse af fund og aftalte handlinger"
+                  />
+                </label>
+
+                <div className="ds-stack-xs ds-stack--horizontal ds-justify-end">
+                  <button type="button" className="ds-button" data-variant="danger" onClick={handleRemoveIncident(index)}>
+                    Fjern
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="ds-text-subtle">Ingen hændelser registreret endnu.</p>
+        )}
+      </section>
+
+      <section className="ds-card ds-stack" aria-label="Narrativer">
+        <label className="ds-field">
+          <span>Dialog og træning af leverandørarbejdere</span>
+          <textarea
+            value={current.socialDialogueNarrative ?? ''}
+            onChange={handleNarrativeChange('socialDialogueNarrative')}
+            className="ds-textarea"
+            rows={4}
+            maxLength={MAX_NARRATIVE_LENGTH}
+            placeholder="Beskriv engagement, træningsprogrammer og samarbejde med fagforeninger."
+          />
+        </label>
+        <label className="ds-field">
+          <span>Afhjælpning og kompensation</span>
+          <textarea
+            value={current.remediationNarrative ?? ''}
+            onChange={handleNarrativeChange('remediationNarrative')}
+            className="ds-textarea"
+            rows={4}
+            maxLength={MAX_NARRATIVE_LENGTH}
+            placeholder="Opsummer planer for kompensation, forbedringer og opfølgning med leverandører."
+          />
+        </label>
+      </section>
+
+      <section className="ds-summary ds-stack-sm">
+        <h3 className="ds-heading-sm">Status</h3>
+        {hasInput ? (
+          <div className="ds-stack-sm">
+            <p className="ds-value">
+              {preview.value} {preview.unit}
+            </p>
+            <div className="ds-stack-sm">
+              <strong>Antagelser</strong>
+              <ul>
+                {preview.assumptions.map((assumption, index) => (
+                  <li key={index}>{assumption}</li>
+                ))}
+              </ul>
             </div>
-          ) : (
-            <p className="ds-text-subtle">Ingen niveauer tilføjet endnu. Tilføj mindst ét for at beregne ligestillingsscore.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="ds-card ds-stack">
-        <h3 className="ds-heading-xs">Narrativ beskrivelse</h3>
-        <p className="ds-text-subtle">
-          Beskriv konkrete indsatser, pipeline-tiltag eller barrierer for ligestilling. Brug feltet til at dokumentere ESRS S1-krav
-          om politikker og handlinger.
-        </p>
-        <textarea
-          value={current.inclusionInitiativesNarrative ?? ''}
-          onChange={handleNarrativeChange}
-          maxLength={MAX_INITIATIVE_TEXT}
-          className="ds-textarea"
-          rows={4}
-          placeholder="Eksempel: Udvidet barselsordning, anonym rekruttering og KPI’er for ligestilling i ledelsen."
-        />
-      </section>
-
-      {hasInput && (
-        <aside className="ds-card ds-stack-sm" aria-live="polite">
-          <h3 className="ds-heading-xs">Forhåndsresultat</h3>
-          <p className="ds-text-strong">
-            {preview.value} {preview.unit}
-          </p>
-          <ul className="ds-stack-xs">
-            {preview.warnings.length === 0 ? (
-              <li className="ds-text-subtle">Ingen advarsler registreret.</li>
-            ) : (
-              preview.warnings.map((warning, index) => <li key={index}>{warning}</li>)
+            {preview.warnings.length > 0 && (
+              <div className="ds-stack-sm">
+                <strong>Advarsler</strong>
+                <ul>
+                  {preview.warnings.map((warning, index) => (
+                    <li key={index}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </ul>
-        </aside>
-      )}
+            <details className="ds-summary">
+              <summary>Teknisk trace</summary>
+              <ul>
+                {preview.trace.map((line, index) => (
+                  <li key={index} className="ds-code">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
+        ) : (
+          <p className="ds-text-muted">Udfyld felterne for at se beregnet social score og advarsler.</p>
+        )}
+      </section>
     </form>
   )
+}
+
+function translateIssueType(value: string): string {
+  switch (value) {
+    case 'healthAndSafety':
+      return 'Sundhed og sikkerhed'
+    case 'wagesAndBenefits':
+      return 'Løn og benefits'
+    case 'workingTime':
+      return 'Arbejdstid'
+    case 'freedomOfAssociation':
+      return 'Organisationsfrihed'
+    case 'childLabour':
+      return 'Børnearbejde'
+    case 'forcedLabour':
+      return 'Tvangsarbejde'
+    case 'discrimination':
+      return 'Diskrimination'
+    default:
+      return 'Andet'
+  }
+}
+
+function translateSeverity(value: string): string {
+  switch (value) {
+    case 'high':
+      return 'Høj'
+    case 'medium':
+      return 'Middel'
+    case 'low':
+    default:
+      return 'Lav'
+  }
+}
+
+function translateRemediation(value: string): string {
+  switch (value) {
+    case 'completed':
+      return 'Afsluttet'
+    case 'inProgress':
+      return 'I gang'
+    case 'notStarted':
+    default:
+      return 'Ikke startet'
+  }
 }

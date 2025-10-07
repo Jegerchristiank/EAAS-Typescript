@@ -1,5 +1,5 @@
 /**
- * Wizardtrin for modul S3 – arbejdsmiljø og hændelser.
+ * Wizardtrin for modul S3 – berørte lokalsamfund.
  */
 'use client'
 
@@ -7,8 +7,10 @@ import { useMemo } from 'react'
 import type { ChangeEvent } from 'react'
 
 import {
+  incidentSeverityLevelOptions,
+  remediationStatusOptions,
   runS3,
-  s3IncidentTypeOptions,
+  s3ImpactTypeOptions,
   type ModuleInput,
   type ModuleResult,
   type S3Input
@@ -17,27 +19,34 @@ import {
 import type { WizardStepProps } from './StepTemplate'
 
 const EMPTY_S3: S3Input = {
+  communitiesIdentifiedCount: null,
+  impactAssessmentsCoveragePercent: null,
+  highRiskCommunitySharePercent: null,
+  grievancesOpenCount: null,
   incidents: [],
-  totalHoursWorked: null,
-  safetyCertification: null,
-  safetyNarrative: null
+  engagementNarrative: null,
+  remedyNarrative: null
 }
 
-type IncidentRow = NonNullable<S3Input['incidents']>[number]
+type ImpactRow = NonNullable<S3Input['incidents']>[number]
 
-type NumericField = 'totalHoursWorked'
+type NumericField =
+  | 'communitiesIdentifiedCount'
+  | 'impactAssessmentsCoveragePercent'
+  | 'highRiskCommunitySharePercent'
+  | 'grievancesOpenCount'
 
-type RowNumericField = 'count' | 'ratePerMillionHours'
+const MAX_NARRATIVE_LENGTH = 2000
 
-const MAX_SAFETY_TEXT = 2000
-
-function createEmptyIncident(): IncidentRow {
+function createEmptyImpact(): ImpactRow {
   return {
-    incidentType: 'recordable',
-    count: null,
-    ratePerMillionHours: null,
-    description: null,
-    rootCauseClosed: null
+    community: '',
+    geography: '',
+    impactType: null,
+    householdsAffected: null,
+    severityLevel: 'medium',
+    remediationStatus: null,
+    description: null
   }
 }
 
@@ -52,7 +61,7 @@ function parseNumber(value: string): number | null {
 
 export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
   const current = (state.S3 as S3Input | undefined) ?? EMPTY_S3
-  const incidents = current.incidents ?? []
+  const impacts = current.incidents ?? []
 
   const preview = useMemo<ModuleResult>(() => runS3({ S3: current } as ModuleInput), [current])
 
@@ -64,266 +73,371 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
     updateRoot({ [field]: parseNumber(event.target.value) } as Partial<S3Input>)
   }
 
-  const handleCertificationChange = (value: boolean | null) => () => {
-    updateRoot({ safetyCertification: value })
+  const handleNarrativeChange = (field: 'engagementNarrative' | 'remedyNarrative') => (
+    event: ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const text = event.target.value.slice(0, MAX_NARRATIVE_LENGTH)
+    updateRoot({ [field]: text.trim() === '' ? null : text } as Partial<S3Input>)
   }
 
-  const handleNarrativeChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    const text = event.target.value.slice(0, MAX_SAFETY_TEXT)
-    updateRoot({ safetyNarrative: text.trim() === '' ? null : text })
+  const handleAddImpact = () => {
+    updateRoot({ incidents: [...impacts, createEmptyImpact()] })
   }
 
-  const handleAddIncident = () => {
-    updateRoot({ incidents: [...incidents, createEmptyIncident()] })
+  const handleRemoveImpact = (index: number) => () => {
+    updateRoot({ incidents: impacts.filter((_, rowIndex) => rowIndex !== index) })
   }
 
-  const handleRemoveIncident = (index: number) => () => {
-    updateRoot({ incidents: incidents.filter((_, rowIndex) => rowIndex !== index) })
-  }
-
-  const handleIncidentTypeChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value as IncidentRow['incidentType']
-    const next = incidents.map((incident, rowIndex) =>
+  const handleImpactTextChange = (index: number, field: 'community' | 'geography') => (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const limit = field === 'community' ? 160 : 120
+    const value = event.target.value.slice(0, limit)
+    const next = impacts.map((impact, rowIndex) =>
       rowIndex === index
         ? {
-            ...incident,
-            incidentType: value
+            ...impact,
+            [field]: value.trim() === '' ? '' : value
           }
-        : incident
+        : impact
     )
     updateRoot({ incidents: next })
   }
 
-  const handleIncidentNumericChange = (index: number, field: RowNumericField) => (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImpactNumericChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
     const parsed = parseNumber(event.target.value)
-    const next = incidents.map((incident, rowIndex) =>
+    const next = impacts.map((impact, rowIndex) =>
       rowIndex === index
         ? {
-            ...incident,
-            [field]: parsed
+            ...impact,
+            householdsAffected: parsed
           }
-        : incident
+        : impact
     )
     updateRoot({ incidents: next })
   }
 
-  const handleIncidentDescriptionChange = (index: number) => (
-    event: ChangeEvent<HTMLInputElement>
+  const handleImpactSelectChange = (index: number, field: 'impactType' | 'severityLevel' | 'remediationStatus') => (
+    event: ChangeEvent<HTMLSelectElement>
   ) => {
-    const value = event.target.value.slice(0, 240)
-    const next = incidents.map((incident, rowIndex) =>
+    const value = event.target.value
+    const next = impacts.map((impact, rowIndex) =>
       rowIndex === index
         ? {
-            ...incident,
-            description: value.trim() === '' ? null : value
+            ...impact,
+            [field]: value === '' ? null : (value as ImpactRow[typeof field])
           }
-        : incident
+        : impact
     )
     updateRoot({ incidents: next })
   }
 
-  const handleIncidentRootCauseChange = (index: number) => (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const checked = event.target.checked
-    const next = incidents.map((incident, rowIndex) =>
+  const handleImpactDescriptionChange = (index: number) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const text = event.target.value.slice(0, 500)
+    const next = impacts.map((impact, rowIndex) =>
       rowIndex === index
         ? {
-            ...incident,
-            rootCauseClosed: checked
+            ...impact,
+            description: text.trim() === '' ? null : text
           }
-        : incident
+        : impact
     )
     updateRoot({ incidents: next })
   }
 
-  const hasIncidents = incidents.length > 0
+  const hasImpacts = impacts.length > 0
   const hasInput =
-    hasIncidents ||
-    current.totalHoursWorked != null ||
-    current.safetyCertification != null ||
-    (current.safetyNarrative ?? '').length > 0
+    hasImpacts ||
+    current.communitiesIdentifiedCount != null ||
+    current.impactAssessmentsCoveragePercent != null ||
+    current.highRiskCommunitySharePercent != null ||
+    (current.engagementNarrative ?? '').length > 0 ||
+    (current.remedyNarrative ?? '').length > 0
 
   return (
     <form className="ds-form ds-stack" noValidate>
       <header className="ds-stack-sm">
-        <h2 className="ds-heading-sm">S3 – Arbejdsmiljø og hændelser</h2>
+        <h2 className="ds-heading-sm">S3 – Lokalsamfund og påvirkninger</h2>
         <p className="ds-text-muted">
-          Registrér arbejdsmiljøhændelser, arbejdstimer og certificering for at dokumentere ESRS S1/S3 nøgletal og narrativer.
+          Indsaml data om identificerede lokalsamfund, konsekvensanalyser og klager. Registrér væsentlige impacts, så kravene i
+          ESRS S3 kan dokumenteres.
         </p>
       </header>
 
-      <section className="ds-card ds-stack" aria-label="Arbejdstimer og certificering">
+      <section className="ds-card ds-stack" aria-label="Overblik over lokalsamfund">
         <div className="ds-stack-sm ds-stack--responsive">
           <label className="ds-field">
-            <span>Total arbejdstimer</span>
+            <span>Identificerede lokalsamfund</span>
             <input
               type="number"
-              value={current.totalHoursWorked ?? ''}
-              onChange={handleNumericChange('totalHoursWorked')}
+              value={current.communitiesIdentifiedCount ?? ''}
+              onChange={handleNumericChange('communitiesIdentifiedCount')}
               className="ds-input"
               min={0}
-              placeholder="2000000"
+              placeholder="6"
             />
           </label>
-
-          <fieldset className="ds-field" style={{ border: 'none', padding: 0 }}>
-            <legend>Arbejdsmiljøcertificering</legend>
-            <div className="ds-stack-xs ds-stack--horizontal">
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.safetyCertification === true ? 'primary' : 'ghost'}
-                onClick={handleCertificationChange(true)}
-              >
-                Ja (ISO 45001)
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.safetyCertification === false ? 'primary' : 'ghost'}
-                onClick={handleCertificationChange(false)}
-              >
-                Nej
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.safetyCertification == null ? 'primary' : 'ghost'}
-                onClick={handleCertificationChange(null)}
-              >
-                Ikke angivet
-              </button>
-            </div>
-          </fieldset>
+          <label className="ds-field">
+            <span>Konsekvensanalyser dækket (%)</span>
+            <input
+              type="number"
+              value={current.impactAssessmentsCoveragePercent ?? ''}
+              onChange={handleNumericChange('impactAssessmentsCoveragePercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="70"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Højrisiko-lokalsamfund (%)</span>
+            <input
+              type="number"
+              value={current.highRiskCommunitySharePercent ?? ''}
+              onChange={handleNumericChange('highRiskCommunitySharePercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="25"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Åbne klager</span>
+            <input
+              type="number"
+              value={current.grievancesOpenCount ?? ''}
+              onChange={handleNumericChange('grievancesOpenCount')}
+              className="ds-input"
+              min={0}
+              placeholder="1"
+            />
+          </label>
         </div>
       </section>
 
-      <section className="ds-card ds-stack" aria-label="Hændelser">
+      <section className="ds-card ds-stack" aria-label="Registrerede impacts">
         <header className="ds-stack-xs">
-          <h3 className="ds-heading-xs">Registrerede hændelser</h3>
+          <h3 className="ds-heading-xs">Negative påvirkninger</h3>
           <p className="ds-text-subtle">
-            Angiv type, antal og evt. rate pr. million timer. Markér også om rodårsagsanalyser er afsluttet.
+            Beskriv lokalsamfund, påvirkningstype og antal berørte husholdninger. Angiv status for remediering og alvorlighed.
           </p>
-          <button type="button" className="ds-button" onClick={handleAddIncident}>
-            Tilføj hændelse
+          <button type="button" className="ds-button" onClick={handleAddImpact}>
+            Tilføj påvirkning
           </button>
         </header>
 
-        {hasIncidents ? (
-          <div className="ds-stack" role="group" aria-label="Hændelsesrækker">
-            {incidents.map((incident, index) => (
+        {hasImpacts ? (
+          <div className="ds-stack" role="group" aria-label="Liste over påvirkninger">
+            {impacts.map((impact, index) => (
               <div key={index} className="ds-card ds-stack-sm" data-variant="subtle">
                 <div className="ds-stack-sm ds-stack--responsive">
                   <label className="ds-field">
-                    <span>Type</span>
-                    <select
-                      value={incident.incidentType}
-                      onChange={handleIncidentTypeChange(index)}
+                    <span>Lokalsamfund / projekt</span>
+                    <input
+                      value={impact.community ?? ''}
+                      onChange={handleImpactTextChange(index, 'community')}
                       className="ds-input"
+                      placeholder="Fx Landsby ved mineprojekt"
+                    />
+                  </label>
+                  <label className="ds-field">
+                    <span>Geografi</span>
+                    <input
+                      value={impact.geography ?? ''}
+                      onChange={handleImpactTextChange(index, 'geography')}
+                      className="ds-input"
+                      placeholder="Peru – Arequipa"
+                    />
+                  </label>
+                  <label className="ds-field">
+                    <span>Påvirkningstype</span>
+                    <select
+                      className="ds-input"
+                      value={impact.impactType ?? ''}
+                      onChange={handleImpactSelectChange(index, 'impactType')}
                     >
-                      {s3IncidentTypeOptions.map((option) => (
+                      <option value="">Vælg</option>
+                      {s3ImpactTypeOptions.map((option) => (
                         <option key={option} value={option}>
-                          {option === 'fatality'
-                            ? 'Fatalitet'
-                            : option === 'lostTime'
-                            ? 'Lost time'
-                            : option === 'recordable'
-                            ? 'Registrerbar'
-                            : 'Near miss'}
+                          {translateImpactType(option)}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="ds-field">
-                    <span>Antal</span>
+                    <span>Berørte husholdninger</span>
                     <input
                       type="number"
-                      value={incident.count ?? ''}
-                      onChange={handleIncidentNumericChange(index, 'count')}
+                      value={impact.householdsAffected ?? ''}
+                      onChange={handleImpactNumericChange(index)}
                       className="ds-input"
                       min={0}
-                      placeholder="1"
+                      placeholder="35"
                     />
                   </label>
                   <label className="ds-field">
-                    <span>Rate pr. mio. timer</span>
-                    <input
-                      type="number"
-                      value={incident.ratePerMillionHours ?? ''}
-                      onChange={handleIncidentNumericChange(index, 'ratePerMillionHours')}
+                    <span>Alvorlighed</span>
+                    <select
                       className="ds-input"
-                      min={0}
-                      step="any"
-                      placeholder="0.5"
-                    />
+                      value={impact.severityLevel ?? ''}
+                      onChange={handleImpactSelectChange(index, 'severityLevel')}
+                    >
+                      <option value="">Vælg</option>
+                      {incidentSeverityLevelOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateSeverity(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="ds-field">
+                    <span>Remediering</span>
+                    <select
+                      className="ds-input"
+                      value={impact.remediationStatus ?? ''}
+                      onChange={handleImpactSelectChange(index, 'remediationStatus')}
+                    >
+                      <option value="">Vælg</option>
+                      {remediationStatusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateRemediation(option)}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 </div>
 
                 <label className="ds-field">
                   <span>Beskrivelse</span>
-                  <input
-                    value={incident.description ?? ''}
-                    onChange={handleIncidentDescriptionChange(index)}
-                    className="ds-input"
-                    placeholder="Kort note – fx lokation eller aktivitet"
+                  <textarea
+                    value={impact.description ?? ''}
+                    onChange={handleImpactDescriptionChange(index)}
+                    className="ds-textarea"
+                    rows={3}
+                    maxLength={500}
+                    placeholder="Kort beskrivelse af påvirkning og planlagte tiltag"
                   />
                 </label>
 
-                <label className="ds-field ds-field--checkbox">
-                  <input
-                    type="checkbox"
-                    checked={incident.rootCauseClosed ?? false}
-                    onChange={handleIncidentRootCauseChange(index)}
-                  />
-                  <span>Rodårsagsanalyser afsluttet</span>
-                </label>
-
-                <div className="ds-stack-xs">
-                  <button type="button" className="ds-button ds-button--ghost" onClick={handleRemoveIncident(index)}>
-                    Fjern hændelse
+                <div className="ds-stack-xs ds-stack--horizontal ds-justify-end">
+                  <button type="button" className="ds-button" data-variant="danger" onClick={handleRemoveImpact(index)}>
+                    Fjern
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="ds-text-subtle">Ingen hændelser registreret endnu. Tilføj rækker for at dokumentere arbejdsmiljøindsatsen.</p>
+          <p className="ds-text-subtle">Ingen påvirkninger registreret endnu.</p>
         )}
       </section>
 
-      <section className="ds-card ds-stack">
-        <h3 className="ds-heading-xs">Narrativ opfølgning</h3>
-        <p className="ds-text-subtle">
-          Beskriv læring, forebyggende tiltag eller planlagte audits. Feltet bruges til ESRS-kravet om narrative disclosures.
-        </p>
-        <textarea
-          value={current.safetyNarrative ?? ''}
-          onChange={handleNarrativeChange}
-          maxLength={MAX_SAFETY_TEXT}
-          className="ds-textarea"
-          rows={4}
-          placeholder="Fx: Implementeret sikkerhedskampagne, tæt opfølgning på near misses og månedlige toolbox talks."
-        />
+      <section className="ds-card ds-stack" aria-label="Narrativer">
+        <label className="ds-field">
+          <span>Dialog og engagement</span>
+          <textarea
+            value={current.engagementNarrative ?? ''}
+            onChange={handleNarrativeChange('engagementNarrative')}
+            className="ds-textarea"
+            rows={4}
+            maxLength={MAX_NARRATIVE_LENGTH}
+            placeholder="Beskriv konsultationer, FPIC-processer og samarbejde med lokalsamfund."
+          />
+        </label>
+        <label className="ds-field">
+          <span>Afhjælpning og samarbejde</span>
+          <textarea
+            value={current.remedyNarrative ?? ''}
+            onChange={handleNarrativeChange('remedyNarrative')}
+            className="ds-textarea"
+            rows={4}
+            maxLength={MAX_NARRATIVE_LENGTH}
+            placeholder="Opsummer kompenserende tiltag, udviklingsprojekter og opfølgning."
+          />
+        </label>
       </section>
 
-      {hasInput && (
-        <aside className="ds-card ds-stack-sm" aria-live="polite">
-          <h3 className="ds-heading-xs">Forhåndsresultat</h3>
-          <p className="ds-text-strong">
-            {preview.value} {preview.unit}
-          </p>
-          <ul className="ds-stack-xs">
-            {preview.warnings.length === 0 ? (
-              <li className="ds-text-subtle">Ingen advarsler registreret.</li>
-            ) : (
-              preview.warnings.map((warning, index) => <li key={index}>{warning}</li>)
+      <section className="ds-summary ds-stack-sm">
+        <h3 className="ds-heading-sm">Status</h3>
+        {hasInput ? (
+          <div className="ds-stack-sm">
+            <p className="ds-value">
+              {preview.value} {preview.unit}
+            </p>
+            <div className="ds-stack-sm">
+              <strong>Antagelser</strong>
+              <ul>
+                {preview.assumptions.map((assumption, index) => (
+                  <li key={index}>{assumption}</li>
+                ))}
+              </ul>
+            </div>
+            {preview.warnings.length > 0 && (
+              <div className="ds-stack-sm">
+                <strong>Advarsler</strong>
+                <ul>
+                  {preview.warnings.map((warning, index) => (
+                    <li key={index}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </ul>
-        </aside>
-      )}
+            <details className="ds-summary">
+              <summary>Teknisk trace</summary>
+              <ul>
+                {preview.trace.map((line, index) => (
+                  <li key={index} className="ds-code">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
+        ) : (
+          <p className="ds-text-muted">Udfyld felterne for at se social score og potentielle advarsler.</p>
+        )}
+      </section>
     </form>
   )
+}
+
+function translateImpactType(value: string): string {
+  switch (value) {
+    case 'landRights':
+      return 'Jord- og brugsrettigheder'
+    case 'environmentalDamage':
+      return 'Miljøskade'
+    case 'healthAndSafety':
+      return 'Sundhed og sikkerhed'
+    case 'culturalHeritage':
+      return 'Kulturel arv'
+    case 'securityAndConflict':
+      return 'Sikkerhed/konflikt'
+    default:
+      return 'Andet'
+  }
+}
+
+function translateSeverity(value: string): string {
+  switch (value) {
+    case 'high':
+      return 'Høj'
+    case 'medium':
+      return 'Middel'
+    case 'low':
+    default:
+      return 'Lav'
+  }
+}
+
+function translateRemediation(value: string): string {
+  switch (value) {
+    case 'completed':
+      return 'Afsluttet'
+    case 'inProgress':
+      return 'I gang'
+    case 'notStarted':
+    default:
+      return 'Ikke startet'
+  }
 }

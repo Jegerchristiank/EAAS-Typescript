@@ -1,39 +1,57 @@
 /**
- * Wizardtrin for modul S4 – due diligence og menneskerettigheder.
+ * Wizardtrin for modul S4 – forbrugere og slutbrugere.
  */
 'use client'
 
 import { useMemo } from 'react'
 import type { ChangeEvent } from 'react'
 
-import { runS4, s4SeverityLevelOptions, type ModuleInput, type ModuleResult, type S4Input } from '@org/shared'
+import {
+  remediationStatusOptions,
+  runS4,
+  s4ConsumerIssueTypeOptions,
+  s4SeverityLevelOptions,
+  type ModuleInput,
+  type ModuleResult,
+  type S4Input
+} from '@org/shared'
 
 import type { WizardStepProps } from './StepTemplate'
 
 const EMPTY_S4: S4Input = {
-  processes: [],
+  productsAssessedPercent: null,
+  severeIncidentsCount: null,
+  recallsCount: null,
+  complaintsResolvedPercent: null,
+  dataBreachesCount: null,
   grievanceMechanismInPlace: null,
   escalationTimeframeDays: null,
-  dueDiligenceNarrative: null
+  issues: [],
+  vulnerableUsersNarrative: null,
+  consumerEngagementNarrative: null
 }
 
-type ProcessRow = NonNullable<S4Input['processes']>[number]
+type IssueRow = NonNullable<S4Input['issues']>[number]
 
-type NumericField = 'escalationTimeframeDays'
+type NumericField =
+  | 'productsAssessedPercent'
+  | 'complaintsResolvedPercent'
+  | 'severeIncidentsCount'
+  | 'recallsCount'
+  | 'dataBreachesCount'
+  | 'escalationTimeframeDays'
 
-type RowNumericField = 'coveragePercent'
+const MAX_NARRATIVE_LENGTH = 2000
 
-type RowTextField = 'area' | 'lastAssessmentDate' | 'remediationPlan'
-
-const MAX_NARRATIVE = 2000
-
-function createEmptyProcess(): ProcessRow {
+function createEmptyIssue(): IssueRow {
   return {
-    area: '',
-    coveragePercent: null,
-    lastAssessmentDate: null,
+    productOrService: '',
+    market: '',
+    issueType: null,
+    usersAffected: null,
     severityLevel: 'medium',
-    remediationPlan: null
+    remediationStatus: null,
+    description: null
   }
 }
 
@@ -48,7 +66,7 @@ function parseNumber(value: string): number | null {
 
 export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
   const current = (state.S4 as S4Input | undefined) ?? EMPTY_S4
-  const processes = current.processes ?? []
+  const issues = current.issues ?? []
 
   const preview = useMemo<ModuleResult>(() => runS4({ S4: current } as ModuleInput), [current])
 
@@ -56,119 +74,167 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
     onChange('S4', { ...current, ...partial })
   }
 
-  const handleGrievanceChange = (value: boolean | null) => () => {
-    updateRoot({ grievanceMechanismInPlace: value })
-  }
-
   const handleNumericChange = (field: NumericField) => (event: ChangeEvent<HTMLInputElement>) => {
     updateRoot({ [field]: parseNumber(event.target.value) } as Partial<S4Input>)
   }
 
-  const handleNarrativeChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    const text = event.target.value.slice(0, MAX_NARRATIVE)
-    updateRoot({ dueDiligenceNarrative: text.trim() === '' ? null : text })
+  const handleMechanismChange = (value: boolean | null) => () => {
+    updateRoot({ grievanceMechanismInPlace: value })
   }
 
-  const handleAddProcess = () => {
-    updateRoot({ processes: [...processes, createEmptyProcess()] })
+  const handleNarrativeChange = (field: 'vulnerableUsersNarrative' | 'consumerEngagementNarrative') => (
+    event: ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const text = event.target.value.slice(0, MAX_NARRATIVE_LENGTH)
+    updateRoot({ [field]: text.trim() === '' ? null : text } as Partial<S4Input>)
   }
 
-  const handleRemoveProcess = (index: number) => () => {
-    updateRoot({ processes: processes.filter((_, rowIndex) => rowIndex !== index) })
+  const handleAddIssue = () => {
+    updateRoot({ issues: [...issues, createEmptyIssue()] })
   }
 
-  const handleProcessTextChange = (index: number, field: RowTextField) => (
+  const handleRemoveIssue = (index: number) => () => {
+    updateRoot({ issues: issues.filter((_, rowIndex) => rowIndex !== index) })
+  }
+
+  const handleIssueTextChange = (index: number, field: 'productOrService' | 'market') => (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    const value = event.target.value.slice(0, field === 'remediationPlan' ? 500 : 160)
-    const next = processes.map((process, rowIndex) =>
+    const limit = field === 'productOrService' ? 160 : 120
+    const value = event.target.value.slice(0, limit)
+    const next = issues.map((issue, rowIndex) =>
       rowIndex === index
         ? {
-            ...process,
-            [field]: value.trim() === '' ? (field === 'area' ? '' : null) : value
+            ...issue,
+            [field]: value.trim() === '' ? '' : value
           }
-        : process
+        : issue
     )
-    updateRoot({ processes: next })
+    updateRoot({ issues: next })
   }
 
-  const handleProcessNumericChange = (index: number, field: RowNumericField) => (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleIssueNumericChange = (index: number) => (event: ChangeEvent<HTMLInputElement>) => {
     const parsed = parseNumber(event.target.value)
-    const next = processes.map((process, rowIndex) =>
+    const next = issues.map((issue, rowIndex) =>
       rowIndex === index
         ? {
-            ...process,
-            [field]: parsed
+            ...issue,
+            usersAffected: parsed
           }
-        : process
+        : issue
     )
-    updateRoot({ processes: next })
+    updateRoot({ issues: next })
   }
 
-  const handleProcessSeverityChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value as ProcessRow['severityLevel']
-    const next = processes.map((process, rowIndex) =>
+  const handleIssueSelectChange = (index: number, field: 'issueType' | 'severityLevel' | 'remediationStatus') => (
+    event: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = event.target.value
+    const next = issues.map((issue, rowIndex) =>
       rowIndex === index
         ? {
-            ...process,
-            severityLevel: value
+            ...issue,
+            [field]: value === '' ? null : (value as IssueRow[typeof field])
           }
-        : process
+        : issue
     )
-    updateRoot({ processes: next })
+    updateRoot({ issues: next })
   }
 
-  const hasProcesses = processes.length > 0
+  const handleIssueDescriptionChange = (index: number) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const text = event.target.value.slice(0, 500)
+    const next = issues.map((issue, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...issue,
+            description: text.trim() === '' ? null : text
+          }
+        : issue
+    )
+    updateRoot({ issues: next })
+  }
+
+  const hasIssues = issues.length > 0
   const hasInput =
-    hasProcesses ||
+    hasIssues ||
+    current.productsAssessedPercent != null ||
+    current.complaintsResolvedPercent != null ||
     current.grievanceMechanismInPlace != null ||
-    current.escalationTimeframeDays != null ||
-    (current.dueDiligenceNarrative ?? '').length > 0
+    (current.vulnerableUsersNarrative ?? '').length > 0 ||
+    (current.consumerEngagementNarrative ?? '').length > 0
 
   return (
     <form className="ds-form ds-stack" noValidate>
       <header className="ds-stack-sm">
-        <h2 className="ds-heading-sm">S4 – Due diligence &amp; menneskerettigheder</h2>
+        <h2 className="ds-heading-sm">S4 – Forbrugere og slutbrugere</h2>
         <p className="ds-text-muted">
-          Dokumentér processer for at identificere, forebygge og afhjælpe negative påvirkninger på menneskerettigheder. Inddrag
-          klagemekanismer og narrativ opfølgning.
+          Dokumentér dækning af produkt-risikovurderinger, klagehåndtering og datasikkerhed. Registrér hændelser og tilbagekald,
+          så ESRS S4-kravene kan opfyldes.
         </p>
       </header>
 
-      <section className="ds-card ds-stack" aria-label="Klagemekanisme">
+      <section className="ds-card ds-stack" aria-label="Nøgletal for forbrugere">
         <div className="ds-stack-sm ds-stack--responsive">
-          <fieldset className="ds-field" style={{ border: 'none', padding: 0 }}>
-            <legend>Klage- og whistleblower-mekanisme</legend>
-            <div className="ds-stack-xs ds-stack--horizontal">
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.grievanceMechanismInPlace === true ? 'primary' : 'ghost'}
-                onClick={handleGrievanceChange(true)}
-              >
-                Etableret
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.grievanceMechanismInPlace === false ? 'primary' : 'ghost'}
-                onClick={handleGrievanceChange(false)}
-              >
-                Mangler
-              </button>
-              <button
-                type="button"
-                className="ds-button"
-                data-variant={current.grievanceMechanismInPlace == null ? 'primary' : 'ghost'}
-                onClick={handleGrievanceChange(null)}
-              >
-                Ikke angivet
-              </button>
-            </div>
-          </fieldset>
+          <label className="ds-field">
+            <span>Produkter med risikovurdering (%)</span>
+            <input
+              type="number"
+              value={current.productsAssessedPercent ?? ''}
+              onChange={handleNumericChange('productsAssessedPercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="65"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Klager løst inden for SLA (%)</span>
+            <input
+              type="number"
+              value={current.complaintsResolvedPercent ?? ''}
+              onChange={handleNumericChange('complaintsResolvedPercent')}
+              className="ds-input"
+              min={0}
+              max={100}
+              placeholder="80"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Datasikkerhedsbrud</span>
+            <input
+              type="number"
+              value={current.dataBreachesCount ?? ''}
+              onChange={handleNumericChange('dataBreachesCount')}
+              className="ds-input"
+              min={0}
+              placeholder="0"
+            />
+          </label>
+        </div>
 
+        <div className="ds-stack-sm ds-stack--responsive">
+          <label className="ds-field">
+            <span>Alvorlige hændelser</span>
+            <input
+              type="number"
+              value={current.severeIncidentsCount ?? ''}
+              onChange={handleNumericChange('severeIncidentsCount')}
+              className="ds-input"
+              min={0}
+              placeholder="1"
+            />
+          </label>
+          <label className="ds-field">
+            <span>Produkt-/service-recalls</span>
+            <input
+              type="number"
+              value={current.recallsCount ?? ''}
+              onChange={handleNumericChange('recallsCount')}
+              className="ds-input"
+              min={0}
+              placeholder="0"
+            />
+          </label>
           <label className="ds-field">
             <span>Escalationstid (dage)</span>
             <input
@@ -177,68 +243,129 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               onChange={handleNumericChange('escalationTimeframeDays')}
               className="ds-input"
               min={0}
-              placeholder="21"
+              placeholder="14"
             />
           </label>
         </div>
+
+        <fieldset className="ds-field" style={{ border: 'none', padding: 0 }}>
+          <legend>Klagemekanisme for forbrugere</legend>
+          <div className="ds-stack-xs ds-stack--horizontal">
+            <button
+              type="button"
+              className="ds-button"
+              data-variant={current.grievanceMechanismInPlace === true ? 'primary' : 'ghost'}
+              onClick={handleMechanismChange(true)}
+            >
+              Etableret
+            </button>
+            <button
+              type="button"
+              className="ds-button"
+              data-variant={current.grievanceMechanismInPlace === false ? 'primary' : 'ghost'}
+              onClick={handleMechanismChange(false)}
+            >
+              Mangler
+            </button>
+            <button
+              type="button"
+              className="ds-button"
+              data-variant={current.grievanceMechanismInPlace == null ? 'primary' : 'ghost'}
+              onClick={handleMechanismChange(null)}
+            >
+              Ikke angivet
+            </button>
+          </div>
+        </fieldset>
       </section>
 
-      <section className="ds-card ds-stack" aria-label="Due diligence-processer">
+      <section className="ds-card ds-stack" aria-label="Hændelser for forbrugere">
         <header className="ds-stack-xs">
-          <h3 className="ds-heading-xs">Kortlægning af processer</h3>
+          <h3 className="ds-heading-xs">Registrerede impacts</h3>
           <p className="ds-text-subtle">
-            Registrér områder, dækning og risikoniveau. Tilføj remediationsplaner for højrisiko-områder.
+            Udfyld detaljer for alvorlige hændelser, fx produktsikkerhed, datasikkerhed eller tilgængelighed. Angiv antal
+            berørte slutbrugere og status på afhjælpning.
           </p>
-          <button type="button" className="ds-button" onClick={handleAddProcess}>
-            Tilføj proces
+          <button type="button" className="ds-button" onClick={handleAddIssue}>
+            Tilføj hændelse
           </button>
         </header>
 
-        {hasProcesses ? (
-          <div className="ds-stack" role="group" aria-label="Due diligence rækker">
-            {processes.map((process, index) => (
+        {hasIssues ? (
+          <div className="ds-stack" role="group" aria-label="Hændelsesliste">
+            {issues.map((issue, index) => (
               <div key={index} className="ds-card ds-stack-sm" data-variant="subtle">
                 <div className="ds-stack-sm ds-stack--responsive">
                   <label className="ds-field">
-                    <span>Procesområde</span>
+                    <span>Produkt eller service</span>
                     <input
-                      value={process.area ?? ''}
-                      onChange={handleProcessTextChange(index, 'area')}
+                      value={issue.productOrService ?? ''}
+                      onChange={handleIssueTextChange(index, 'productOrService')}
                       className="ds-input"
-                      placeholder="Leverandører, HR, investeringer..."
+                      placeholder="Fx SmartHome Hub"
                     />
                   </label>
                   <label className="ds-field">
-                    <span>Dækning (%)</span>
+                    <span>Marked/segment</span>
+                    <input
+                      value={issue.market ?? ''}
+                      onChange={handleIssueTextChange(index, 'market')}
+                      className="ds-input"
+                      placeholder="EU – forbrugere"
+                    />
+                  </label>
+                  <label className="ds-field">
+                    <span>Hændelsestype</span>
+                    <select
+                      className="ds-input"
+                      value={issue.issueType ?? ''}
+                      onChange={handleIssueSelectChange(index, 'issueType')}
+                    >
+                      <option value="">Vælg</option>
+                      {s4ConsumerIssueTypeOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateIssueType(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="ds-field">
+                    <span>Berørte slutbrugere</span>
                     <input
                       type="number"
-                      value={process.coveragePercent ?? ''}
-                      onChange={handleProcessNumericChange(index, 'coveragePercent')}
+                      value={issue.usersAffected ?? ''}
+                      onChange={handleIssueNumericChange(index)}
                       className="ds-input"
                       min={0}
-                      max={100}
-                      placeholder="75"
+                      placeholder="150"
                     />
                   </label>
                   <label className="ds-field">
-                    <span>Seneste vurdering</span>
-                    <input
-                      value={process.lastAssessmentDate ?? ''}
-                      onChange={handleProcessTextChange(index, 'lastAssessmentDate')}
-                      className="ds-input"
-                      placeholder="2024-Q1"
-                    />
-                  </label>
-                  <label className="ds-field">
-                    <span>Risikoniveau</span>
+                    <span>Alvorlighed</span>
                     <select
-                      value={process.severityLevel ?? 'medium'}
-                      onChange={handleProcessSeverityChange(index)}
                       className="ds-input"
+                      value={issue.severityLevel ?? ''}
+                      onChange={handleIssueSelectChange(index, 'severityLevel')}
                     >
+                      <option value="">Vælg</option>
                       {s4SeverityLevelOptions.map((option) => (
                         <option key={option} value={option}>
-                          {option === 'high' ? 'Høj' : option === 'medium' ? 'Medium' : 'Lav'}
+                          {translateSeverity(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="ds-field">
+                    <span>Remediering</span>
+                    <select
+                      className="ds-input"
+                      value={issue.remediationStatus ?? ''}
+                      onChange={handleIssueSelectChange(index, 'remediationStatus')}
+                    >
+                      <option value="">Vælg</option>
+                      {remediationStatusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {translateRemediation(option)}
                         </option>
                       ))}
                     </select>
@@ -246,59 +373,136 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
                 </div>
 
                 <label className="ds-field">
-                  <span>Remediationsplan</span>
-                  <input
-                    value={process.remediationPlan ?? ''}
-                    onChange={handleProcessTextChange(index, 'remediationPlan')}
-                    className="ds-input"
-                    placeholder="Fx auditprogram, træning, leverandørkapacitetsopbygning"
+                  <span>Beskrivelse</span>
+                  <textarea
+                    value={issue.description ?? ''}
+                    onChange={handleIssueDescriptionChange(index)}
+                    className="ds-textarea"
+                    rows={3}
+                    maxLength={500}
+                    placeholder="Kort beskrivelse af hændelse, kommunikation og kompensation"
                   />
                 </label>
 
-                <div className="ds-stack-xs">
-                  <button type="button" className="ds-button ds-button--ghost" onClick={handleRemoveProcess(index)}>
-                    Fjern proces
+                <div className="ds-stack-xs ds-stack--horizontal ds-justify-end">
+                  <button type="button" className="ds-button" data-variant="danger" onClick={handleRemoveIssue(index)}>
+                    Fjern
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="ds-text-subtle">Ingen processer registreret endnu. Tilføj mindst ét område for at beskrive due diligence.</p>
+          <p className="ds-text-subtle">Ingen forbrugerhændelser registreret endnu.</p>
         )}
       </section>
 
-      <section className="ds-card ds-stack">
-        <h3 className="ds-heading-xs">Narrativ due diligence</h3>
-        <p className="ds-text-subtle">
-          Opsummer governance, eskalationsveje og samarbejde med interessenter. Feltet bruges direkte i rapportens narrative
-          disclosures.
-        </p>
-        <textarea
-          value={current.dueDiligenceNarrative ?? ''}
-          onChange={handleNarrativeChange}
-          maxLength={MAX_NARRATIVE}
-          className="ds-textarea"
-          rows={4}
-          placeholder="Fx: Årlige risikovurderinger af leverandører, fokus på højrisiko-lande og partnerskaber med NGO’er."
-        />
+      <section className="ds-card ds-stack" aria-label="Narrativer">
+        <label className="ds-field">
+          <span>Støtte til udsatte brugergrupper</span>
+          <textarea
+            value={current.vulnerableUsersNarrative ?? ''}
+            onChange={handleNarrativeChange('vulnerableUsersNarrative')}
+            className="ds-textarea"
+            rows={4}
+            maxLength={MAX_NARRATIVE_LENGTH}
+            placeholder="Beskriv tiltag for tilgængelighed, økonomisk støtte og kundebeskyttelse."
+          />
+        </label>
+        <label className="ds-field">
+          <span>Forbrugerengagement og uddannelse</span>
+          <textarea
+            value={current.consumerEngagementNarrative ?? ''}
+            onChange={handleNarrativeChange('consumerEngagementNarrative')}
+            className="ds-textarea"
+            rows={4}
+            maxLength={MAX_NARRATIVE_LENGTH}
+            placeholder="Opsummer kommunikation, træning og samarbejde med brugerfora."
+          />
+        </label>
       </section>
 
-      {hasInput && (
-        <aside className="ds-card ds-stack-sm" aria-live="polite">
-          <h3 className="ds-heading-xs">Forhåndsresultat</h3>
-          <p className="ds-text-strong">
-            {preview.value} {preview.unit}
-          </p>
-          <ul className="ds-stack-xs">
-            {preview.warnings.length === 0 ? (
-              <li className="ds-text-subtle">Ingen advarsler registreret.</li>
-            ) : (
-              preview.warnings.map((warning, index) => <li key={index}>{warning}</li>)
+      <section className="ds-summary ds-stack-sm">
+        <h3 className="ds-heading-sm">Status</h3>
+        {hasInput ? (
+          <div className="ds-stack-sm">
+            <p className="ds-value">
+              {preview.value} {preview.unit}
+            </p>
+            <div className="ds-stack-sm">
+              <strong>Antagelser</strong>
+              <ul>
+                {preview.assumptions.map((assumption, index) => (
+                  <li key={index}>{assumption}</li>
+                ))}
+              </ul>
+            </div>
+            {preview.warnings.length > 0 && (
+              <div className="ds-stack-sm">
+                <strong>Advarsler</strong>
+                <ul>
+                  {preview.warnings.map((warning, index) => (
+                    <li key={index}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </ul>
-        </aside>
-      )}
+            <details className="ds-summary">
+              <summary>Teknisk trace</summary>
+              <ul>
+                {preview.trace.map((line, index) => (
+                  <li key={index} className="ds-code">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
+        ) : (
+          <p className="ds-text-muted">Udfyld felterne for at se social score og relevante advarsler.</p>
+        )}
+      </section>
     </form>
   )
+}
+
+function translateIssueType(value: string): string {
+  switch (value) {
+    case 'productSafety':
+      return 'Produktsikkerhed'
+    case 'dataPrivacy':
+      return 'Datasikkerhed og privatliv'
+    case 'marketingPractices':
+      return 'Markedsføring og etik'
+    case 'accessibility':
+      return 'Tilgængelighed'
+    case 'productQuality':
+      return 'Produktkvalitet'
+    default:
+      return 'Andet'
+  }
+}
+
+function translateSeverity(value: string): string {
+  switch (value) {
+    case 'high':
+      return 'Høj'
+    case 'medium':
+      return 'Middel'
+    case 'low':
+    default:
+      return 'Lav'
+  }
+}
+
+function translateRemediation(value: string): string {
+  switch (value) {
+    case 'completed':
+      return 'Afsluttet'
+    case 'inProgress':
+      return 'I gang'
+    case 'notStarted':
+    default:
+      return 'Ikke startet'
+  }
 }

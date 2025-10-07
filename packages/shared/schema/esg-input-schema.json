@@ -2211,18 +2211,27 @@
       "description": "Arbejdskraft og headcount",
       "properties": {
         "reportingYear": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 1900,
           "maximum": 2100,
           "description": "Rapporteringsår for headcount-data."
         },
         "totalHeadcount": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Samlet antal medarbejdere (headcount)."
         },
         "dataCoveragePercent": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Hvor stor en andel af arbejdsstyrken data dækker."
@@ -2236,23 +2245,35 @@
             "title": "S1HeadcountLine",
             "properties": {
               "segment": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 120,
                 "description": "Navn på segmentet."
               },
               "headcount": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 0,
                 "description": "Headcount i segmentet."
               },
               "femalePercent": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 0,
                 "maximum": 100,
                 "description": "Andel kvinder i procent."
               },
               "collectiveAgreementCoveragePercent": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 0,
                 "maximum": 100,
                 "description": "Dækning af kollektive aftaler eller medarbejderrepræsentation."
@@ -2263,7 +2284,10 @@
           }
         },
         "workforceNarrative": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "maxLength": 2000,
           "description": "Narrativ uddybning af headcount-udviklingen."
         }
@@ -2273,69 +2297,185 @@
     "S2": {
       "type": "object",
       "title": "S2Input",
-      "description": "Diversitet, ligestilling og inklusion",
+      "description": "Værdikædearbejdere og arbejdsforhold",
       "properties": {
-        "genderBalance": {
+        "valueChainWorkersCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Estimeret antal arbejdstagere i værdikæden."
+        },
+        "workersAtRiskCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal værdikædearbejdere identificeret som særligt udsatte."
+        },
+        "valueChainCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af værdikæden der er risikovurderet eller monitoreret."
+        },
+        "highRiskSupplierSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af leverandører klassificeret som højrisiko."
+        },
+        "livingWageCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel værdikædearbejdere dækket af leve-/mindsteløn."
+        },
+        "collectiveBargainingCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel med adgang til kollektive forhandlinger eller repræsentation."
+        },
+        "socialAuditsCompletedPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel planlagte sociale audits gennemført i rapporteringsåret."
+        },
+        "grievancesOpenCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Åbne klager fra leverandørarbejdere."
+        },
+        "grievanceMechanismForWorkers": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Om der findes klagemekanisme for leverandørarbejdere."
+        },
+        "incidents": {
           "type": "array",
-          "maxItems": 30,
-          "description": "Kønsfordeling for centrale niveauer.",
+          "maxItems": 40,
+          "description": "Registrerede alvorlige hændelser i værdikæden.",
           "items": {
             "type": "object",
-            "title": "S2DiversityRow",
+            "title": "S2ValueChainIncident",
             "properties": {
-              "level": {
-                "type": ["string", "null"],
+              "supplier": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Leverandør eller site."
+              },
+              "country": {
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 120,
-                "description": "Navn på niveau/gruppe (fx bestyrelse)."
+                "description": "Land eller region."
               },
-              "femalePercent": {
-                "type": ["number", "null"],
+              "issueType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "healthAndSafety",
+                  "wagesAndBenefits",
+                  "workingTime",
+                  "freedomOfAssociation",
+                  "childLabour",
+                  "forcedLabour",
+                  "discrimination",
+                  "other"
+                ],
+                "description": "Kategori for hændelsen."
+              },
+              "workersAffected": {
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 0,
-                "maximum": 100,
-                "description": "Andel kvinder i procent."
+                "description": "Antal berørte arbejdstagere."
               },
-              "malePercent": {
-                "type": ["number", "null"],
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Andel mænd i procent."
+              "severityLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "description": "Vurderet alvorlighed."
               },
-              "otherPercent": {
-                "type": ["number", "null"],
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Andel øvrige/ikke-binære i procent."
+              "remediationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "notStarted",
+                  "inProgress",
+                  "completed"
+                ],
+                "description": "Status på afhjælpning."
               },
-              "payGapPercent": {
-                "type": ["number", "null"],
-                "minimum": -100,
-                "maximum": 100,
-                "description": "Løngab i procent (kvinder vs. mænd)."
-              },
-              "targetNarrative": {
-                "type": ["string", "null"],
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 500,
-                "description": "Noter om targets/indsatser for niveauet."
+                "description": "Kort beskrivelse af hændelsen."
               }
             },
             "required": [],
             "additionalProperties": false
           }
         },
-        "dataCoveragePercent": {
-          "type": ["number", "null"],
-          "minimum": 0,
-          "maximum": 100,
-          "description": "Andel af arbejdsstyrken med tilgængelige diversitetsdata."
-        },
-        "equalityPolicyInPlace": {
-          "type": ["boolean", "null"],
-          "description": "Angiver om virksomheden har en formaliseret ligestillingspolitik."
-        },
-        "inclusionInitiativesNarrative": {
-          "type": ["string", "null"],
+        "socialDialogueNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
           "maxLength": 2000,
-          "description": "Narrativ beskrivelse af igangværende initiativer."
+          "description": "Narrativ om engagement, træning og dialog med leverandørarbejdere."
+        },
+        "remediationNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om afhjælpning og kompensation."
         }
       },
       "additionalProperties": false
@@ -2343,58 +2483,141 @@
     "S3": {
       "type": "object",
       "title": "S3Input",
-      "description": "Arbejdsmiljø og hændelser",
+      "description": "Berørte lokalsamfund",
       "properties": {
+        "communitiesIdentifiedCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal lokalsamfund identificeret som påvirkede."
+        },
+        "impactAssessmentsCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af aktiviteter med gennemført konsekvensanalyse."
+        },
+        "highRiskCommunitySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af lokalsamfund klassificeret som højrisiko."
+        },
+        "grievancesOpenCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Åbne klager fra lokalsamfund."
+        },
         "incidents": {
           "type": "array",
           "maxItems": 40,
-          "description": "Registrerede arbejdsmiljøhændelser.",
+          "description": "Registrerede negative påvirkninger på lokalsamfund.",
           "items": {
             "type": "object",
-            "title": "S3Incident",
+            "title": "S3CommunityImpact",
             "properties": {
-              "incidentType": {
-                "type": "string",
-                "enum": ["fatality", "lostTime", "recordable", "nearMiss"],
-                "description": "Type af hændelse."
+              "community": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Navn eller beskrivelse af lokalsamfundet."
               },
-              "count": {
-                "type": ["number", "null"],
-                "minimum": 0,
-                "description": "Antal hændelser af typen."
+              "geography": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Land/region eller projektområde."
               },
-              "ratePerMillionHours": {
-                "type": ["number", "null"],
+              "impactType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "landRights",
+                  "environmentalDamage",
+                  "healthAndSafety",
+                  "culturalHeritage",
+                  "securityAndConflict",
+                  "other"
+                ],
+                "description": "Kategori for påvirkning."
+              },
+              "householdsAffected": {
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 0,
-                "description": "Rate pr. million arbejdstimer."
+                "description": "Antal berørte husholdninger."
+              },
+              "severityLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "description": "Vurderet alvorlighed."
+              },
+              "remediationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "notStarted",
+                  "inProgress",
+                  "completed"
+                ],
+                "description": "Status på remediering."
               },
               "description": {
-                "type": ["string", "null"],
-                "maxLength": 240,
-                "description": "Kort beskrivelse eller lokation."
-              },
-              "rootCauseClosed": {
-                "type": ["boolean", "null"],
-                "description": "Angiver om rodårsagsanalyser er afsluttet."
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Kort beskrivelse af påvirkningen."
               }
             },
-            "required": ["incidentType"],
+            "required": [],
             "additionalProperties": false
           }
         },
-        "totalHoursWorked": {
-          "type": ["number", "null"],
-          "minimum": 0,
-          "description": "Arbejdstimer i rapporteringsåret."
-        },
-        "safetyCertification": {
-          "type": ["boolean", "null"],
-          "description": "Om virksomheden har arbejdsmiljøcertificering (fx ISO 45001)."
-        },
-        "safetyNarrative": {
-          "type": ["string", "null"],
+        "engagementNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
           "maxLength": 2000,
-          "description": "Narrativ opfølgning på arbejdsmiljøindsatser."
+          "description": "Narrativ om dialog og konsultationer (fx FPIC)."
+        },
+        "remedyNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om afhjælpning og samarbejde med lokalsamfund."
         }
       },
       "additionalProperties": false
@@ -2402,60 +2625,164 @@
     "S4": {
       "type": "object",
       "title": "S4Input",
-      "description": "Due diligence og menneskerettigheder",
+      "description": "Forbrugere og slutbrugere",
       "properties": {
-        "processes": {
+        "productsAssessedPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af produkter/tjenester med risikovurdering."
+        },
+        "severeIncidentsCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal alvorlige hændelser, der påvirker slutbrugere."
+        },
+        "recallsCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal produkt- eller service-recalls."
+        },
+        "complaintsResolvedPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af forbrugerklager løst inden for SLA."
+        },
+        "dataBreachesCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal registrerede brud på datasikkerhed."
+        },
+        "grievanceMechanismInPlace": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Om der findes hotline eller lignende for forbrugere/slutbrugere."
+        },
+        "escalationTimeframeDays": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Gennemsnitlig behandlingstid for forbrugerklager i dage."
+        },
+        "issues": {
           "type": "array",
           "maxItems": 40,
-          "description": "Kortlægning af due diligence-processer.",
+          "description": "Registrerede impacts på forbrugere/slutbrugere.",
           "items": {
             "type": "object",
-            "title": "S4Process",
+            "title": "S4ConsumerIssue",
             "properties": {
-              "area": {
-                "type": ["string", "null"],
+              "productOrService": {
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 160,
-                "description": "Område eller risikotype (fx leverandører)."
+                "description": "Produkt- eller servicenavn."
               },
-              "coveragePercent": {
-                "type": ["number", "null"],
-                "minimum": 0,
-                "maximum": 100,
-                "description": "Dækningsgrad i procent."
-              },
-              "lastAssessmentDate": {
-                "type": ["string", "null"],
+              "market": {
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 120,
-                "description": "Dato/år for seneste vurdering."
+                "description": "Marked eller segment."
+              },
+              "issueType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "productSafety",
+                  "dataPrivacy",
+                  "marketingPractices",
+                  "accessibility",
+                  "productQuality",
+                  "other"
+                ],
+                "description": "Kategori for hændelsen."
+              },
+              "usersAffected": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Antal berørte slutbrugere."
               },
               "severityLevel": {
-                "type": ["string", "null"],
-                "enum": ["low", "medium", "high", null],
-                "description": "Vurderet risikoniveau."
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "description": "Vurderet alvorlighed."
               },
-              "remediationPlan": {
-                "type": ["string", "null"],
+              "remediationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "notStarted",
+                  "inProgress",
+                  "completed"
+                ],
+                "description": "Status på afhjælpning eller kompensation."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 500,
-                "description": "Opsummering af plan for remediation."
+                "description": "Kort beskrivelse af hændelsen."
               }
             },
             "required": [],
             "additionalProperties": false
           }
         },
-        "grievanceMechanismInPlace": {
-          "type": ["boolean", "null"],
-          "description": "Om virksomheden har en klage-/henvendelsesmekanisme."
-        },
-        "escalationTimeframeDays": {
-          "type": ["number", "null"],
-          "minimum": 0,
-          "description": "Typisk behandlingstid i dage."
-        },
-        "dueDiligenceNarrative": {
-          "type": ["string", "null"],
+        "vulnerableUsersNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
           "maxLength": 2000,
-          "description": "Narrativ opsummering af due diligence-arbejdet."
+          "description": "Narrativ om støtte til udsatte brugergrupper."
+        },
+        "consumerEngagementNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om kommunikation, uddannelse og samarbejde med slutbrugere."
         }
       },
       "additionalProperties": false
@@ -2474,22 +2801,41 @@
             "title": "G1Policy",
             "properties": {
               "topic": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 160,
                 "description": "Navn på politikken."
               },
               "status": {
-                "type": ["string", "null"],
-                "enum": ["approved", "inReview", "draft", "retired", "missing", null],
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "approved",
+                  "inReview",
+                  "draft",
+                  "retired",
+                  "missing",
+                  null
+                ],
                 "description": "Status for politikken."
               },
               "owner": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 160,
                 "description": "Ansvarlig rolle eller afdeling."
               },
               "lastReviewed": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 120,
                 "description": "Seneste gennemgangsdato."
               }
@@ -2507,38 +2853,65 @@
             "title": "G1Target",
             "properties": {
               "topic": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 160,
                 "description": "Navn på target."
               },
               "baselineYear": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 1990,
                 "maximum": 2100,
                 "description": "Baselineår for målet."
               },
               "targetYear": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "minimum": 1990,
                 "maximum": 2100,
                 "description": "Målår for opfyldelse."
               },
               "targetValue": {
-                "type": ["number", "null"],
+                "type": [
+                  "number",
+                  "null"
+                ],
                 "description": "Talværdi for målet."
               },
               "unit": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 40,
                 "description": "Enhed for target (fx %)."
               },
               "status": {
-                "type": ["string", "null"],
-                "enum": ["onTrack", "lagging", "offTrack", "notStarted", null],
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "onTrack",
+                  "lagging",
+                  "offTrack",
+                  "notStarted",
+                  null
+                ],
                 "description": "Status for target."
               },
               "narrative": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "maxLength": 500,
                 "description": "Uddybende noter om target."
               }
@@ -2548,11 +2921,17 @@
           }
         },
         "boardOversight": {
-          "type": ["boolean", "null"],
+          "type": [
+            "boolean",
+            "null"
+          ],
           "description": "Om bestyrelsen fører tilsyn med ESG/CSRD."
         },
         "governanceNarrative": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "maxLength": 2000,
           "description": "Narrativ om governance-struktur og roller."
         }

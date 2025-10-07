@@ -1,23 +1,25 @@
-# Runbook – S3 arbejdsmiljø & hændelser
+# Runbook – S3 lokalsamfund & påvirkninger
 
-Modulet aggregerer arbejdsmiljøhændelser, arbejdstimer og certificering for at producere en social sikkerhedsscore (0-100).
+Modulet dækker ESRS S3 datapunkter om berørte lokalsamfund: konsekvensanalyser, klager, registrerede impacts og afhjælpning. Resultatet er en social score (0-100) baseret på dækning, højrisikoandel, dialog og hændelsesstyring.
 
 ## Inputfelter
 
-- **Total arbejdstimer** – arbejdstimer i rapporteringsåret.
-- **Arbejdsmiljøcertificering** – ISO 45001 eller tilsvarende.
-- **Hændelsesliste** – type (fatalitet, lost time, recordable, near miss), antal, rate pr. million timer og root cause status.
-- **Narrativ opfølgning** – tekst om læring og forebyggelse.
+- **Identificerede lokalsamfund** og **dækningsgrad af analyser (%)** – svarer til S3-2.
+- **Højrisiko-lokalsamfund (%)** – bruges til warnings når andelen er høj.
+- **Åbne klager** – dokumenterer S3-3 om klagemekanismer.
+- **Påvirkningsliste** – community, geografi, impact-type, husholdninger, alvorlighed, remediering og beskrivelse.
+- **Narrativer** – engagement/FPIC og afhjælpning/samarbejde.
 
 ## Beregningsoverblik
 
-1. Hver hændelse vægtes: fatalitet (45), lost time (18), recordable (8). Near miss giver -2 (incitament for rapportering).
-2. Total penalty normaliseres pr. million timer (baseline 3 hændelser/mio. timer) og konverteres til score 0-100.
-3. ISO 45001 giver +10 bonuspoint, uden at overstige 100.
-4. Warnings udsendes ved fataliteter, manglende rodårsagslukning eller høje hændelsesrater.
+1. Konsekvensanalyser (35 %) normaliseres ud fra `impactAssessmentsCoveragePercent` med warning under 60 %.
+2. Højrisikoandel (20 %) omregnes til score (lav andel giver høj score).
+3. Klagehåndtering (15 %) beregnes ud fra antal åbne klager.
+4. Engagement (15 %) vurderes via narrativets længde og udførlighed.
+5. Hændelser reducerer scoren baseret på alvorlighed, husholdninger og remediering. Uafsluttede højrisiko-impacts giver warnings.
 
 ## QA og test
 
-- Unit-testen `runS3` i `runModule.spec.ts` dækker certificeret scenarie og kontrollerer trace/warnings.
-- `S3Step` UI stiller input for både kvantitative tal og narrativer.
-- Nye hændelsestyper kræver opdatering af `s3IncidentTypeOptions`, schema og run-modulet.
+- Unit-testen `runS3` i `runModule.spec.ts` dækker scenario med flere impacts og verificerer warnings/trace.
+- UI (`S3Step`) understøtter alle felter samt tabellen for lokalsamfund.
+- Opdater både `s3InputSchema` og JSON schema ved nye felter.

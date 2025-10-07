@@ -1,24 +1,24 @@
-# Runbook – S4 due diligence & menneskerettigheder
+# Runbook – S4 forbrugere & slutbrugere
 
-Modulet hjælper rådgivere med at dokumentere due diligence-processer, klagemekanismer og narrativer. Outputtet er en social
-score (0-100) med fokus på dækning, risikoniveau og remediationsplaner.
+Modulet dækker ESRS S4 datapunkter om produkter og slutbrugere: risikovurdering, klagehåndtering, datasikkerhed og alvorlige hændelser. Resultatet er en social score (0-100) baseret på dækning, klageprocesser og hændelsesstyring.
 
 ## Inputfelter
 
-- **Klagemekanisme** – ja/nej/ikke angivet.
-- **Escalationstid (dage)** – behandlingstid for klager.
-- **Procesliste** – område, dækning (%), seneste vurdering, risikoniveau, remediationsplan.
-- **Narrativ due diligence** – tekst om governance, samarbejde og opfølgning.
+- **Produkter med risikovurdering (%)** – S4-2.
+- **Klager løst inden for SLA (%)** og **klagemekanisme** – S4-3.
+- **Datasikkerhedsbrud**, **alvorlige hændelser** og **produkt-/service-recalls** – S4-4 og S4-5.
+- **Hændelsesliste** – produkt/service, marked, hændelsestype, berørte brugere, alvorlighed og remediering.
+- **Narrativer** – støtte til udsatte brugergrupper og engagement/uddannelse.
 
 ## Beregningsoverblik
 
-1. Dækning vægter 60 % (gennemsnit af coverage%).
-2. Risiko vægter 20 %. Højrisiko uden plan udløser fuldt fradrag, med plan halvt fradrag; medium risiko giver mindre fradrag.
-3. Klagemekanisme vægter 20 % – bonus for etableret mekanisme, baselinescore for "ikke angivet".
-4. Warnings udsendes ved manglende processer, højrisiko uden plan samt manglende narrativer.
+1. Risikovurdering (30 %) via `productsAssessedPercent`.
+2. Klagehåndtering (20 %) via `complaintsResolvedPercent` kombineret med mekanisme og behandlingstid.
+3. Datasikkerhed (15 %) reduceres ved `dataBreachesCount`.
+4. Hændelser reducerer scoren baseret på alvorlighed, antal brugere og remediering. Ekstra penalty for `severeIncidentsCount` og `recallsCount`.
 
 ## QA og test
 
-- Unit-testen `runS4` i `runModule.spec.ts` verificerer score og warnings for processer med og uden remediation.
-- `S4Step` UI understøtter både kvantitative felter og narrative tekstfelter.
-- Schema og JSON-schema (`s4InputSchema`) skal udvides ved nye felter.
+- Unit-testen `runS4` i `runModule.spec.ts` dækker scenario med flere hændelser og kontrollerer warnings.
+- UI (`S4Step`) understøtter talfelter, hændelsesliste og narrativer.
+- Opdater `s4InputSchema` og JSON schema ved nye datapunkter.

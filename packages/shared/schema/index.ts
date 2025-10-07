@@ -14,8 +14,35 @@ export const e1EnergyMixOptions = ['electricity', 'districtHeat', 'steam', 'cool
 export const e1TargetScopeOptions = ['scope1', 'scope2', 'scope3', 'combined'] as const
 export const e1TargetStatusOptions = ['onTrack', 'lagging', 'atRisk'] as const
 export const e1ActionStatusOptions = ['planned', 'inProgress', 'delayed', 'completed'] as const
-export const s3IncidentTypeOptions = ['fatality', 'lostTime', 'recordable', 'nearMiss'] as const
-export const s4SeverityLevelOptions = ['low', 'medium', 'high'] as const
+export const remediationStatusOptions = ['notStarted', 'inProgress', 'completed'] as const
+export const s2IssueTypeOptions = [
+  'healthAndSafety',
+  'wagesAndBenefits',
+  'workingTime',
+  'freedomOfAssociation',
+  'childLabour',
+  'forcedLabour',
+  'discrimination',
+  'other'
+] as const
+export const s3ImpactTypeOptions = [
+  'landRights',
+  'environmentalDamage',
+  'healthAndSafety',
+  'culturalHeritage',
+  'securityAndConflict',
+  'other'
+] as const
+export const s4ConsumerIssueTypeOptions = [
+  'productSafety',
+  'dataPrivacy',
+  'marketingPractices',
+  'accessibility',
+  'productQuality',
+  'other'
+] as const
+export const incidentSeverityLevelOptions = ['low', 'medium', 'high'] as const
+export const s4SeverityLevelOptions = incidentSeverityLevelOptions
 export const g1PolicyStatusOptions = ['approved', 'inReview', 'draft', 'retired', 'missing'] as const
 export const g1TargetStatusOptions = ['onTrack', 'lagging', 'offTrack', 'notStarted'] as const
 
@@ -500,61 +527,83 @@ export const s1InputSchema = z
   })
   .strict()
 
-const s2DiversityRowSchema = z
+const s2ValueChainIncidentSchema = z
   .object({
-    level: z.string().max(120).nullable(),
-    femalePercent: z.number().min(0).max(100).nullable(),
-    malePercent: z.number().min(0).max(100).nullable(),
-    otherPercent: z.number().min(0).max(100).nullable(),
-    payGapPercent: z.number().min(-100).max(100).nullable(),
-    targetNarrative: z.string().max(500).nullable()
+    supplier: z.string().max(160).nullable(),
+    country: z.string().max(120).nullable(),
+    issueType: z.enum(s2IssueTypeOptions).nullable(),
+    workersAffected: z.number().min(0).nullable(),
+    severityLevel: z.enum(incidentSeverityLevelOptions).nullable(),
+    remediationStatus: z.enum(remediationStatusOptions).nullable(),
+    description: z.string().max(500).nullable()
   })
   .strict()
 
 export const s2InputSchema = z
   .object({
-    genderBalance: z.array(s2DiversityRowSchema).max(30).optional(),
-    dataCoveragePercent: z.number().min(0).max(100).nullable(),
-    equalityPolicyInPlace: z.boolean().nullable(),
-    inclusionInitiativesNarrative: z.string().max(2000).nullable()
+    valueChainWorkersCount: z.number().min(0).nullable(),
+    workersAtRiskCount: z.number().min(0).nullable(),
+    valueChainCoveragePercent: z.number().min(0).max(100).nullable(),
+    highRiskSupplierSharePercent: z.number().min(0).max(100).nullable(),
+    livingWageCoveragePercent: z.number().min(0).max(100).nullable(),
+    collectiveBargainingCoveragePercent: z.number().min(0).max(100).nullable(),
+    socialAuditsCompletedPercent: z.number().min(0).max(100).nullable(),
+    grievancesOpenCount: z.number().min(0).nullable(),
+    grievanceMechanismForWorkers: z.boolean().nullable(),
+    incidents: z.array(s2ValueChainIncidentSchema).max(40).optional(),
+    socialDialogueNarrative: z.string().max(2000).nullable(),
+    remediationNarrative: z.string().max(2000).nullable()
   })
   .strict()
 
-const s3IncidentSchema = z
+const s3CommunityImpactSchema = z
   .object({
-    incidentType: z.enum(s3IncidentTypeOptions),
-    count: z.number().min(0).nullable(),
-    ratePerMillionHours: z.number().min(0).nullable(),
-    description: z.string().max(240).nullable(),
-    rootCauseClosed: z.boolean().nullable()
+    community: z.string().max(160).nullable(),
+    geography: z.string().max(120).nullable(),
+    impactType: z.enum(s3ImpactTypeOptions).nullable(),
+    householdsAffected: z.number().min(0).nullable(),
+    severityLevel: z.enum(incidentSeverityLevelOptions).nullable(),
+    remediationStatus: z.enum(remediationStatusOptions).nullable(),
+    description: z.string().max(500).nullable()
   })
   .strict()
 
 export const s3InputSchema = z
   .object({
-    incidents: z.array(s3IncidentSchema).max(40).optional(),
-    totalHoursWorked: z.number().min(0).nullable(),
-    safetyCertification: z.boolean().nullable(),
-    safetyNarrative: z.string().max(2000).nullable()
+    communitiesIdentifiedCount: z.number().min(0).nullable(),
+    impactAssessmentsCoveragePercent: z.number().min(0).max(100).nullable(),
+    highRiskCommunitySharePercent: z.number().min(0).max(100).nullable(),
+    grievancesOpenCount: z.number().min(0).nullable(),
+    incidents: z.array(s3CommunityImpactSchema).max(40).optional(),
+    engagementNarrative: z.string().max(2000).nullable(),
+    remedyNarrative: z.string().max(2000).nullable()
   })
   .strict()
 
-const s4ProcessSchema = z
+const s4ConsumerIssueSchema = z
   .object({
-    area: z.string().max(160).nullable(),
-    coveragePercent: z.number().min(0).max(100).nullable(),
-    lastAssessmentDate: z.string().max(120).nullable(),
+    productOrService: z.string().max(160).nullable(),
+    market: z.string().max(120).nullable(),
+    issueType: z.enum(s4ConsumerIssueTypeOptions).nullable(),
+    usersAffected: z.number().min(0).nullable(),
     severityLevel: z.enum(s4SeverityLevelOptions).nullable(),
-    remediationPlan: z.string().max(500).nullable()
+    remediationStatus: z.enum(remediationStatusOptions).nullable(),
+    description: z.string().max(500).nullable()
   })
   .strict()
 
 export const s4InputSchema = z
   .object({
-    processes: z.array(s4ProcessSchema).max(40).optional(),
+    productsAssessedPercent: z.number().min(0).max(100).nullable(),
+    severeIncidentsCount: z.number().min(0).nullable(),
+    recallsCount: z.number().min(0).nullable(),
+    complaintsResolvedPercent: z.number().min(0).max(100).nullable(),
+    dataBreachesCount: z.number().min(0).nullable(),
     grievanceMechanismInPlace: z.boolean().nullable(),
     escalationTimeframeDays: z.number().min(0).nullable(),
-    dueDiligenceNarrative: z.string().max(2000).nullable()
+    issues: z.array(s4ConsumerIssueSchema).max(40).optional(),
+    vulnerableUsersNarrative: z.string().max(2000).nullable(),
+    consumerEngagementNarrative: z.string().max(2000).nullable()
   })
   .strict()
 
@@ -739,7 +788,10 @@ export type S3Input = z.infer<typeof s3InputSchema>
 export type S4Input = z.infer<typeof s4InputSchema>
 export type G1Input = z.infer<typeof g1InputSchema>
 
-export type S3IncidentType = (typeof s3IncidentTypeOptions)[number]
+export type RemediationStatus = (typeof remediationStatusOptions)[number]
+export type S2IssueType = (typeof s2IssueTypeOptions)[number]
+export type S3ImpactType = (typeof s3ImpactTypeOptions)[number]
+export type S4ConsumerIssueType = (typeof s4ConsumerIssueTypeOptions)[number]
 export type S4SeverityLevel = (typeof s4SeverityLevelOptions)[number]
 export type G1PolicyStatus = (typeof g1PolicyStatusOptions)[number]
 export type G1TargetStatus = (typeof g1TargetStatusOptions)[number]
