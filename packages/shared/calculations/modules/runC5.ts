@@ -3,6 +3,7 @@
  */
 import type { C5Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 type SanitisedC5 = Required<{
   [Key in keyof C5Input]: number
@@ -43,7 +44,7 @@ export function runC5(input: ModuleInput): ModuleResult {
     `Konvertering fra kg til ton: ${factors.c5.kgToTonnes}`
   ]
 
-  return {
+  return withE1Insights('C5', input, {
     value,
     unit: factors.c5.unit,
     assumptions,
@@ -70,7 +71,7 @@ export function runC5(input: ModuleInput): ModuleResult {
       `emissionsTonnes=${emissionsTonnes}`
     ],
     warnings
-  }
+  })
 }
 
 function normaliseInput(raw: C5Input, warnings: string[]): SanitisedC5 {

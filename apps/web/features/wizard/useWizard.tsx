@@ -20,6 +20,9 @@ import {
   persistWizardStorage,
   type PersistedWizardProfile,
   type PersistedWizardStorage,
+  type WizardFieldHistory,
+  type WizardResponsibilityIndex,
+  type WizardFieldRevision,
 } from '../../lib/storage/localStorage'
 import { wizardSteps } from './steps'
 import type { WizardProfileKey } from '../../src/modules/wizard/profile'
@@ -38,6 +41,8 @@ export type ActiveProfileState = {
   name: string
   state: WizardState
   profile: WizardProfile
+  history: WizardFieldHistory
+  responsibilities: WizardResponsibilityIndex
 }
 
 export type WizardProfileSummary = {
@@ -55,6 +60,8 @@ export type WizardHook = {
   profiles: WizardProfileMap
   profileSummaries: WizardProfileSummary[]
   activeProfileId: WizardProfileId
+  auditTrail: WizardFieldHistory
+  responsibilityIndex: WizardResponsibilityIndex
   goToStep: (index: number) => void
   updateField: (key: string, value: unknown) => void
   updateProfile: (key: WizardProfileKey, value: boolean | null) => void
@@ -68,6 +75,7 @@ export type WizardHook = {
 const AUTOSAVE_DELAY = 800
 const DEFAULT_STEP_INDEX = wizardSteps.findIndex((step) => step.status === 'ready')
 const INITIAL_STEP = DEFAULT_STEP_INDEX === -1 ? 0 : DEFAULT_STEP_INDEX
+const HISTORY_LIMIT = 50
 
 function generateProfileId(): WizardProfileId {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -91,6 +99,68 @@ function cloneModuleInput(input: ModuleInput): ModuleInput {
     console.warn('Kunne ikke JSON-clone wizard-state, genbruger eksisterende reference', error)
     return input
   }
+}
+
+function summariseValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return 'null'
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 140 ? `${trimmed.slice(0, 137)}…` : trimmed
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+
+  try {
+    const serialised = JSON.stringify(value)
+    return serialised.length > 160 ? `${serialised.slice(0, 157)}…` : serialised
+  } catch (error) {
+    console.warn('Kunne ikke serialisere værdi til historik', error)
+    return '[ukendt]'
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function extractResponsibilities(value: unknown, basePath: string): WizardResponsibilityIndex[string] {
+  const entries: { path: string; value: string }[] = []
+
+  const collect = (current: unknown, path: string) => {
+    if (Array.isArray(current)) {
+      current.forEach((item, index) => {
+        collect(item, `${path}[${index}]`)
+      })
+      return
+    }
+
+    if (!isRecord(current)) {
+      return
+    }
+
+    Object.entries(current).forEach(([key, rawValue]) => {
+      const nextPath = path ? `${path}.${key}` : key
+      const lowered = key.toLowerCase()
+      if ((lowered.includes('responsible') || lowered.includes('owner')) && typeof rawValue === 'string') {
+        const trimmed = rawValue.trim()
+        if (trimmed.length > 0) {
+          entries.push({ path: nextPath, value: trimmed })
+        }
+      }
+
+      if (typeof rawValue === 'object' && rawValue !== null) {
+        collect(rawValue, nextPath)
+      }
+    })
+  }
+
+  collect(value, basePath)
+  return entries
 }
 
 export function useWizard(): WizardHook {
@@ -131,6 +201,31 @@ export function useWizard(): WizardHook {
       if (!active) {
         return prev
       }
+
+      const now = Date.now()
+      const revision: WizardFieldRevision = {
+        id: `${key}-${now}`,
+        field: key,
+        timestamp: now,
+        summary: summariseValue(value),
+        updatedBy: 'local-user',
+      }
+
+      const nextHistoryForField = [...(active.history[key] ?? []), revision].slice(-HISTORY_LIMIT)
+      const nextHistory: WizardFieldHistory = {
+        ...active.history,
+        [key]: nextHistoryForField,
+      }
+
+      const responsibilityEntries = extractResponsibilities(value, key)
+      const nextResponsibilities: WizardResponsibilityIndex = { ...active.responsibilities }
+
+      if (responsibilityEntries.length > 0) {
+        nextResponsibilities[key] = responsibilityEntries
+      } else if (nextResponsibilities[key]) {
+        delete nextResponsibilities[key]
+      }
+
       const nextStorage: PersistedWizardStorage = {
         ...prev,
         profiles: {
@@ -138,7 +233,9 @@ export function useWizard(): WizardHook {
           [prev.activeProfileId]: {
             ...active,
             state: { ...active.state, [key]: value },
-            updatedAt: Date.now(),
+            updatedAt: now,
+            history: nextHistory,
+            responsibilities: nextResponsibilities,
           },
         },
       }
@@ -182,6 +279,8 @@ export function useWizard(): WizardHook {
         profile: createInitialWizardProfile(),
         createdAt: now,
         updatedAt: now,
+        history: {},
+        responsibilities: {},
       }
 
       const nextStorage: PersistedWizardStorage = {
@@ -244,6 +343,17 @@ export function useWizard(): WizardHook {
         profile: { ...target.profile },
         createdAt: now,
         updatedAt: now,
+        history: Object.entries(target.history).reduce<WizardFieldHistory>((acc, [field, revisions]) => {
+          acc[field] = revisions.map((revision) => ({ ...revision }))
+          return acc
+        }, {}),
+        responsibilities: Object.entries(target.responsibilities).reduce<WizardResponsibilityIndex>(
+          (acc, [field, entries]) => {
+            acc[field] = entries.map((entry) => ({ ...entry }))
+            return acc
+          },
+          {},
+        ),
       }
       const nextStorage: PersistedWizardStorage = {
         activeProfileId: id,
@@ -273,6 +383,8 @@ export function useWizard(): WizardHook {
           profile: createInitialWizardProfile(),
           createdAt: now,
           updatedAt: now,
+          history: {},
+          responsibilities: {},
         }
         const nextStorage: PersistedWizardStorage = {
           activeProfileId: id,
@@ -305,6 +417,8 @@ export function useWizard(): WizardHook {
         profile: createInitialWizardProfile(),
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        history: {},
+        responsibilities: {},
       }
 
     const active: ActiveProfileState = {
@@ -312,6 +426,8 @@ export function useWizard(): WizardHook {
       name: fallbackProfile.name,
       state: fallbackProfile.state,
       profile: fallbackProfile.profile,
+      history: fallbackProfile.history ?? {},
+      responsibilities: fallbackProfile.responsibilities ?? {},
     }
 
     const summaries: WizardProfileSummary[] = Object.values(storage.profiles).map((entry) => ({
@@ -327,6 +443,8 @@ export function useWizard(): WizardHook {
       goToStep,
       updateField,
       profile: active.profile,
+      auditTrail: active.history,
+      responsibilityIndex: active.responsibilities,
       updateProfile,
       activeProfile: active,
       profiles: storage.profiles,

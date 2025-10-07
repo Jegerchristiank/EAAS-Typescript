@@ -1873,6 +1873,1071 @@
       },
       "additionalProperties": false
     },
+    "E1Context": {
+      "type": "object",
+      "title": "E1ContextInput",
+      "description": "Overordnede aktivitetsdata til beregning af emissionsintensitet og energimix.",
+      "properties": {
+        "netRevenueDkk": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Nettoomsætning i regnskabsåret (DKK)."
+        },
+        "productionVolume": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Årlig produktionsmængde for primære produkter eller services."
+        },
+        "productionUnit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32,
+          "description": "Enhed for produktionsmængden (fx ton, stk., MWh)."
+        },
+        "employeesFte": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Gennemsnitligt antal fuldtidsansatte (FTE) i perioden."
+        },
+        "totalEnergyConsumptionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlet energiforbrug i kWh for organisationen (Scope 1+2)."
+        },
+        "energyProductionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Egenproduceret energi i kWh (fx sol, vind, biomasse)."
+        },
+        "renewableEnergyProductionKwh": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Andel af egenproduktion som er vedvarende (kWh)."
+        },
+        "energyMixLines": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "Fordeling af energiforbrug efter type til energimix-beregninger.",
+          "items": {
+            "type": "object",
+            "title": "EnergyMixLine",
+            "properties": {
+              "energyType": {
+                "type": "string",
+                "enum": [
+                  "electricity",
+                  "districtHeat",
+                  "steam",
+                  "cooling",
+                  "biogas",
+                  "diesel",
+                  "other"
+                ],
+                "description": "Kategori for energitypen."
+              },
+              "consumptionKwh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Forbrug i kWh for energitypen."
+              },
+              "documentationQualityPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dokumentationskvalitet for energidata i procent."
+              }
+            },
+            "required": [
+              "energyType"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "previousYearScope1Tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Scope 1 emissioner i ton CO2e for foregående år."
+        },
+        "previousYearScope2Tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Scope 2 emissioner i ton CO2e for foregående år."
+        },
+        "previousYearScope3Tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Scope 3 emissioner i ton CO2e for foregående år."
+        }
+      },
+      "additionalProperties": false
+    },
+    "E1Targets": {
+      "type": "object",
+      "title": "E1TargetsInput",
+      "description": "Klimamål, tidslinjer og planlagte handlinger i henhold til ESRS E1.",
+      "properties": {
+        "targets": {
+          "type": "array",
+          "maxItems": 12,
+          "description": "Liste over klimamål og reduktionsplaner.",
+          "items": {
+            "type": "object",
+            "title": "E1TargetLine",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 24,
+                "description": "Valgfrit internt ID for målet."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Navn eller kort titel for målet."
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "scope1",
+                  "scope2",
+                  "scope3",
+                  "combined"
+                ],
+                "description": "Hvilket scope eller samlet mål der dækkes."
+              },
+              "targetYear": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 2000,
+                "maximum": 2100,
+                "description": "Året hvor målet skal være opfyldt."
+              },
+              "targetValueTonnes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Mål for emissioner i ton CO2e i målåret."
+              },
+              "baselineYear": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 1990,
+                "maximum": 2100,
+                "description": "Baseline-år for målet."
+              },
+              "baselineValueTonnes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Emissioner i baseline-året i ton CO2e."
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Ansvarlig person eller funktion."
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "onTrack",
+                  "lagging",
+                  "atRisk"
+                ],
+                "description": "Selvvurderet status for målopfyldelse."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Kort beskrivelse af mål eller metode."
+              },
+              "milestones": {
+                "type": "array",
+                "maxItems": 6,
+                "description": "Vigtige milepæle frem mod målopfyldelse.",
+                "items": {
+                  "type": "object",
+                  "title": "E1TargetMilestone",
+                  "properties": {
+                    "label": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 160,
+                      "description": "Kort titel for milepælen."
+                    },
+                    "dueYear": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "minimum": 2000,
+                      "maximum": 2100,
+                      "description": "Forventet år for milepælen."
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "scope"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "actions": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Planlagte handlinger og projekter til målopfyldelse.",
+          "items": {
+            "type": "object",
+            "title": "E1ActionLine",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Kort titel for handlingen."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Detaljer om aktiviteten eller investeringen."
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Ansvarlig for handlingen."
+              },
+              "dueQuarter": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^\\d{4}-Q[1-4]$",
+                "description": "Planlagt afslutning (fx 2025-Q2)."
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "planned",
+                  "inProgress",
+                  "delayed",
+                  "completed"
+                ],
+                "description": "Status for handlingen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "S1": {
+      "type": "object",
+      "title": "S1Input",
+      "description": "Arbejdskraft og headcount",
+      "properties": {
+        "reportingYear": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 1900,
+          "maximum": 2100,
+          "description": "Rapporteringsår for headcount-data."
+        },
+        "totalHeadcount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlet antal medarbejdere (headcount)."
+        },
+        "dataCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Hvor stor en andel af arbejdsstyrken data dækker."
+        },
+        "headcountBreakdown": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Segmenteret headcount (fx lande, funktioner).",
+          "items": {
+            "type": "object",
+            "title": "S1HeadcountLine",
+            "properties": {
+              "segment": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Navn på segmentet."
+              },
+              "headcount": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Headcount i segmentet."
+              },
+              "femalePercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Andel kvinder i procent."
+              },
+              "collectiveAgreementCoveragePercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Dækning af kollektive aftaler eller medarbejderrepræsentation."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "workforceNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ uddybning af headcount-udviklingen."
+        }
+      },
+      "additionalProperties": false
+    },
+    "S2": {
+      "type": "object",
+      "title": "S2Input",
+      "description": "Værdikædearbejdere og arbejdsforhold",
+      "properties": {
+        "valueChainWorkersCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Estimeret antal arbejdstagere i værdikæden."
+        },
+        "workersAtRiskCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal værdikædearbejdere identificeret som særligt udsatte."
+        },
+        "valueChainCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af værdikæden der er risikovurderet eller monitoreret."
+        },
+        "highRiskSupplierSharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af leverandører klassificeret som højrisiko."
+        },
+        "livingWageCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel værdikædearbejdere dækket af leve-/mindsteløn."
+        },
+        "collectiveBargainingCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel med adgang til kollektive forhandlinger eller repræsentation."
+        },
+        "socialAuditsCompletedPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel planlagte sociale audits gennemført i rapporteringsåret."
+        },
+        "grievancesOpenCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Åbne klager fra leverandørarbejdere."
+        },
+        "grievanceMechanismForWorkers": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Om der findes klagemekanisme for leverandørarbejdere."
+        },
+        "incidents": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Registrerede alvorlige hændelser i værdikæden.",
+          "items": {
+            "type": "object",
+            "title": "S2ValueChainIncident",
+            "properties": {
+              "supplier": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Leverandør eller site."
+              },
+              "country": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Land eller region."
+              },
+              "issueType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "healthAndSafety",
+                  "wagesAndBenefits",
+                  "workingTime",
+                  "freedomOfAssociation",
+                  "childLabour",
+                  "forcedLabour",
+                  "discrimination",
+                  "other"
+                ],
+                "description": "Kategori for hændelsen."
+              },
+              "workersAffected": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Antal berørte arbejdstagere."
+              },
+              "severityLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "description": "Vurderet alvorlighed."
+              },
+              "remediationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "notStarted",
+                  "inProgress",
+                  "completed"
+                ],
+                "description": "Status på afhjælpning."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Kort beskrivelse af hændelsen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "socialDialogueNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om engagement, træning og dialog med leverandørarbejdere."
+        },
+        "remediationNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om afhjælpning og kompensation."
+        }
+      },
+      "additionalProperties": false
+    },
+    "S3": {
+      "type": "object",
+      "title": "S3Input",
+      "description": "Berørte lokalsamfund",
+      "properties": {
+        "communitiesIdentifiedCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal lokalsamfund identificeret som påvirkede."
+        },
+        "impactAssessmentsCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af aktiviteter med gennemført konsekvensanalyse."
+        },
+        "highRiskCommunitySharePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af lokalsamfund klassificeret som højrisiko."
+        },
+        "grievancesOpenCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Åbne klager fra lokalsamfund."
+        },
+        "incidents": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Registrerede negative påvirkninger på lokalsamfund.",
+          "items": {
+            "type": "object",
+            "title": "S3CommunityImpact",
+            "properties": {
+              "community": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Navn eller beskrivelse af lokalsamfundet."
+              },
+              "geography": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Land/region eller projektområde."
+              },
+              "impactType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "landRights",
+                  "environmentalDamage",
+                  "healthAndSafety",
+                  "culturalHeritage",
+                  "securityAndConflict",
+                  "other"
+                ],
+                "description": "Kategori for påvirkning."
+              },
+              "householdsAffected": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Antal berørte husholdninger."
+              },
+              "severityLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "description": "Vurderet alvorlighed."
+              },
+              "remediationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "notStarted",
+                  "inProgress",
+                  "completed"
+                ],
+                "description": "Status på remediering."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Kort beskrivelse af påvirkningen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "engagementNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om dialog og konsultationer (fx FPIC)."
+        },
+        "remedyNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om afhjælpning og samarbejde med lokalsamfund."
+        }
+      },
+      "additionalProperties": false
+    },
+    "S4": {
+      "type": "object",
+      "title": "S4Input",
+      "description": "Forbrugere og slutbrugere",
+      "properties": {
+        "productsAssessedPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af produkter/tjenester med risikovurdering."
+        },
+        "severeIncidentsCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal alvorlige hændelser, der påvirker slutbrugere."
+        },
+        "recallsCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal produkt- eller service-recalls."
+        },
+        "complaintsResolvedPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af forbrugerklager løst inden for SLA."
+        },
+        "dataBreachesCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal registrerede brud på datasikkerhed."
+        },
+        "grievanceMechanismInPlace": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Om der findes hotline eller lignende for forbrugere/slutbrugere."
+        },
+        "escalationTimeframeDays": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Gennemsnitlig behandlingstid for forbrugerklager i dage."
+        },
+        "issues": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Registrerede impacts på forbrugere/slutbrugere.",
+          "items": {
+            "type": "object",
+            "title": "S4ConsumerIssue",
+            "properties": {
+              "productOrService": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Produkt- eller servicenavn."
+              },
+              "market": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Marked eller segment."
+              },
+              "issueType": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "productSafety",
+                  "dataPrivacy",
+                  "marketingPractices",
+                  "accessibility",
+                  "productQuality",
+                  "other"
+                ],
+                "description": "Kategori for hændelsen."
+              },
+              "usersAffected": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Antal berørte slutbrugere."
+              },
+              "severityLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "description": "Vurderet alvorlighed."
+              },
+              "remediationStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "notStarted",
+                  "inProgress",
+                  "completed"
+                ],
+                "description": "Status på afhjælpning eller kompensation."
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Kort beskrivelse af hændelsen."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "vulnerableUsersNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om støtte til udsatte brugergrupper."
+        },
+        "consumerEngagementNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om kommunikation, uddannelse og samarbejde med slutbrugere."
+        }
+      },
+      "additionalProperties": false
+    },
+    "G1": {
+      "type": "object",
+      "title": "G1Input",
+      "description": "Governance-politikker og targets",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Politikker relateret til ESG/CSRD.",
+          "items": {
+            "type": "object",
+            "title": "G1Policy",
+            "properties": {
+              "topic": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Navn på politikken."
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "approved",
+                  "inReview",
+                  "draft",
+                  "retired",
+                  "missing",
+                  null
+                ],
+                "description": "Status for politikken."
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Ansvarlig rolle eller afdeling."
+              },
+              "lastReviewed": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120,
+                "description": "Seneste gennemgangsdato."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 40,
+          "description": "Governance- og compliance-targets.",
+          "items": {
+            "type": "object",
+            "title": "G1Target",
+            "properties": {
+              "topic": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160,
+                "description": "Navn på target."
+              },
+              "baselineYear": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 1990,
+                "maximum": 2100,
+                "description": "Baselineår for målet."
+              },
+              "targetYear": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 1990,
+                "maximum": 2100,
+                "description": "Målår for opfyldelse."
+              },
+              "targetValue": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "Talværdi for målet."
+              },
+              "unit": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 40,
+                "description": "Enhed for target (fx %)."
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "onTrack",
+                  "lagging",
+                  "offTrack",
+                  "notStarted",
+                  null
+                ],
+                "description": "Status for target."
+              },
+              "narrative": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500,
+                "description": "Uddybende noter om target."
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "boardOversight": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Om bestyrelsen fører tilsyn med ESG/CSRD."
+        },
+        "governanceNarrative": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "description": "Narrativ om governance-struktur og roller."
+        }
+      },
+      "additionalProperties": false
+    },
     "D1": {
       "type": "object",
       "title": "D1Input",
@@ -1938,6 +3003,278 @@
           ],
           "maxLength": 2000,
           "description": "Strategi, målsætninger og politikker for ESG-governance."
+        },
+        "strategy": {
+          "type": "object",
+          "properties": {
+            "businessModelSummary": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Beskrivelse af forretningsmodel og væsentlige bæredygtighedsafhængigheder."
+            },
+            "sustainabilityIntegration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan bæredygtighedsforhold er integreret i strategi og beslutninger."
+            },
+            "resilienceDescription": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Robusthed og scenarieanalyser for strategi og forretningsmodel."
+            },
+            "stakeholderEngagement": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan interessenter inddrages i strategiudvikling."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "governance": {
+          "type": "object",
+          "properties": {
+            "oversight": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Bestyrelsens tilsyn og rapportering."
+            },
+            "managementRoles": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Ledelsesroller og ansvar for ESG."
+            },
+            "esgExpertise": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Kompetencer og træning i bestyrelse og ledelse."
+            },
+            "incentives": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Incitamentsordninger koblet til bæredygtighedsmål."
+            },
+            "policies": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Governance-politikker og kontrolsystemer."
+            },
+            "hasEsgCommittee": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Om der er et dedikeret ESG-/bæredygtighedsudvalg."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "impactsRisksOpportunities": {
+          "type": "object",
+          "properties": {
+            "processDescription": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Proces for identifikation og vurdering af impacts, risici og muligheder."
+            },
+            "prioritisationCriteria": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Kriterier for prioritering og væsentlighed."
+            },
+            "integrationIntoManagement": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan resultaterne bruges i strategi, risikostyring og beslutninger."
+            },
+            "mitigationActions": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Planer og handlinger til håndtering af væsentlige impacts."
+            },
+            "valueChainCoverage": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "ownOperations",
+                "upstreamOnly",
+                "downstreamOnly",
+                "upstreamAndDownstream",
+                "fullValueChain",
+                null
+              ],
+              "description": "Dækning på tværs af værdikæden i analysen."
+            },
+            "timeHorizons": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "maxItems": 3,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "shortTerm",
+                  "mediumTerm",
+                  "longTerm"
+                ]
+              },
+              "description": "Tids-horisonter der er analyseret (kort/mellem/lang)."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "targetsAndKpis": {
+          "type": "object",
+          "properties": {
+            "hasQuantitativeTargets": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Om der er kvantitative mål for væsentlige emner."
+            },
+            "governanceIntegration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Hvordan mål og KPI’er er forankret i governance-processer."
+            },
+            "progressDescription": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000,
+              "description": "Status og fremdrift på mål og KPI’er."
+            },
+            "kpis": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 120,
+                    "description": "Navn på mål eller KPI."
+                  },
+                  "kpi": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 120,
+                    "description": "KPI-navn eller indikator."
+                  },
+                  "unit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 40,
+                    "description": "Enhed for KPI’en."
+                  },
+                  "baselineYear": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 1900,
+                    "maximum": 2100,
+                    "description": "Baseline-år for KPI."
+                  },
+                  "baselineValue": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "Baseline-værdi."
+                  },
+                  "targetYear": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 1900,
+                    "maximum": 2100,
+                    "description": "År hvor målet skal nås."
+                  },
+                  "targetValue": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "Forventet mål-værdi."
+                  },
+                  "comments": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500,
+                    "description": "Supplerende noter."
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              "description": "Liste over mål og KPI’er relateret til governance."
+            }
+          },
+          "required": [],
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

@@ -36,10 +36,12 @@ const sectionScopeMap: Record<string, WizardScope> = {
   'scope-2': 'Scope 2',
   'scope-3-upstream': 'Scope 3',
   'scope-3-downstream': 'Scope 3',
+  environment: 'Environment',
+  'double-materiality': 'Governance',
   governance: 'Governance',
 }
 
-const orderedScopes: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Governance']
+const orderedScopes: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance']
 
 const statusLabels: Record<StepStatus, string> = {
   'not-started': 'Ikke startet',

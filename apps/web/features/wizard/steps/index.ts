@@ -61,7 +61,18 @@ const C12Step = createLazyStep(() => import('./C12'), 'C12Step')
 const C13Step = createLazyStep(() => import('./C13'), 'C13Step')
 const C14Step = createLazyStep(() => import('./C14'), 'C14Step')
 const C15Step = createLazyStep(() => import('./C15'), 'C15Step')
+const E1TargetsStep = createLazyStep(() => import('./E1Targets'), 'E1TargetsStep')
+const E2WaterStep = createLazyStep(() => import('./E2Water'), 'E2WaterStep')
+const E3PollutionStep = createLazyStep(() => import('./E3Pollution'), 'E3PollutionStep')
+const E4BiodiversityStep = createLazyStep(() => import('./E4Biodiversity'), 'E4BiodiversityStep')
+const E5ResourcesStep = createLazyStep(() => import('./E5Resources'), 'E5ResourcesStep')
+const S1Step = createLazyStep(() => import('./S1'), 'S1Step')
+const S2Step = createLazyStep(() => import('./S2'), 'S2Step')
+const S3Step = createLazyStep(() => import('./S3'), 'S3Step')
+const S4Step = createLazyStep(() => import('./S4'), 'S4Step')
+const G1Step = createLazyStep(() => import('./G1'), 'G1Step')
 const D1Step = createLazyStep(() => import('./D1'), 'D1Step')
+const D2Step = createLazyStep(() => import('./D2'), 'D2Step')
 
 export type WizardStep = {
   id: ModuleId
@@ -71,7 +82,7 @@ export type WizardStep = {
   status: WizardStepStatus
 }
 
-export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Governance'
+export type WizardScope = 'Scope 1' | 'Scope 2' | 'Scope 3' | 'Environment' | 'Social' | 'Governance'
 
 export type WizardStepStatus = 'ready' | 'planned'
 
@@ -106,5 +117,58 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C14', label: 'C14 – Behandling af solgte produkter', component: C14Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'ready' },
-  { id: 'D1', label: 'D1 – Metode & governance', component: D1Step, scope: 'Governance', status: 'ready' }
+  {
+    id: 'E1Targets',
+    label: 'E1 – Klimamål og handlinger',
+    component: E1TargetsStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'E2Water',
+    label: 'E2 – Vandforbrug og vandstress',
+    component: E2WaterStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'E3Pollution',
+    label: 'E3 – Emissioner til luft, vand og jord',
+    component: E3PollutionStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'E4Biodiversity',
+    label: 'E4 – Påvirkning af biodiversitet',
+    component: E4BiodiversityStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'E5Resources',
+    label: 'E5 – Ressourcer og materialeforbrug',
+    component: E5ResourcesStep,
+    scope: 'Environment',
+    status: 'ready'
+  },
+  { id: 'S1', label: 'S1 – Arbejdsstyrke & headcount', component: S1Step, scope: 'Social', status: 'ready' },
+  { id: 'S2', label: 'S2 – Værdikædearbejdere', component: S2Step, scope: 'Social', status: 'ready' },
+  { id: 'S3', label: 'S3 – Lokalsamfund og påvirkninger', component: S3Step, scope: 'Social', status: 'ready' },
+  { id: 'S4', label: 'S4 – Forbrugere og slutbrugere', component: S4Step, scope: 'Social', status: 'ready' },
+  {
+    id: 'G1',
+    label: 'G1 – Governance-politikker & targets',
+    component: G1Step,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  { id: 'D1', label: 'D1 – Metode & governance', component: D1Step, scope: 'Governance', status: 'ready' },
+  {
+    id: 'D2',
+    label: 'D2 – Dobbelt væsentlighed & CSRD-gaps',
+    component: D2Step,
+    scope: 'Governance',
+    status: 'ready'
+  }
 ]
