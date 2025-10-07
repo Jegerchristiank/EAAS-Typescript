@@ -8,11 +8,12 @@ const { s2 } = factors
 
 type IncidentRow = NonNullable<S2Input['incidents']>[number]
 
+type NormalisedIssueType = NonNullable<IncidentRow['issueType']> | null
 type NormalisedIncident = {
   index: number
   supplier: string | null
   country: string | null
-  issueType: string | null
+  issueType: NormalisedIssueType
   workersAffected: number | null
   severityLevel: NormalisedSeverity
   remediationStatus: NormalisedStatus

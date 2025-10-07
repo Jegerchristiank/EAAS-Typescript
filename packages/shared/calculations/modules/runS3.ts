@@ -8,11 +8,12 @@ const { s3 } = factors
 
 type ImpactRow = NonNullable<S3Input['incidents']>[number]
 
+type NormalisedImpactType = NonNullable<ImpactRow['impactType']> | null
 type NormalisedImpact = {
   index: number
   community: string | null
   geography: string | null
-  impactType: string | null
+  impactType: NormalisedImpactType
   householdsAffected: number | null
   severityLevel: NormalisedSeverity
   remediationStatus: NormalisedStatus
