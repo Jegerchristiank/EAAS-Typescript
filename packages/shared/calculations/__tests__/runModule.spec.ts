@@ -36,6 +36,18 @@ import { runC14 } from '../modules/runC14'
 import { runC15 } from '../modules/runC15'
 import { runA1 } from '../modules/runA1'
 import { runD1 } from '../modules/runD1'
+import { runD2 } from '../modules/runD2'
+import { runE1Targets } from '../modules/runE1Targets'
+import { runE2Water } from '../modules/runE2Water'
+import { runE3Pollution } from '../modules/runE3Pollution'
+import { runE4Biodiversity } from '../modules/runE4Biodiversity'
+import { runE5Resources } from '../modules/runE5Resources'
+import { runS1 } from '../modules/runS1'
+import { runS2 } from '../modules/runS2'
+import { runS3 } from '../modules/runS3'
+import { runS4 } from '../modules/runS4'
+import { runG1 } from '../modules/runG1'
+import { e1TargetsFixture } from './fixtures/e1Targets'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -259,6 +271,279 @@ describe('runA4', () => {
       'Dokumentationskvalitet på linje 1 er begrænset til 100%.',
       'Ingen gyldige kølemiddellinjer kunne beregnes. Kontrollér indtastningerne.'
     ])
+  })
+})
+
+describe('runS1', () => {
+  it('beregner social score ud fra headcount og dækning', () => {
+    const input: ModuleInput = {
+      S1: {
+        reportingYear: 2024,
+        totalHeadcount: 520,
+        dataCoveragePercent: 90,
+        headcountBreakdown: [
+          { segment: 'Danmark', headcount: 200, femalePercent: 48, collectiveAgreementCoveragePercent: 85 },
+          { segment: 'Sverige', headcount: 120, femalePercent: 52, collectiveAgreementCoveragePercent: 80 },
+          { segment: 'Produktion', headcount: 150, femalePercent: 18, collectiveAgreementCoveragePercent: 70 },
+          { segment: 'HQ', headcount: 50, femalePercent: 60, collectiveAgreementCoveragePercent: 90 }
+        ],
+        workforceNarrative: 'Stabil bemanding med fokus på kollektiv repræsentation.'
+      }
+    }
+
+    const result = runS1(input)
+
+    expect(result.value).toBeCloseTo(96.1)
+    expect(result.assumptions).toContain(
+      'Scoren vægter total headcount (35 %), segmentfordeling (35 %), datadækning (20 %) og faglig repræsentation (10 %).'
+    )
+    expect(result.warnings).toContain(
+      'Segmentet "Produktion" har en kønsfordeling på 18% kvinder – markér indsats i S2 for at adressere ubalancer.'
+    )
+  })
+})
+
+describe('runS2', () => {
+  it('beregner social score for værdikædearbejdere og giver relevante warnings', () => {
+    const input: ModuleInput = {
+      S2: {
+        valueChainWorkersCount: 2400,
+        workersAtRiskCount: 180,
+        valueChainCoveragePercent: 85,
+        highRiskSupplierSharePercent: 22,
+        livingWageCoveragePercent: 88,
+        collectiveBargainingCoveragePercent: 60,
+        socialAuditsCompletedPercent: 92,
+        grievancesOpenCount: 1,
+        grievanceMechanismForWorkers: true,
+        incidents: [
+          {
+            supplier: 'Alpha Textiles',
+            country: 'Bangladesh',
+            issueType: 'wagesAndBenefits',
+            workersAffected: 60,
+            severityLevel: 'medium',
+            remediationStatus: 'inProgress',
+            description: 'Løn ligger under aftalt minimum – forbedringsplan igangsat.'
+          },
+          {
+            supplier: 'Omega Plast',
+            country: 'Malaysia',
+            issueType: 'healthAndSafety',
+            workersAffected: 20,
+            severityLevel: 'low',
+            remediationStatus: 'completed',
+            description: null
+          }
+        ],
+        socialDialogueNarrative:
+          'Leverandørprogram med kvartalsvise dialogmøder, træning i arbejdsmiljø og co-funding af fagforeningsarbejde.',
+        remediationNarrative:
+          'Kompensation til påvirkede syersker samt auditopfølgning med fokus på lønjusteringer og forbedret tilsyn.'
+      }
+    }
+
+    const result = runS2(input)
+
+    expect(result.value).toBeGreaterThan(70)
+    expect(result.trace).toContain('valueChainCoveragePercent=85')
+    expect(result.warnings).toContain('1 klager fra leverandørarbejdere er åbne. Følg op og luk dem for at undgå ESRS S2 advarsler.')
+  })
+})
+
+describe('runS3', () => {
+  it('prioriterer konsekvensanalyser og håndtering af lokalsamfundsimpacts', () => {
+    const input: ModuleInput = {
+      S3: {
+        communitiesIdentifiedCount: 5,
+        impactAssessmentsCoveragePercent: 80,
+        highRiskCommunitySharePercent: 25,
+        grievancesOpenCount: 0,
+        incidents: [
+          {
+            community: 'Fjordbyen',
+            geography: 'Norge',
+            impactType: 'environmentalDamage',
+            householdsAffected: 40,
+            severityLevel: 'medium',
+            remediationStatus: 'inProgress',
+            description: 'Udslip fra byggeplads påvirker fiskeri – midlertidig kompensation igangsat.'
+          },
+          {
+            community: 'Skovlandsbyen',
+            geography: 'Sverige',
+            impactType: 'landRights',
+            householdsAffected: 12,
+            severityLevel: 'low',
+            remediationStatus: 'completed',
+            description: 'Aftale om adgangsveje indgået med lokalsamfundet.'
+          }
+        ],
+        engagementNarrative:
+          'Årlige FPIC-dialoger, borgerpaneler og samarbejde med lokale NGO’er for at sikre inklusion.',
+        remedyNarrative:
+          'Kompensationsfonde samt investering i infrastruktur projekter for de mest påvirkede områder.'
+      }
+    }
+
+    const result = runS3(input)
+
+    expect(result.value).toBeGreaterThan(60)
+    expect(result.trace).toContain('impactAssessmentsCoveragePercent=80')
+    expect(result.warnings).not.toContain('Ingen påvirkninger registreret endnu.')
+  })
+})
+
+describe('runS4', () => {
+  it('kombinerer risikovurdering, klagehåndtering og hændelsesstyring', () => {
+    const input: ModuleInput = {
+      S4: {
+        productsAssessedPercent: 70,
+        complaintsResolvedPercent: 85,
+        dataBreachesCount: 1,
+        severeIncidentsCount: 1,
+        recallsCount: 0,
+        grievanceMechanismInPlace: true,
+        escalationTimeframeDays: 20,
+        issues: [
+          {
+            productOrService: 'SmartHome Hub',
+            market: 'EU',
+            issueType: 'productSafety',
+            usersAffected: 120,
+            severityLevel: 'medium',
+            remediationStatus: 'completed',
+            description: 'Firmwareopdatering reducerer risiko for overophedning.'
+          },
+          {
+            productOrService: 'Cloud Backup',
+            market: 'Global',
+            issueType: 'dataPrivacy',
+            usersAffected: 50,
+            severityLevel: 'high',
+            remediationStatus: 'inProgress',
+            description: 'Dataeksponering under undersøgelse, midlertidige kontroller implementeret.'
+          }
+        ],
+        vulnerableUsersNarrative:
+          'Udvikler forenklet supportlinje og subsidier til seniorer samt handicapvenlige grænseflader.',
+        consumerEngagementNarrative:
+          'Kvartalsvise webinarer og samarbejde med forbrugerorganisationer om klare sikkerhedsanbefalinger.'
+      }
+    }
+
+    const result = runS4(input)
+
+    expect(result.value).toBeGreaterThan(50)
+    expect(result.trace).toContain('productsAssessedPercent=70')
+    expect(result.warnings).toContain('1 alvorlige hændelser rapporteret – offentliggør detaljer og kompensation.')
+  })
+})
+
+describe('runG1', () => {
+  it('aggregerer politikker, targets og bestyrelsestilsyn', () => {
+    const input: ModuleInput = {
+      G1: {
+        boardOversight: true,
+        governanceNarrative:
+          'Bestyrelsen vurderer ESG-risici kvartalsvis og har etableret incitamenter til ledelsen.',
+        policies: [
+          { topic: 'ESG-politik', status: 'approved', owner: 'Legal', lastReviewed: '2024-02' },
+          { topic: 'Whistleblower', status: 'draft', owner: null, lastReviewed: null }
+        ],
+        targets: [
+          {
+            topic: 'CSRD readiness',
+            status: 'lagging',
+            baselineYear: 2023,
+            targetYear: 2025,
+            targetValue: null,
+            unit: null,
+            narrative: null
+          },
+          {
+            topic: 'Bestyrelsesuddannelse',
+            status: 'onTrack',
+            baselineYear: 2022,
+            targetYear: 2024,
+            targetValue: null,
+            unit: null,
+            narrative: null
+          }
+        ]
+      }
+    }
+
+    const result = runG1(input)
+
+    expect(result.value).toBeCloseTo(44)
+    expect(result.warnings).toContain('Angiv ejer/ansvarlig for politikken "Whistleblower".')
+    expect(result.trace).toContain('policy[0]=ESG-politik|status=approved|owner=Legal')
+  })
+})
+
+describe('runD2', () => {
+  it('aggregerer scorer og fremhæver prioriterede emner', () => {
+    const input: ModuleInput = {
+      D2: {
+        materialTopics: [
+          {
+            title: 'Klimarisiko i forsyningskæden',
+            description: 'Leverandører i højrisikoområder',
+            riskType: 'risk',
+            impactScore: 5,
+            financialScore: 4,
+            timeline: 'shortTerm',
+            responsible: 'CFO',
+            csrdGapStatus: 'missing'
+          },
+          {
+            title: 'Cirkulære services',
+            description: 'Nye take-back modeller',
+            riskType: 'opportunity',
+            impactScore: 3,
+            financialScore: 2,
+            timeline: 'longTerm',
+            responsible: null,
+            csrdGapStatus: 'partial'
+          },
+          {
+            title: 'Datastyring',
+            description: 'Mangler moden data governance',
+            riskType: 'risk',
+            impactScore: null,
+            financialScore: null,
+            timeline: null,
+            responsible: null,
+            csrdGapStatus: 'missing'
+          }
+        ]
+      }
+    }
+
+    const result = runD2(input)
+
+    expect(result.value).toBeCloseTo(72, 1)
+    expect(result.unit).toBe(factors.d2.unit)
+    expect(result.assumptions.some((entry) => entry.includes('Top prioriterede emner'))).toBe(true)
+    expect(result.trace).toContain('inputTopics=3')
+    expect(result.trace).toContain('validTopics=2')
+    expect(result.warnings.some((warning) => warning.includes('Prioriteret emne: Klimarisiko'))).toBe(true)
+    expect(result.warnings.some((warning) => warning.includes('CSRD-gap mangler for Klimarisiko'))).toBe(true)
+    expect(
+      result.warnings.some((warning) =>
+        warning.includes('"Datastyring" mangler både impact- og finansiel score')
+      )
+    ).toBe(true)
+  })
+
+  it('returnerer 0 ved manglende emner', () => {
+    const result = runD2({ D2: { materialTopics: [] } })
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toContain(
+      'Ingen væsentlige emner registreret. Tilføj materialitetsemner for at beregne prioritet.'
+    )
   })
 })
 
@@ -1244,6 +1529,58 @@ describe('runB11', () => {
       ])
     )
   })
+
+  it('tilføjer E1-intensiteter, trend og målstatus når kontekst er udfyldt', () => {
+    const input: ModuleInput = {
+      E1Context: {
+        netRevenueDkk: 50_000_000,
+        productionVolume: 10_000,
+        productionUnit: 'stk.',
+        employeesFte: 200,
+        totalEnergyConsumptionKwh: 180_000,
+        energyProductionKwh: 12_000,
+        renewableEnergyProductionKwh: 12_000,
+        energyMixLines: [
+          { energyType: 'electricity', consumptionKwh: 120_000, documentationQualityPercent: 95 },
+          { energyType: 'districtHeat', consumptionKwh: 60_000, documentationQualityPercent: 80 }
+        ],
+        previousYearScope1Tonnes: null,
+        previousYearScope2Tonnes: 35,
+        previousYearScope3Tonnes: null
+      },
+      E1Targets: {
+        targets: [
+          {
+            id: 'scope2-main',
+            name: 'Scope 2 reduktion',
+            scope: 'scope2',
+            targetYear: 2026,
+            targetValueTonnes: 20,
+            baselineYear: 2023,
+            baselineValueTonnes: 40,
+            owner: 'Energiansvarlig',
+            status: 'lagging',
+            description: null
+          }
+        ]
+      },
+      B1: {
+        electricityConsumptionKwh: 80_000,
+        emissionFactorKgPerKwh: 0.233,
+        renewableSharePercent: 20
+      }
+    }
+
+    const result = runB1(input)
+
+    expect(result.intensities?.map((entry) => entry.basis)).toEqual(
+      expect.arrayContaining(['netRevenue', 'production', 'energy'])
+    )
+    expect(result.trend).toMatchObject({ previousValue: 35, unit: result.unit })
+    expect(result.targetProgress).toMatchObject({ scope: 'scope2', owner: 'Energiansvarlig' })
+    expect(result.energyMix).toBeDefined()
+    expect(result.trace).toEqual(expect.arrayContaining([expect.stringContaining('targetProgress.status=')]))
+  })
 })
 
 describe('runC1', () => {
@@ -1291,6 +1628,20 @@ describe('runC1', () => {
       'Feltet remoteWorkSharePercent er begrænset til 100%.',
       'Feltet emissionFactorKgPerKm kan ikke være negativt. 0 anvendes i stedet.'
     ])
+  })
+})
+
+describe('runE1Targets', () => {
+  it('opsummerer mål og planlagte handlinger', () => {
+    const result = runE1Targets(e1TargetsFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.unit).toBe('mål')
+    expect(result.targetsOverview).toBeDefined()
+    expect(result.targetsOverview?.[0]).toMatchObject({ id: 'scope1-1', scope: 'scope1' })
+    expect(result.plannedActions?.length).toBe(2)
+    expect(result.trace).toEqual(expect.arrayContaining(['targets.onTrack=1', 'targets.lagging=1']))
+    expect(result.warnings).toEqual([])
   })
 })
 
@@ -1785,26 +2136,70 @@ describe('runD1', () => {
         scope3ScreeningCompleted: false,
         dataQuality: 'proxy',
         materialityAssessmentDescription: 'Kort note om væsentlighed',
-        strategyDescription: null
+        strategyDescription: null,
+        strategy: {
+          businessModelSummary: 'Kort beskrivelse',
+          sustainabilityIntegration: null,
+          resilienceDescription: null,
+          stakeholderEngagement: null
+        },
+        governance: {
+          oversight: 'Kort note',
+          managementRoles: null,
+          esgExpertise: null,
+          incentives: null,
+          policies: null,
+          hasEsgCommittee: false
+        },
+        impactsRisksOpportunities: {
+          processDescription: null,
+          prioritisationCriteria: null,
+          integrationIntoManagement: null,
+          mitigationActions: null,
+          valueChainCoverage: 'ownOperations',
+          timeHorizons: ['shortTerm']
+        },
+        targetsAndKpis: {
+          hasQuantitativeTargets: false,
+          governanceIntegration: null,
+          progressDescription: null,
+          kpis: [
+            {
+              name: 'CO₂-reduktion',
+              kpi: 'Ton CO₂e',
+              unit: 't',
+              baselineYear: 2020,
+              baselineValue: 100,
+              targetYear: 2030,
+              targetValue: 50,
+              comments: null
+            }
+          ]
+        }
       }
     }
 
     const result = runD1(input)
 
-    expect(result.value).toBe(50)
     expect(result.assumptions[0]).toContain('Governance-scoren er gennemsnittet')
-    expect(result.warnings).toContain(
-      'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
+    expect(result.value).toBeCloseTo(41.1, 1)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.',
+        'Uddyb væsentlighedsvurderingen med centrale risici og muligheder.',
+        'Beskriv strategi, målsætninger og politikker for ESG-governance.',
+        'Markér screening som gennemført, når scope 3 kategorier er vurderet.',
+        'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.',
+        'Tilføj flere KPI’er for at dække alle væsentlige mål.'
+      ])
     )
-    expect(result.warnings).toContain('Uddyb væsentlighedsvurderingen med centrale risici og muligheder.')
-    expect(result.warnings).toContain('Beskriv strategi, målsætninger og politikker for ESG-governance.')
-    expect(result.warnings).toContain('Markér screening som gennemført, når scope 3 kategorier er vurderet.')
-    expect(result.trace).toContain('materialityAssessmentScore=0.6')
+    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=0.6')
   })
 
   it('giver fuld score ved best practice governance', () => {
     const detailedText = 'Detaljeret beskrivelse af processer og kontroller. '.repeat(8)
     const strategyText = 'Strategi og politikker for hele organisationen med klare mål. '.repeat(8)
+    const longNote = 'Lang beskrivelse af robust governance-setup og processer. '.repeat(8)
     const input: ModuleInput = {
       D1: {
         organizationalBoundary: 'operationalControl',
@@ -1812,7 +2207,66 @@ describe('runD1', () => {
         scope3ScreeningCompleted: true,
         dataQuality: 'primary',
         materialityAssessmentDescription: detailedText,
-        strategyDescription: strategyText
+        strategyDescription: strategyText,
+        strategy: {
+          businessModelSummary: longNote,
+          sustainabilityIntegration: longNote,
+          resilienceDescription: longNote,
+          stakeholderEngagement: longNote
+        },
+        governance: {
+          oversight: longNote,
+          managementRoles: longNote,
+          esgExpertise: longNote,
+          incentives: longNote,
+          policies: longNote,
+          hasEsgCommittee: true
+        },
+        impactsRisksOpportunities: {
+          processDescription: longNote,
+          prioritisationCriteria: longNote,
+          integrationIntoManagement: longNote,
+          mitigationActions: longNote,
+          valueChainCoverage: 'fullValueChain',
+          timeHorizons: ['shortTerm', 'mediumTerm', 'longTerm']
+        },
+        targetsAndKpis: {
+          hasQuantitativeTargets: true,
+          governanceIntegration: longNote,
+          progressDescription: longNote,
+          kpis: [
+            {
+              name: 'CO₂-intensitet',
+              kpi: 'kg CO₂e/omsætning',
+              unit: 'kg/kr',
+              baselineYear: 2020,
+              baselineValue: 10,
+              targetYear: 2025,
+              targetValue: 5,
+              comments: 'Reduceret via energiprojekter'
+            },
+            {
+              name: 'Andel vedvarende energi',
+              kpi: 'Procent',
+              unit: '%',
+              baselineYear: 2020,
+              baselineValue: 30,
+              targetYear: 2027,
+              targetValue: 80,
+              comments: 'Indkøb af grøn strøm og PPAs'
+            },
+            {
+              name: 'Leverandør-audits',
+              kpi: 'Antal audits',
+              unit: 'antal',
+              baselineYear: 2021,
+              baselineValue: 20,
+              targetYear: 2026,
+              targetValue: 60,
+              comments: 'Udvidet auditprogram' 
+            }
+          ]
+        }
       }
     }
 
@@ -1820,6 +2274,129 @@ describe('runD1', () => {
 
     expect(result.value).toBe(100)
     expect(result.warnings).toHaveLength(0)
-    expect(result.trace).toContain('strategyScore=1')
+    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=1')
+    expect(result.trace).toContain('valueChainCoverageScore=1')
+    expect(result.trace).toContain('kpiCoverageScore=1')
+  })
+})
+
+describe('runE2Water', () => {
+  it('beregner vandstressindeks og advarer ved høj andel i stressede områder', () => {
+    const input: ModuleInput = {
+      E2Water: {
+        totalWithdrawalM3: 5_000,
+        withdrawalInStressRegionsM3: 2_500,
+        dischargeM3: 3_000,
+        reusePercent: 10,
+        dataQualityPercent: 80,
+      },
+    }
+
+    const result = runE2Water(input)
+
+    expect(result.value).toBe(60)
+    expect(result.unit).toBe(factors.e2Water.unit)
+    expect(result.trace).toContain('weightedRisk=0.6000')
+    expect(result.warnings).toContain(
+      'Mere end 40 % af vandudtaget (50.0 %) foregår i vandstressede områder – prioriter risikoplaner.',
+    )
+    expect(result.warnings).not.toContain('Ingen dokumenteret genbrug af vand. Overvej recirkulation eller sekundære kilder.')
+  })
+
+  it('returnerer nul og advarsel ved manglende vandforbrug', () => {
+    const result = runE2Water({} as ModuleInput)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toContain('Intet vandforbrug registreret. Indtast forbrug for at beregne vandstress.')
+  })
+})
+
+describe('runE3Pollution', () => {
+  it('reducerer score ved overskridelse og hændelser', () => {
+    const input: ModuleInput = {
+      E3Pollution: {
+        airEmissionsTonnes: 80,
+        airEmissionLimitTonnes: 50,
+        waterDischargesTonnes: 10,
+        waterDischargeLimitTonnes: null,
+        soilEmissionsTonnes: 2,
+        soilEmissionLimitTonnes: 5,
+        reportableIncidents: 2,
+        documentationQualityPercent: 60,
+      },
+    }
+
+    const result = runE3Pollution(input)
+
+    expect(result.value).toBe(32)
+    expect(result.unit).toBe(factors.e3Pollution.unit)
+    expect(result.trace).toContain('totalExceedPercent=60.00')
+    expect(result.warnings).toContain('Luft: Udledningen på 80.00 t overstiger grænsen på 50.00 t med 60.00 %.')
+    expect(result.warnings).toContain('Vand: Ingen gyldig grænse angivet. Standardgrænsen på 20 t anvendes i beregningen.')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet på 60 % er under anbefalingen på 70 %. Opdater emissionstal med mere robuste kilder.',
+    )
+    expect(result.warnings).toContain(
+      'Der er registreret 2 hændelse(r) med rapporteringspligt. Sikr opfølgning og root-cause analyse.',
+    )
+  })
+})
+
+describe('runE4Biodiversity', () => {
+  it('beregner risiko med restaureringsmitigering', () => {
+    const input: ModuleInput = {
+      E4Biodiversity: {
+        sitesInOrNearProtectedAreas: 3,
+        protectedAreaHectares: 40,
+        restorationHectares: 10,
+        significantIncidents: 1,
+        documentationQualityPercent: 65,
+      },
+    }
+
+    const result = runE4Biodiversity(input)
+
+    expect(result.value).toBe(41)
+    expect(result.trace).toContain('restorationRatio=0.2500')
+    expect(result.warnings).toContain(
+      '3 lokalitet(er) ligger i eller tæt på beskyttede områder. Iværksæt biodiversitetsplaner.',
+    )
+    expect(result.warnings).toContain(
+      '1 væsentlig(e) biodiversitetshændelse(r) registreret. Gennemfør årsagsanalyse og forebyggelse.',
+    )
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet på 65 % er under anbefalet niveau på 70 %. Suppler feltdata eller tredjepartsverifikation.',
+    )
+  })
+})
+
+describe('runE5Resources', () => {
+  it('opgør ressourceindeks og fremhæver kritiske materialer', () => {
+    const input: ModuleInput = {
+      E5Resources: {
+        primaryMaterialConsumptionTonnes: 800,
+        secondaryMaterialConsumptionTonnes: 300,
+        recycledContentPercent: 35,
+        renewableMaterialSharePercent: 20,
+        criticalMaterialsSharePercent: 45,
+        circularityTargetPercent: 50,
+        documentationQualityPercent: 60,
+      },
+    }
+
+    const result = runE5Resources(input)
+
+    expect(result.value).toBe(63.5)
+    expect(result.trace).toContain('riskIndex=0.6350')
+    expect(result.warnings).toContain(
+      'Høj andel kritiske materialer (>30 %). Overvej substitution eller leverandørdiversificering.',
+    )
+    expect(result.warnings).toContain(
+      'Genanvendt andel er 15.0 procentpoint under målsætningen. Planlæg nye cirkulære initiativer.',
+    )
+    expect(result.warnings).toContain('Ressourceindekset overstiger 55 point – prioriter cirkularitet i handlingsplanen.')
+    expect(result.warnings).toContain(
+      'Dokumentationskvalitet på 60 % er under anbefalingen på 70 %. Indhent leverandørdata eller tredjepartsattester.',
+    )
   })
 })
