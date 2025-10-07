@@ -43,3 +43,11 @@ Denne runbook beskriver hvordan vi udgiver pakker til GitHub Packages uden at l�
 - **`Failed to replace env in config: ${NODE_AUTH_TOKEN}`:** Tokenet er ikke sat. Eksporter det eller kør via workflowet.
 - **`403 Forbidden` under publish:** Kontroller at PAT har `write:packages` og at pakken hedder `@org/*`.
 - **`pnpm` beder om login under install:** Sørg for at `~/.npmrc` er fjernet; lokale installs skal ikke bruge auth.
+
+## Rapporterings- og godkendelsesflow
+
+- Review-siden giver nu adgang til fire eksportkanaler: PDF, CSRD JSON, XBRL og API-indsendelse. Alle bruger den samme datastruktur og inkluderer audit trail.
+- Brug `Download CSRD-pakke` for at validere data i support; filen indeholder sektioner med narrativer, ansvar og noter.
+- XBRL-filen følger en simpel instans med `fact`-elementer. Den er tænkt som proof-of-concept til kunder, der ønsker tidlig maskinlæsbarhed.
+- `Send til myndighed` poster payloaden til `NEXT_PUBLIC_REPORT_API_ENDPOINT`. Sørg for at sætte miljøvariablen i hostingmiljøet, hvis rapporter skal videresendes automatisk.
+- Audit trail og ansvarssporing gemmes per felt i wizard. Brug JSON-outputtet i "Se rå data" eller CSRD-pakken, når compliance-teamet efterspørger historik.

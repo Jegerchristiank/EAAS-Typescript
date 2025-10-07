@@ -15,3 +15,11 @@ Denne oversigt samler alle modulrunbooks og den anbefalede gennemførelsesrække
 | 9          | G1 – Governance-politikker     | Saml politikker, targets og bestyrelsestilsyn for governance-score.   | [module-g1.md](module-g1.md)     |
 
 > Brug oversigten som indgang til både UI-flow, beregningslogik og QA-krav for hvert modul.
+
+## ESRS-review og eksport
+
+- Review-siden konsoliderer resultater i fem ESRS-sektioner: generelle oplysninger (D1/D2), politikker og governance (G1/S4), mål (E1 Targets), metrics pr. standard (miljø/social/governance) samt dobbelt væsentlighed.
+- Alle moduler eksponerer nu narrativer, ansvar og noter, så support kan validere både tekst og tal for hvert modul.
+- D2-modulet leverer en detaljeret dobbelt væsentlighedsoversigt med gap-advarsler, tidslinjer og ansvarlige. Anvend denne ved kundesupport til at identificere dokumentationsgaps.
+- Ændringslog og ansvarssporing gemmes automatisk pr. felt. Historikken følger med i PDF-, CSRD- og XBRL-eksporter samt i API-indsendelser.
+- Eksport-knapper på review-siden kan hente PDF, CSRD JSON, XBRL og sende rapporten til en ekstern myndighedsendpoint (konfigurer `NEXT_PUBLIC_REPORT_API_ENDPOINT`).
