@@ -35,11 +35,7 @@ function buildElementMap(xml: string): Map<string, string> {
   const elementRegex = /<xsd:element\b[^>]*name="([^"]+)"[^>]*>/g
   let match: RegExpExecArray | null
   while ((match = elementRegex.exec(xml)) !== null) {
-    const [fullMatch, name] = match
-    if (!name || !fullMatch) {
-      continue
-    }
-    map.set(name, fullMatch)
+    map.set(match[1], match[0])
   }
   return map
 }
@@ -49,10 +45,7 @@ function buildUnitIdSet(xml: string): Set<string> {
   const unitRegex = /<unitId>([^<]+)<\/unitId>/g
   let match: RegExpExecArray | null
   while ((match = unitRegex.exec(xml)) !== null) {
-    const [, unitId] = match
-    if (unitId) {
-      set.add(unitId)
-    }
+    set.add(match[1])
   }
   return set
 }

@@ -90,20 +90,13 @@ export function buildCsrdReportPackage({
     }
   }
 
-  const facts: XbrlFact[] = esrsConceptList.map(({ key, definition }) => {
-    const unitRef = unitRefs.get(definition.unitId)
-    if (!unitRef) {
-      throw new Error(`Mangler unitRef for ${definition.unitId}`)
-    }
-
-    return {
-      concept: definition.qname,
-      contextRef: contextId,
-      unitRef,
-      decimals: String(decimals),
-      value: formatDecimal(totals[key], decimals)
-    }
-  })
+  const facts: XbrlFact[] = esrsConceptList.map(({ key, definition }) => ({
+    concept: definition.qname,
+    contextRef: contextId,
+    unitRef: unitRefs.get(definition.unitId),
+    decimals: String(decimals),
+    value: formatDecimal(totals[key], decimals)
+  }))
 
   const instance = buildXbrlInstance({ contexts, units, facts })
 
@@ -117,10 +110,6 @@ export type BuildXbrlInstanceInput = {
 }
 
 export function buildXbrlInstance({ contexts, units, facts }: BuildXbrlInstanceInput): string {
-  const schemaRefXml = [
-    createSchemaRefXml('taxonomy/esrs/2023-12-22/esrs_all.xsd'),
-    createSchemaRefXml('taxonomy/utr.xml')
-  ].join('\n')
   const contextXml = contexts.map((context) => createContextXml(context)).join('\n')
   const unitXml = units.map((unit) => createUnitXml(unit)).join('\n')
   const factXml = facts.map((fact) => createFactXml(fact)).join('\n')
@@ -133,7 +122,6 @@ export function buildXbrlInstance({ contexts, units, facts }: BuildXbrlInstanceI
     `            xmlns:utr="http://www.xbrl.org/2009/utr"`,
     `            xmlns:dtr-types="http://www.xbrl.org/dtr/type/2024-01-31"`,
     `            xmlns:esrs="${esrsNamespace}">`,
-    schemaRefXml,
     contextXml,
     unitXml,
     factXml,
@@ -215,10 +203,6 @@ function createUnitXml(unit: XbrlUnit): string {
   ].join('\n')
 }
 
-function createSchemaRefXml(href: string): string {
-  return `  <link:schemaRef xlink:type="simple" xlink:href="${escapeXml(href)}" />`
-}
-
 function createFactXml(fact: XbrlFact): string {
   const attributes = [
     `contextRef="${escapeXml(fact.contextRef)}"`,
@@ -250,4 +234,3 @@ function validateEntity(entity: EntityIdentifier): void {
     throw new Error('Entity-identifikator kræver både scheme og value')
   }
 }
-

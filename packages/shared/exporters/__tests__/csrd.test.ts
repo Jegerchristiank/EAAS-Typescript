@@ -66,8 +66,6 @@ describe('buildCsrdReportPackage', () => {
     expect(pkg.instance).toContain('<xbrli:endDate>2024-12-31</xbrli:endDate>')
     expect(pkg.instance).toContain('<xbrli:identifier scheme="http://standards.iso.org/iso/17442">5493001KJTIIGC8Y1R12</xbrli:identifier>')
     expect(pkg.instance).toContain('<esrs:GrossScope1GreenhouseGasEmissions contextRef="ctx_reporting_period" unitRef="unit_tCO2e" decimals="3">19.75</esrs:GrossScope1GreenhouseGasEmissions>')
-    expect(pkg.instance).toContain('xlink:href="taxonomy/esrs/2023-12-22/esrs_all.xsd"')
-    expect(pkg.instance).toContain('xlink:href="taxonomy/utr.xml"')
   })
 })
 
