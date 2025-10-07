@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@react-pdf/renderer": "^3.4.4",
+    "jszip": "^3.10.1",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
@@ -25,6 +26,7 @@
     "@org/eslint-config": "workspace:*",
     "@org/tsconfig": "workspace:*",
     "@types/node": "^20.11.30",
+    "@types/jszip": "^3.4.1",
     "@types/react": "^18.3.5",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
