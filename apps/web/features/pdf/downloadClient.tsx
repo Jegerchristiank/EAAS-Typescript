@@ -13,6 +13,7 @@ import {
   EsgReportPdf,
   type ModuleInput,
   type ReportPackageOptions,
+  type XbrlInstanceOptions,
 } from '@org/shared'
 
 export async function downloadReport(state: ModuleInput): Promise<void> {
@@ -57,9 +58,25 @@ export async function downloadXbrl(state: ModuleInput, options: ReportPackageOpt
     return
   }
 
-  const instance = buildXbrlInstance(printable, options)
+  const xbrlOptions: XbrlInstanceOptions = {
+    profileId: options.profileId,
+  }
+
+  if (options.organisation) {
+    xbrlOptions.organisation = options.organisation
+  }
+
+  if (options.reportingPeriod) {
+    xbrlOptions.reportingPeriod = options.reportingPeriod
+  }
+
+  if (options.entityIdentifier) {
+    xbrlOptions.entityIdentifier = options.entityIdentifier
+  }
+
+  const instance = buildXbrlInstance(printable, xbrlOptions)
   const blob = new Blob([instance], { type: 'application/xml' })
-  const filename = `csrd-${options.profileId}.xml`
+  const filename = `csrd-${options.profileId}.xbrl`
   saveAs(blob, filename)
 }
 
