@@ -3,6 +3,7 @@
  */
 import type { C10Input, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
+import { withE1Insights } from '../e1Insights'
 
 const c10Factors = factors.c10
 
@@ -99,13 +100,13 @@ export function runC10(input: ModuleInput): ModuleResult {
   trace.push(`totalEmissionsKg=${totalEmissionsKg}`)
   trace.push(`totalEmissionsTonnes=${totalEmissionsTonnes}`)
 
-  return {
+  return withE1Insights('C10', input, {
     value,
     unit: c10Factors.unit,
     assumptions,
     trace,
     warnings
-  }
+  })
 }
 
 function normaliseLine(

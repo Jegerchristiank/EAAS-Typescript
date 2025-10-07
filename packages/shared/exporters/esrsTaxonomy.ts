@@ -1,3 +1,4 @@
+
 /**
  * Mapping af anvendte ESRS-konceptnavne til deres officielle taksonomidefinitioner.
  *
@@ -57,4 +58,3 @@ export const esrsConceptList = Object.entries(esrsEmissionConcepts).map(([key, d
   key: key as EsrsEmissionConceptKey,
   definition
 }))
-

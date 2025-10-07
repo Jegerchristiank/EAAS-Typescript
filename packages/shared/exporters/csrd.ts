@@ -234,4 +234,3 @@ function validateEntity(entity: EntityIdentifier): void {
     throw new Error('Entity-identifikator kræver både scheme og value')
   }
 }
-

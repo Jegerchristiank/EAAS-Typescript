@@ -23,7 +23,7 @@ import { NextRelevantButton } from './NextRelevantButton'
 import { wizardSteps, type WizardScope } from './steps'
 import { WizardProvider, useWizardContext } from './useWizard'
 
-const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Governance']
+const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance']
 
 type RelevantModuleGroup = {
   scope: WizardScope
