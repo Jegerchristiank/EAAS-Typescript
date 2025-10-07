@@ -3,6 +3,8 @@
 ## Formål
 Denne fil opsummerer de vigtigste arbejdsgange og faldgruber for dette monorepo. Læs den før du skriver kode og tjek om underkataloger har deres egne `AGENTS.md`-filer.
 
+> **Meta-instruktion:** Gem ALTID nye erfaringer, faldgruber og rettelser i dette dokument (eller i mere specifikke `AGENTS.md`-filer). Brug sektionen _"Erfaringslog"_ til at logge læringer fra tidligere prompts, reviews og fejl.
+
 ## Arkitektur
 - Monorepo styret af pnpm/turbo. Arbejd i apps og packages uden at bryde domænegrænser.
 - `apps/web`: Next.js-appen med wizard UI, PDF-preview og designsystem.
@@ -44,6 +46,18 @@ Denne fil opsummerer de vigtigste arbejdsgange og faldgruber for dette monorepo.
 - Forkert npm-registry ved publish: dobbelttjek `publishConfig` og `.npmrc`.
 - NPM-auth issues: brug `GITHUB_TOKEN` i CI, ikke `.env`-filer.
 - Merge-konflikter: fjern altid `<<<<<<<`/`=======`/`>>>>>>>`. Tjek med `rg '<<<<<<<'` før commit.
+
+## Erfaringslog & før-du-koder-tjekliste
+- **Læs dokumentation først:** Start med `README.md`, `AI_GUIDE.md`, `docs/` og denne fil for at forstå domæne og eksisterende mønstre.
+- **Søg efter nested `AGENTS.md`:** Kør `rg --files -g 'AGENTS.md'` før større ændringer for at fange katalogspecifikke regler.
+- **Opdater dette dokument:** Efter hver opgave, log nye faldgruber, teststrategier eller reviewer-feedback her.
+- **Hold styr på arbejdskontekst:** Notér hvis en opgave kræver koordinering på tværs af apps/packages – brug sektionen ovenfor til at linke til relevante filer eller scripts.
+- **Dokumentér partial work:** Hvis du må afbryde arbejdet, beskriv status, TODOs og kendte problemer i PR-beskrivelsen og herunder.
+- **Testdisciplin:** Når du finder en test der fejler pga. flaky setup, beskriv root cause og workaround i denne log.
+- **Respekter globale prompts:** Følg altid seneste system-/brugerkrav (fx citations, PR-format, commit-regler) og skriv dem her, hvis de er relevante for fremtidige agenter.
+
+_Seneste læringer:_
+- 2024-XX-XX: Husk altid at inkludere meta-instruktion ovenfor og udvide denne log med ny viden fra prompts eller reviewer-kommentarer.
 
 ## Sidst men ikke mindst
 - Dokumentér større ændringer i `CHANGELOG.md` og opdater `README`/`docs` ved behov.
