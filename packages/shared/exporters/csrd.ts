@@ -56,11 +56,84 @@ export type CsrdReportPackage = {
 
 type EmissionTotals = Record<EsrsEmissionConceptKey, number>
 
-export function buildCsrdReportPackage({
+export type XbrlInstanceOptions = {
+  profileId: string
+  organisation?: string
+  reportingPeriod?: ReportingPeriod
+  entityIdentifier?: EntityIdentifier
+  decimals?: number
+}
+
+export type ReportPackageOptions = XbrlInstanceOptions & {
+  auditTrail?: unknown
+  responsibilities?: unknown
+}
+
+export type SubmissionPayloadOptions = ReportPackageOptions & {
+  includeXbrl?: boolean
+}
+
+export type SubmissionPayload = {
+  profileId: string
+  organisation?: string
+  reportingPeriod: ReportingPeriod
+  entityIdentifier: EntityIdentifier
+  generatedAt: string
+  auditTrail?: unknown
+  responsibilities?: unknown
+  results: CalculatedModuleResult[]
+  csrd: CsrdReportPackage
+  xbrl?: string
+}
+
+const defaultEntityScheme = 'urn:org:eaas:profile'
+
+function resolveBaseContext(options?: XbrlInstanceOptions) {
+  if (!options) {
+    throw new Error('Report options er påkrævet for at generere CSRD-pakken')
+  }
+
+  const { profileId, organisation, reportingPeriod, entityIdentifier, decimals } = options
+  if (!profileId) {
+    throw new Error('Report options skal inkludere et profileId')
+  }
+
+  const resolvedReportingPeriod = reportingPeriod ?? inferDefaultReportingPeriod()
+  const resolvedEntity =
+    entityIdentifier ?? ({ scheme: defaultEntityScheme, value: profileId } satisfies EntityIdentifier)
+
+  return {
+    profileId,
+    organisation,
+    reportingPeriod: resolvedReportingPeriod,
+    entity: resolvedEntity,
+    decimals,
+  }
+}
+
+function resolveReportPackageContext(options: ReportPackageOptions) {
+  const base = resolveBaseContext(options)
+  return {
+    ...base,
+    auditTrail: options.auditTrail,
+    responsibilities: options.responsibilities,
+  }
+}
+
+function inferDefaultReportingPeriod(): ReportingPeriod {
+  const now = new Date()
+  const year = now.getUTCFullYear()
+  return {
+    start: `${year}-01-01`,
+    end: `${year}-12-31`,
+  }
+}
+
+function buildCsrdReportPackageInternal({
   results,
   reportingPeriod,
   entity,
-  decimals = 3
+  decimals = 3,
 }: BuildCsrdReportPackageInput): CsrdReportPackage {
   validatePeriod(reportingPeriod)
   validateEntity(entity)
@@ -90,15 +163,21 @@ export function buildCsrdReportPackage({
     }
   }
 
-  const facts: XbrlFact[] = esrsConceptList.map(({ key, definition }) => ({
-    concept: definition.qname,
-    contextRef: contextId,
-    unitRef: unitRefs.get(definition.unitId),
-    decimals: String(decimals),
-    value: formatDecimal(totals[key], decimals)
-  }))
+  const facts: XbrlFact[] = esrsConceptList.map(({ key, definition }) => {
+    const fact: XbrlFact = {
+      concept: definition.qname,
+      contextRef: contextId,
+      decimals: String(decimals),
+      value: formatDecimal(totals[key], decimals)
+    }
+    const unitRef = unitRefs.get(definition.unitId)
+    if (unitRef) {
+      fact.unitRef = unitRef
+    }
+    return fact
+  })
 
-  const instance = buildXbrlInstance({ contexts, units, facts })
+  const instance = buildXbrlInstanceInternal({ contexts, units, facts })
 
   return { contexts, units, facts, instance }
 }
@@ -109,7 +188,7 @@ export type BuildXbrlInstanceInput = {
   facts: XbrlFact[]
 }
 
-export function buildXbrlInstance({ contexts, units, facts }: BuildXbrlInstanceInput): string {
+function buildXbrlInstanceInternal({ contexts, units, facts }: BuildXbrlInstanceInput): string {
   const contextXml = contexts.map((context) => createContextXml(context)).join('\n')
   const unitXml = units.map((unit) => createUnitXml(unit)).join('\n')
   const factXml = facts.map((fact) => createFactXml(fact)).join('\n')
@@ -127,6 +206,105 @@ export function buildXbrlInstance({ contexts, units, facts }: BuildXbrlInstanceI
     factXml,
     '</xbrli:xbrl>'
   ].join('\n')
+}
+
+export function buildCsrdReportPackage(input: BuildCsrdReportPackageInput): CsrdReportPackage
+export function buildCsrdReportPackage(
+  results: CalculatedModuleResult[],
+  options: ReportPackageOptions
+): CsrdReportPackage
+export function buildCsrdReportPackage(
+  first: BuildCsrdReportPackageInput | CalculatedModuleResult[],
+  second?: ReportPackageOptions
+): CsrdReportPackage {
+  if (Array.isArray(first)) {
+    if (!second) {
+      throw new Error('Report options er påkrævet når resultater angives direkte')
+    }
+    const { reportingPeriod, entity, decimals } = resolveBaseContext(second)
+    const packageInput: BuildCsrdReportPackageInput = {
+      results: first,
+      reportingPeriod,
+      entity,
+    }
+    if (decimals !== undefined) {
+      packageInput.decimals = decimals
+    }
+    return buildCsrdReportPackageInternal(packageInput)
+  }
+
+  return buildCsrdReportPackageInternal(first)
+}
+
+export function buildXbrlInstance(input: BuildXbrlInstanceInput): string
+export function buildXbrlInstance(results: CalculatedModuleResult[], options: XbrlInstanceOptions): string
+export function buildXbrlInstance(
+  first: BuildXbrlInstanceInput | CalculatedModuleResult[],
+  second?: XbrlInstanceOptions
+): string {
+  if (Array.isArray(first)) {
+    if (!second) {
+      throw new Error('XBRL options er påkrævet når resultater angives direkte')
+    }
+    const { reportingPeriod, entity, decimals } = resolveBaseContext(second)
+    const packageInput: BuildCsrdReportPackageInput = {
+      results: first,
+      reportingPeriod,
+      entity,
+    }
+    if (decimals !== undefined) {
+      packageInput.decimals = decimals
+    }
+    const pkg = buildCsrdReportPackageInternal(packageInput)
+    return pkg.instance
+  }
+
+  return buildXbrlInstanceInternal(first)
+}
+
+export function buildSubmissionPayload(
+  results: CalculatedModuleResult[],
+  options: SubmissionPayloadOptions
+): SubmissionPayload {
+  const { profileId, organisation, reportingPeriod, entity, decimals, auditTrail, responsibilities } =
+    resolveReportPackageContext(options)
+
+  const packageInput: BuildCsrdReportPackageInput = {
+    results,
+    reportingPeriod,
+    entity,
+  }
+  if (decimals !== undefined) {
+    packageInput.decimals = decimals
+  }
+
+  const csrd = buildCsrdReportPackageInternal(packageInput)
+
+  const includeXbrl = options.includeXbrl ?? false
+
+  const payload: SubmissionPayload = {
+    profileId,
+    reportingPeriod,
+    entityIdentifier: entity,
+    generatedAt: new Date().toISOString(),
+    results,
+    csrd,
+  }
+
+  if (organisation !== undefined) {
+    payload.organisation = organisation
+  }
+  if (auditTrail !== undefined) {
+    payload.auditTrail = auditTrail
+  }
+  if (responsibilities !== undefined) {
+    payload.responsibilities = responsibilities
+  }
+  if (includeXbrl) {
+    payload.xbrl = csrd.instance
+  }
+
+  return payload
 }
 
 function calculateEmissionTotals(results: CalculatedModuleResult[]): EmissionTotals {
