@@ -83,8 +83,8 @@ export function runE4Biodiversity(input: ModuleInput): ModuleResult {
   }
 
   pushNumericFact('E4SitesInProtectedAreasCount', sites, 'pure', 0)
-  pushNumericFact('E4ProtectedAreaHectares', impactedArea, 'hectares', 2)
-  pushNumericFact('E4RestorationHectares', restoredArea, 'hectares', 2)
+  pushNumericFact('E4ProtectedAreaHectares', impactedArea, 'hectare', 2)
+  pushNumericFact('E4RestorationHectares', restoredArea, 'hectare', 2)
   pushNumericFact('E4SignificantIncidentsCount', incidents, 'pure', 0)
   pushNumericFact('E4RestorationRatioPercent', restorationRatio * 100, 'percent', 1)
   pushNumericFact('E4DocumentationQualityPercent', dataQualityPercent, 'percent', 1)

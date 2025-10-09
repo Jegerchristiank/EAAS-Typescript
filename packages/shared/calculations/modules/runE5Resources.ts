@@ -90,8 +90,8 @@ export function runE5Resources(input: ModuleInput): ModuleResult {
     esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
   }
 
-  pushNumericFact('E5PrimaryMaterialConsumptionTonnes', primaryConsumption, 'tonnes', 2)
-  pushNumericFact('E5SecondaryMaterialConsumptionTonnes', secondaryConsumption, 'tonnes', 2)
+  pushNumericFact('E5PrimaryMaterialConsumptionTonnes', primaryConsumption, 'tonne', 2)
+  pushNumericFact('E5SecondaryMaterialConsumptionTonnes', secondaryConsumption, 'tonne', 2)
   pushNumericFact('E5RecycledContentPercent', recycledPercent, 'percent', 1)
   pushNumericFact('E5RenewableMaterialSharePercent', renewableSharePercent, 'percent', 1)
   pushNumericFact('E5CriticalMaterialsSharePercent', criticalSharePercent, 'percent', 1)

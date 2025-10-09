@@ -114,8 +114,8 @@ export function runE3Pollution(input: ModuleInput): ModuleResult {
   const mediumFacts: ModuleEsrsTable['rows'] = []
 
   mediums.forEach((medium) => {
-    pushNumericFact(`E3${capitalize(medium.key)}EmissionsTonnes`, medium.quantity, 'tonnes', 2)
-    pushNumericFact(`E3${capitalize(medium.key)}LimitTonnes`, medium.limit, 'tonnes', 2)
+    pushNumericFact(`E3${capitalize(medium.key)}EmissionsTonnes`, medium.quantity, 'tonne', 2)
+    pushNumericFact(`E3${capitalize(medium.key)}LimitTonnes`, medium.limit, 'tonne', 2)
     const exceedPercent = medium.limit === 0 ? 0 : Math.max(0, ((medium.quantity - medium.limit) / medium.limit) * 100)
     pushNumericFact(`E3${capitalize(medium.key)}ExceedPercent`, exceedPercent, 'percent', 2)
     mediumFacts.push({
