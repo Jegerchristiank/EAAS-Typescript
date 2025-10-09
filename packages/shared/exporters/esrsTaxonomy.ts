@@ -1,8 +1,7 @@
-
 /**
- * Mapping af anvendte ESRS-konceptnavne til deres officielle taksonomidefinitioner.
+ * Mapping af anvendte ESRS-konceptnøgler til deres taksonomidefinitioner.
  *
- * Navnene stammer fra EFRAGs officielle ESRS XBRL-taksonomi
+ * Navnene tager udgangspunkt i EFRAGs officielle ESRS XBRL-taksonomi
  * (entry point: https://xbrl.efrag.org/taxonomy/esrs/2023-12-22/esrs_all.xsd).
  */
 
@@ -11,15 +10,15 @@ export type EsrsPeriodType = 'duration' | 'instant'
 export type EsrsConceptDefinition = {
   /** Fuldt kvalificeret navn inkl. namespace-præfiks. */
   qname: string
-  /** Relevant unit-id fra Unit Type Registry. */
-  unitId: string
+  /** Relevant unit-id fra Unit Type Registry. Udelades for tekstblokke og booleans. */
+  unitId?: string | null
   /** Periodetype angivet i taksonomien. */
   periodType: EsrsPeriodType
 }
 
 export const esrsNamespace = 'https://xbrl.efrag.org/taxonomy/esrs/2023-12-22'
 
-export const esrsEmissionConcepts = {
+export const esrsConceptDefinitions = {
   scope1: {
     qname: 'esrs:GrossScope1GreenhouseGasEmissions',
     unitId: 'tCO2e',
@@ -49,12 +48,519 @@ export const esrsEmissionConcepts = {
     qname: 'esrs:MarketBasedGreenhouseGasEmissions',
     unitId: 'tCO2e',
     periodType: 'duration'
+  },
+  E2TotalWaterWithdrawalM3: {
+    qname: 'esrs:E2TotalWaterWithdrawalVolume',
+    unitId: 'm3',
+    periodType: 'duration'
+  },
+  E2WaterWithdrawalInStressRegionsM3: {
+    qname: 'esrs:E2WaterWithdrawalInWaterStressAreas',
+    unitId: 'm3',
+    periodType: 'duration'
+  },
+  E2WaterDischargeM3: {
+    qname: 'esrs:E2TotalWaterDischargeVolume',
+    unitId: 'm3',
+    periodType: 'duration'
+  },
+  E2WaterReusePercent: {
+    qname: 'esrs:E2WaterReusePercentage',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E2WaterStressSharePercent: {
+    qname: 'esrs:E2ShareOfWaterWithdrawalInStressAreas',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E2WaterDischargeRatioPercent: {
+    qname: 'esrs:E2WaterDischargeRatio',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E2WaterDataQualityPercent: {
+    qname: 'esrs:E2WaterDataCoveragePercentage',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E3AirEmissionsTonnes: {
+    qname: 'esrs:E3AirEmissions',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E3AirLimitTonnes: {
+    qname: 'esrs:E3AirEmissionLimit',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E3AirExceedPercent: {
+    qname: 'esrs:E3AirEmissionExceedancePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E3WaterEmissionsTonnes: {
+    qname: 'esrs:E3WaterDischarges',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E3WaterLimitTonnes: {
+    qname: 'esrs:E3WaterDischargeLimit',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E3WaterExceedPercent: {
+    qname: 'esrs:E3WaterDischargeExceedancePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E3SoilEmissionsTonnes: {
+    qname: 'esrs:E3SoilEmissions',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E3SoilLimitTonnes: {
+    qname: 'esrs:E3SoilEmissionLimit',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E3SoilExceedPercent: {
+    qname: 'esrs:E3SoilEmissionExceedancePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E3ReportableIncidentsCount: {
+    qname: 'esrs:E3ReportablePollutionIncidents',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  E3DocumentationQualityPercent: {
+    qname: 'esrs:E3PollutionDataQualityPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E3MediumsTable: {
+    qname: 'esrs:E3PollutionMediumBreakdownTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  E4SitesInProtectedAreasCount: {
+    qname: 'esrs:E4SitesInProtectedAreas',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  E4ProtectedAreaHectares: {
+    qname: 'esrs:E4AffectedHabitatArea',
+    unitId: 'hectare',
+    periodType: 'duration'
+  },
+  E4RestorationHectares: {
+    qname: 'esrs:E4RestoredHabitatArea',
+    unitId: 'hectare',
+    periodType: 'duration'
+  },
+  E4SignificantIncidentsCount: {
+    qname: 'esrs:E4SignificantBiodiversityIncidents',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  E4RestorationRatioPercent: {
+    qname: 'esrs:E4RestorationCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E4DocumentationQualityPercent: {
+    qname: 'esrs:E4DocumentationQualityPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E5PrimaryMaterialConsumptionTonnes: {
+    qname: 'esrs:E5PrimaryMaterialConsumption',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E5SecondaryMaterialConsumptionTonnes: {
+    qname: 'esrs:E5SecondaryMaterialConsumption',
+    unitId: 'tonne',
+    periodType: 'duration'
+  },
+  E5RecycledContentPercent: {
+    qname: 'esrs:E5RecycledMaterialShare',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E5RenewableMaterialSharePercent: {
+    qname: 'esrs:E5RenewableMaterialShare',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E5CriticalMaterialsSharePercent: {
+    qname: 'esrs:E5CriticalMaterialShare',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E5CircularityTargetPercent: {
+    qname: 'esrs:E5CircularityTargetPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E5TargetGapPercent: {
+    qname: 'esrs:E5CircularityTargetGapPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  E5DocumentationQualityPercent: {
+    qname: 'esrs:E5DocumentationQualityPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1TotalHeadcount: {
+    qname: 'esrs:S1TotalEmployees',
+    unitId: 'pure',
+    periodType: 'instant'
+  },
+  S1DataCoveragePercent: {
+    qname: 'esrs:S1DataCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1CollectiveAgreementCoveragePercent: {
+    qname: 'esrs:S1CollectiveAgreementCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1AverageFemalePercent: {
+    qname: 'esrs:S1FemaleSharePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1HeadcountBreakdownTable: {
+    qname: 'esrs:S1HeadcountBreakdownTable',
+    unitId: null,
+    periodType: 'instant'
+  },
+  S2ValueChainWorkersCount: {
+    qname: 'esrs:S2ValueChainWorkersCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S2WorkersAtRiskCount: {
+    qname: 'esrs:S2WorkersAtRiskCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S2ValueChainCoveragePercent: {
+    qname: 'esrs:S2ValueChainCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S2HighRiskSupplierSharePercent: {
+    qname: 'esrs:S2HighRiskSupplierSharePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S2LivingWageCoveragePercent: {
+    qname: 'esrs:S2LivingWageCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S2CollectiveBargainingCoveragePercent: {
+    qname: 'esrs:S2CollectiveBargainingCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S2SocialAuditsCompletedPercent: {
+    qname: 'esrs:S2SocialAuditCompletionPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S2GrievancesOpenCount: {
+    qname: 'esrs:S2OpenGrievancesCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S2GrievanceMechanismForWorkers: {
+    qname: 'esrs:S2GrievanceMechanismForWorkers',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S2IncidentsCount: {
+    qname: 'esrs:S2IncidentCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S2WorkersAffectedTotal: {
+    qname: 'esrs:S2WorkersAffectedTotal',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S2IncidentsTable: {
+    qname: 'esrs:S2IncidentsTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S3CommunitiesIdentifiedCount: {
+    qname: 'esrs:S3CommunitiesIdentifiedCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S3ImpactAssessmentsCoveragePercent: {
+    qname: 'esrs:S3ImpactAssessmentCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S3HighRiskCommunitySharePercent: {
+    qname: 'esrs:S3HighRiskCommunitySharePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S3GrievancesOpenCount: {
+    qname: 'esrs:S3OpenGrievancesCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S3ImpactsCount: {
+    qname: 'esrs:S3ImpactsRecordedCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S3HouseholdsAffectedTotal: {
+    qname: 'esrs:S3HouseholdsAffectedTotal',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S3CommunityImpactsTable: {
+    qname: 'esrs:S3CommunityImpactsTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S4ProductsAssessedPercent: {
+    qname: 'esrs:S4ProductsAssessedPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S4SevereIncidentsCount: {
+    qname: 'esrs:S4SevereIncidentsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S4RecallsCount: {
+    qname: 'esrs:S4ProductRecallsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S4ComplaintsResolvedPercent: {
+    qname: 'esrs:S4ComplaintsResolvedPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S4DataBreachesCount: {
+    qname: 'esrs:S4DataBreachesCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S4GrievanceMechanismInPlace: {
+    qname: 'esrs:S4GrievanceMechanismInPlace',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S4EscalationTimeframeDays: {
+    qname: 'esrs:S4GrievanceEscalationTimeframeDays',
+    unitId: 'day',
+    periodType: 'duration'
+  },
+  S4IssuesCount: {
+    qname: 'esrs:S4IssuesRecordedCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S4UsersAffectedTotal: {
+    qname: 'esrs:S4UsersAffectedTotal',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S4ConsumerIssuesTable: {
+    qname: 'esrs:S4ConsumerIssuesTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  G1PolicyCount: {
+    qname: 'esrs:G1PolicyCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  G1TargetCount: {
+    qname: 'esrs:G1TargetCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  G1PolicyAverageScore: {
+    qname: 'esrs:G1PolicyAverageScorePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  G1TargetAverageScore: {
+    qname: 'esrs:G1TargetAverageScorePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  G1OversightScore: {
+    qname: 'esrs:G1OversightScorePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  G1BoardOversight: {
+    qname: 'esrs:G1BoardOversight',
+    unitId: null,
+    periodType: 'duration'
+  },
+  G1PoliciesTable: {
+    qname: 'esrs:G1PoliciesTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  G1TargetsTable: {
+    qname: 'esrs:G1TargetsTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1OrganizationalBoundary: {
+    qname: 'esrs:D1OrganizationalBoundary',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1Scope2Method: {
+    qname: 'esrs:D1Scope2Method',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1Scope3ScreeningCompleted: {
+    qname: 'esrs:D1Scope3ScreeningCompleted',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1DataQuality: {
+    qname: 'esrs:D1DataQuality',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1MaterialityAssessmentDescription: {
+    qname: 'esrs:D1MaterialityAssessmentDescription',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1StrategySummary: {
+    qname: 'esrs:D1StrategySummary',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1ValueChainCoverage: {
+    qname: 'esrs:D1ValueChainCoverage',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1QuantitativeTargets: {
+    qname: 'esrs:D1QuantitativeTargets',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1TimeHorizonsCoveredCount: {
+    qname: 'esrs:D1TimeHorizonsCoveredCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  D1KpiCount: {
+    qname: 'esrs:D1KpiCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  D1HasEsgCommittee: {
+    qname: 'esrs:D1HasEsgCommittee',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1StrategyNarrativesTable: {
+    qname: 'esrs:D1StrategyNarrativesTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1GovernanceNarrativesTable: {
+    qname: 'esrs:D1GovernanceNarrativesTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1ImpactsProcessTable: {
+    qname: 'esrs:D1ImpactsProcessTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1TargetsNarrativesTable: {
+    qname: 'esrs:D1TargetsNarrativesTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D1KpiOverviewTable: {
+    qname: 'esrs:D1KpiOverviewTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D2ValidTopicsCount: {
+    qname: 'esrs:D2ValidTopicsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  D2PrioritisedTopicsCount: {
+    qname: 'esrs:D2PrioritisedTopicsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  D2AttentionTopicsCount: {
+    qname: 'esrs:D2AttentionTopicsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  D2GapAlertsCount: {
+    qname: 'esrs:D2GapAlertsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  D2AverageWeightedScore: {
+    qname: 'esrs:D2AverageWeightedScorePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  D2MaterialTopicsTable: {
+    qname: 'esrs:D2MaterialTopicsTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  D2GapAlertsTable: {
+    qname: 'esrs:D2GapAlertsTable',
+    unitId: null,
+    periodType: 'duration'
   }
 } as const satisfies Record<string, EsrsConceptDefinition>
 
-export type EsrsEmissionConceptKey = keyof typeof esrsEmissionConcepts
+export type EsrsConceptKey = keyof typeof esrsConceptDefinitions
 
-export const esrsConceptList = Object.entries(esrsEmissionConcepts).map(([key, definition]) => ({
-  key: key as EsrsEmissionConceptKey,
-  definition
+export const esrsEmissionConceptKeys = [
+  'scope1',
+  'scope2LocationBased',
+  'scope2MarketBased',
+  'scope3',
+  'totalLocationBased',
+  'totalMarketBased'
+] as const satisfies readonly EsrsConceptKey[]
+
+export const esrsEmissionConceptList = esrsEmissionConceptKeys.map((key) => ({
+  key,
+  definition: esrsConceptDefinitions[key]
 }))
+
+export function getEsrsConceptDefinition(key: EsrsConceptKey): EsrsConceptDefinition {
+  const definition = esrsConceptDefinitions[key]
+  if (!definition) {
+    throw new Error(`Ukendt ESRS-koncept: ${key}`)
+  }
+  return definition
+}

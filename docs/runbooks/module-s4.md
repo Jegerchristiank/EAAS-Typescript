@@ -22,3 +22,8 @@ Modulet dækker ESRS S4 datapunkter om produkter og slutbrugere: risikovurdering
 - Unit-testen `runS4` i `runModule.spec.ts` dækker scenario med flere hændelser og kontrollerer warnings.
 - UI (`S4Step`) understøtter talfelter, hændelsesliste og narrativer.
 - Opdater `s4InputSchema` og JSON schema ved nye datapunkter.
+
+## CSRD/XBRL-eksport
+
+- Risikovurderinger, klageindikatorer og datasikkerhedsbrud eksporteres som ESRS S4-fakta (`S4ProductsAssessedPercent`, `S4DataBreachesCount` osv.).
+- Hændelseslisten serialiseres til `S4ConsumerIssuesTable`, så produkt, marked, alvorlighed og status er tilgængelig i XBRL.

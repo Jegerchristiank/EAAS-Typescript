@@ -21,5 +21,6 @@ Denne oversigt samler alle modulrunbooks og den anbefalede gennemførelsesrække
 - Review-siden konsoliderer resultater i fem ESRS-sektioner: generelle oplysninger (D1/D2), politikker og governance (G1/S4), mål (E1 Targets), metrics pr. standard (miljø/social/governance) samt dobbelt væsentlighed.
 - Alle moduler eksponerer nu narrativer, ansvar og noter, så support kan validere både tekst og tal for hvert modul.
 - D2-modulet leverer en detaljeret dobbelt væsentlighedsoversigt med gap-advarsler, tidslinjer og ansvarlige. Anvend denne ved kundesupport til at identificere dokumentationsgaps.
+- Eksporteringslaget mappe de miljø-, sociale og governance-moduler til ESRS XBRL-fakta (vand E2, forurening E3, biodiversitet E4, ressourcer E5, S1-S4, G1, D1 og D2) samt genererer tabellerne som JSON-text blocks.
 - Ændringslog og ansvarssporing gemmes automatisk pr. felt. Historikken følger med i PDF-, CSRD- og XBRL-eksporter samt i API-indsendelser.
 - Eksport-knapper på review-siden kan hente PDF, CSRD JSON, XBRL og sende rapporten til en ekstern myndighedsendpoint (konfigurer `NEXT_PUBLIC_REPORT_API_ENDPOINT`).

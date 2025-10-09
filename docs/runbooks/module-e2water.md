@@ -29,6 +29,11 @@ Denne runbook beskriver, hvordan modul E2 indsamler vanddata og beregner et vand
 - Wizardformularen giver inline-fejl ved negative værdier, procent over 100 % og hvis stress/udledning overstiger totaludtag.
 - Profilafhængigheder sikrer, at modullet kun vises, når miljøspørgsmålet om vand er besvaret med *ja*.
 
+## CSRD/XBRL-eksport
+
+- Vandudtag, udledning og genbrug eksporteres som ESRS E2-fakta (`E2TotalWaterWithdrawalM3`, `E2WaterReusePercent` m.fl.).
+- Stressandel og dokumentationskvalitet indgår ligeledes som numeriske facts, så myndigheder kan kontrollere beregningsgrundlaget.
+
 ## Videreudvikling
 
 - Udvid schemaet med lokationsspecifikke linjer, hvis behovet for flere lokationer opstår.

@@ -28,6 +28,11 @@ Denne runbook opsummerer arbejdsgang, beregning og QA for biodiversitetsmodulet.
 - Wizardtrinnet bruger grid-layout og inline-fejl for negative eller for store værdier.
 - Profilafhængigheden sikrer, at modulet kun vises for virksomheder med naturpåvirkning.
 
+## CSRD/XBRL-eksport
+
+- Antal lokaliteter, påvirket areal, restaureret areal og hændelser eksporteres som ESRS E4-fakta.
+- Dokumentationskvalitet og restaureringsforhold følger med, så assurance kan efterprøve risikoniveauet direkte i XBRL.
+
 ## Videreudvikling
 
 - Udvid formularen med geografiske tags eller koordinater, hvis mere detaljeret rapportering ønskes.

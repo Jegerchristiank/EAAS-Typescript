@@ -23,3 +23,8 @@ Modulet dækker ESRS S3 datapunkter om berørte lokalsamfund: konsekvensanalyser
 - Unit-testen `runS3` i `runModule.spec.ts` dækker scenario med flere impacts og verificerer warnings/trace.
 - UI (`S3Step`) understøtter alle felter samt tabellen for lokalsamfund.
 - Opdater både `s3InputSchema` og JSON schema ved nye felter.
+
+## CSRD/XBRL-eksport
+
+- ESRS S3-fakta som `S3CommunitiesIdentifiedCount` og `S3ImpactAssessmentsCoveragePercent` dannes ud fra inputfelterne.
+- Community-tabellen serialiseres til `S3CommunityImpactsTable`, så hver registreret hændelse genfindes i XBRL.

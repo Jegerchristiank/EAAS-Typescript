@@ -28,6 +28,11 @@ Denne runbook gennemgår arbejdsgang, beregning og QA for ressource- og material
 - Wizardformularen håndterer parsing af kommatal og begrænser procentværdier til 0-100 %.
 - Profilafhængigheden kræver både materialeforbrug og kritiske materialer, før modulet vises.
 
+## CSRD/XBRL-eksport
+
+- Primært og sekundært forbrug, genanvendt andel og kritiske materialer eksporteres som ESRS E5-fakta.
+- Målopfyldelse og dokumentationskvalitet indgår, så cirkularitetsindekset kan valideres direkte i XBRL.
+
 ## Videreudvikling
 
 - Tilføj felt for materialespecifikationer eller CO₂-intensitet for at styrke rapportering.

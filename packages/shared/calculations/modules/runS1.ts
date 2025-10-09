@@ -1,7 +1,13 @@
 /**
  * Beregning for modul S1 – arbejdsstyrke og headcount.
  */
-import type { ModuleInput, ModuleResult, S1Input } from '../../types'
+import type {
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult,
+  S1Input
+} from '../../types'
 import { factors } from '../factors'
 
 const { s1 } = factors
@@ -55,6 +61,10 @@ export function runS1(input: ModuleInput): ModuleResult {
     breakdown.map((row) => (row.labourRightsCoverage == null ? null : clampPercent(row.labourRightsCoverage)))
   )
 
+  const averageFemalePercent = computeAverage(
+    breakdown.map((row) => (row.femalePercent == null ? null : clampPercent(row.femalePercent)))
+  )
+
   if (labourRightsCoverage != null) {
     trace.push(`avgLabourRightsCoverage=${labourRightsCoverage}`)
     if (labourRightsCoverage < s1.labourRightsWarningThresholdPercent) {
@@ -87,12 +97,42 @@ export function runS1(input: ModuleInput): ModuleResult {
 
   const value = Number((Math.max(0, Math.min(totalScore, 1)) * 100).toFixed(s1.resultPrecision))
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('S1TotalHeadcount', totalHeadcount, 'pure', 0)
+  pushNumericFact('S1DataCoveragePercent', coveragePercent, 'percent', 1)
+  pushNumericFact('S1CollectiveAgreementCoveragePercent', labourRightsCoverage, 'percent', 1)
+  pushNumericFact('S1AverageFemalePercent', averageFemalePercent, 'percent', 1)
+
+  const esrsTables: ModuleEsrsTable[] | undefined =
+    breakdown.length === 0
+      ? undefined
+      : [
+          {
+            conceptKey: 'S1HeadcountBreakdownTable',
+            rows: breakdown.map((row) => ({
+              segment: row.segment,
+              headcount: row.headcount,
+              femalePercent: row.femalePercent,
+              collectiveAgreementCoveragePercent: row.labourRightsCoverage
+            }))
+          }
+        ]
+
   return {
     value,
     unit: s1.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables ? { esrsTables } : {})
   }
 }
 

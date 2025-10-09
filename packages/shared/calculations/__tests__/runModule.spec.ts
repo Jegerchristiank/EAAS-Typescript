@@ -304,6 +304,22 @@ describe('runS1', () => {
     expect(result.warnings).toContain(
       'Segmentet "Produktion" har en kønsfordeling på 18% kvinder – markér indsats i S2 for at adressere ubalancer.'
     )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S1TotalHeadcount', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1DataCoveragePercent', value: 90 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S1HeadcountBreakdownTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ segment: 'Danmark', headcount: 200 })
+          ])
+        })
+      ])
+    )
   })
 })
 
@@ -352,6 +368,22 @@ describe('runS2', () => {
     expect(result.value).toBeGreaterThan(70)
     expect(result.trace).toContain('valueChainCoveragePercent=85')
     expect(result.warnings).toContain('1 klager fra leverandørarbejdere er åbne. Følg op og luk dem for at undgå ESRS S2 advarsler.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S2ValueChainWorkersCount', value: 2400 }),
+        expect.objectContaining({ conceptKey: 'S2IncidentsCount', value: 2 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S2IncidentsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ supplier: 'Alpha Textiles', workersAffected: 60 })
+          ])
+        })
+      ])
+    )
   })
 })
 
@@ -395,6 +427,23 @@ describe('runS3', () => {
     expect(result.value).toBeGreaterThan(60)
     expect(result.trace).toContain('impactAssessmentsCoveragePercent=80')
     expect(result.warnings).not.toContain('Ingen påvirkninger registreret endnu.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S3CommunitiesIdentifiedCount', value: 5 }),
+        expect.objectContaining({ conceptKey: 'S3ImpactsCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'S3HouseholdsAffectedTotal', value: 52 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S3CommunityImpactsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ community: 'Fjordbyen', householdsAffected: 40 })
+          ])
+        })
+      ])
+    )
   })
 })
 
@@ -441,6 +490,22 @@ describe('runS4', () => {
     expect(result.value).toBeGreaterThan(50)
     expect(result.trace).toContain('productsAssessedPercent=70')
     expect(result.warnings).toContain('1 alvorlige hændelser rapporteret – offentliggør detaljer og kompensation.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S4ProductsAssessedPercent', value: 70 }),
+        expect.objectContaining({ conceptKey: 'S4IssuesCount', value: 2 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S4ConsumerIssuesTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ productOrService: 'SmartHome Hub', usersAffected: 120 })
+          ])
+        })
+      ])
+    )
   })
 })
 
@@ -483,6 +548,24 @@ describe('runG1', () => {
     expect(result.value).toBeCloseTo(44)
     expect(result.warnings).toContain('Angiv ejer/ansvarlig for politikken "Whistleblower".')
     expect(result.trace).toContain('policy[0]=ESG-politik|status=approved|owner=Legal')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'G1PolicyCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'G1BoardOversight', value: true })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'G1PoliciesTable',
+          rows: expect.arrayContaining([expect.objectContaining({ topic: 'ESG-politik' })])
+        }),
+        expect.objectContaining({
+          conceptKey: 'G1TargetsTable',
+          rows: expect.arrayContaining([expect.objectContaining({ topic: 'CSRD readiness' })])
+        })
+      ])
+    )
   })
 })
 
@@ -539,6 +622,22 @@ describe('runD2', () => {
         warning.includes('"Datastyring" mangler både impact- og finansiel score')
       )
     ).toBe(true)
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'D2ValidTopicsCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'D2PrioritisedTopicsCount', value: 1 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'D2MaterialTopicsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ name: 'Klimarisiko i forsyningskæden', combinedScore: expect.any(Number) })
+          ])
+        })
+      ])
+    )
   })
 
   it('returnerer 0 ved manglende emner', () => {
@@ -2801,6 +2900,25 @@ describe('runD1', () => {
       ])
     )
     expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=0.6')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'D1OrganizationalBoundary', value: 'financialControl' }),
+        expect.objectContaining({ conceptKey: 'D1Scope3ScreeningCompleted', value: false }),
+        expect.objectContaining({ conceptKey: 'D1KpiCount', value: 1 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'D1StrategyNarrativesTable',
+          rows: expect.arrayContaining([expect.objectContaining({ key: 'businessModelSummary' })])
+        }),
+        expect.objectContaining({
+          conceptKey: 'D1KpiOverviewTable',
+          rows: expect.arrayContaining([expect.objectContaining({ name: 'CO₂-reduktion' })])
+        })
+      ])
+    )
   })
 
   it('giver fuld score ved best practice governance', () => {
@@ -2908,6 +3026,12 @@ describe('runE2Water', () => {
       'Mere end 40 % af vandudtaget (50.0 %) foregår i vandstressede områder – prioriter risikoplaner.',
     )
     expect(result.warnings).not.toContain('Ingen dokumenteret genbrug af vand. Overvej recirkulation eller sekundære kilder.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E2TotalWaterWithdrawalM3', value: 5000 }),
+        expect.objectContaining({ conceptKey: 'E2WaterStressSharePercent', value: 50 })
+      ])
+    )
   })
 
   it('returnerer nul og advarsel ved manglende vandforbrug', () => {
@@ -2946,6 +3070,20 @@ describe('runE3Pollution', () => {
     expect(result.warnings).toContain(
       'Der er registreret 2 hændelse(r) med rapporteringspligt. Sikr opfølgning og root-cause analyse.',
     )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E3AirEmissionsTonnes', value: 80 }),
+        expect.objectContaining({ conceptKey: 'E3ReportableIncidentsCount', value: 2 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'E3MediumsTable',
+          rows: expect.arrayContaining([expect.objectContaining({ medium: 'air', exceedPercent: 60 })])
+        })
+      ])
+    )
   })
 })
 
@@ -2973,6 +3111,12 @@ describe('runE4Biodiversity', () => {
     )
     expect(result.warnings).toContain(
       'Dokumentationskvalitet på 65 % er under anbefalet niveau på 70 %. Suppler feltdata eller tredjepartsverifikation.',
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E4SitesInProtectedAreasCount', value: 3 }),
+        expect.objectContaining({ conceptKey: 'E4RestorationHectares', value: 10 })
+      ])
     )
   })
 })
@@ -3004,6 +3148,12 @@ describe('runE5Resources', () => {
     expect(result.warnings).toContain('Ressourceindekset overstiger 55 point – prioriter cirkularitet i handlingsplanen.')
     expect(result.warnings).toContain(
       'Dokumentationskvalitet på 60 % er under anbefalingen på 70 %. Indhent leverandørdata eller tredjepartsattester.',
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E5PrimaryMaterialConsumptionTonnes', value: 800 }),
+        expect.objectContaining({ conceptKey: 'E5CriticalMaterialsSharePercent', value: 45 })
+      ])
     )
   })
 })

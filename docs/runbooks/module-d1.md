@@ -48,6 +48,11 @@ Denne runbook beskriver, hvordan governance-modulet (D1) anvendes til at dokumen
 - Schemaet i `packages/shared/schema` og UI-komponenten i `apps/web/features/wizard/steps/D1.tsx` sikrer konsistent validering.
 - Vitest, lint, typecheck og build skal være grønne før release.
 
+## CSRD/XBRL-eksport
+
+- Metodevalg, værdikædedækning, tidshorisonter og KPI-antallet eksporteres som ESRS D1-fakta (`D1OrganizationalBoundary`, `D1TimeHorizonsCoveredCount` m.fl.).
+- De kvalitative beskrivelser serialiseres som tabeller (`D1StrategyNarrativesTable`, `D1KpiOverviewTable` osv.), så assurance-teamet kan efterprøve indholdet direkte i XBRL.
+
 ## Videreudvikling
 
 - Governance-scoren kan eksporteres via `@org/shared` og anvendes i dashboards eller rapporter.

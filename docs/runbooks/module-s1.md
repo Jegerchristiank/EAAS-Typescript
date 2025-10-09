@@ -24,3 +24,8 @@ headcount, segmentering, datadækning og faglig repræsentation vægtes.
 - Unit-testen `runS1` i `runModule.spec.ts` dækker både normal scenarie og warnings for skæv kønsfordeling.
 - UI-skridtet `S1Step` understøtter både tal og narrativer og viser preview af resultatet.
 - Ved nye felter tilføjes tilsvarende felter i `s1InputSchema` og run-modulet.
+
+## CSRD/XBRL-eksport
+
+- `S1TotalHeadcount`, `S1DataCoveragePercent` og gennemsnitlig fagforeningsdækning eksporteres som numeriske ESRS S1-fakta.
+- Segmentfordelingen serialiseres som JSON under `S1HeadcountBreakdownTable`, så XBRL-instansen afspejler alle segmentrækker.
