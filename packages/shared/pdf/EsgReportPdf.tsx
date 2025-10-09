@@ -179,6 +179,47 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
         </View>
       )}
 
+      {result.transitionMeasures && result.transitionMeasures.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Overgangstiltag</Text>
+          {result.transitionMeasures.map((measure, index) => (
+            <Text key={`${entry.moduleId}-transition-${index}`} style={styles.listItem}>
+              • {measure.initiative ?? `Tiltag ${index + 1}`} – {measure.status ?? 'ukendt status'}
+              {measure.milestoneYear != null ? ` · Milepæl: ${measure.milestoneYear}` : ''}
+              {measure.investmentNeedDkk != null ? ` · Investering: ${measure.investmentNeedDkk} DKK` : ''}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {result.financialEffects && result.financialEffects.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Finansielle effekter</Text>
+          {result.financialEffects.map((effect, index) => (
+            <Text key={`${entry.moduleId}-finance-${index}`} style={styles.listItem}>
+              • {effect.label ?? `Effekt ${index + 1}`} – {effect.type ?? 'ukendt type'}
+              {effect.amountDkk != null ? ` · ${effect.amountDkk} DKK` : ''}
+              {effect.timeframe ? ` · Periode: ${effect.timeframe}` : ''}
+              {effect.description ? ` · ${effect.description}` : ''}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {result.removalProjects && result.removalProjects.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Removal-projekter</Text>
+          {result.removalProjects.map((project, index) => (
+            <Text key={`${entry.moduleId}-removal-${index}`} style={styles.listItem}>
+              • {project.projectName ?? `Projekt ${index + 1}`} – {project.removalType ?? 'ukendt type'}
+              {project.annualRemovalTonnes != null ? ` · ${project.annualRemovalTonnes} tCO2e/år` : ''}
+              {project.qualityStandard ? ` · Standard: ${project.qualityStandard}` : ''}
+              {project.storageDescription ? ` · Lager: ${project.storageDescription}` : ''}
+            </Text>
+          ))}
+        </View>
+      )}
+
       {result.narratives && result.narratives.length > 0 && (
         <View style={styles.list}>
           <Text style={styles.label}>Narrativer</Text>
@@ -304,7 +345,7 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
         <View style={styles.header}>
           <Text style={styles.pageTitle}>ESRS-rapport</Text>
           <Text style={styles.subtitle}>
-            Struktureret efter generelle oplysninger, politikker, mål, metrics og dobbelt væsentlighed.
+            Struktureret efter ESRS 2 (SBM, GOV, IRO, MR), politikker, mål, metrics og dobbelt væsentlighed.
           </Text>
         </View>
 
@@ -315,7 +356,7 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
             <View style={styles.section} wrap={false}>
               <Text style={styles.sectionTitle}>Generelle oplysninger</Text>
               <Text style={styles.sectionDescription}>
-                D1 og D2-modulerne dokumenterer metodik, governance og materialitet.
+                ESRS 2-modulerne for strategi (SBM), governance (GOV), IRO samt D1 beskriver grundlaget for rapporteringen.
               </Text>
               {layout.general.map((entry) => (
                 <ModuleBlock key={entry.moduleId} entry={entry} />
@@ -338,7 +379,7 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
             <View style={styles.section} wrap={false}>
               <Text style={styles.sectionTitle}>Mål og fremskridt</Text>
               <Text style={styles.sectionDescription}>
-                ESRS E1-mål og handlinger med ansvarlige og milestones.
+                ESRS 2 MR og ESRS E1 samler mål, målinger, finansielle effekter og planlagte handlinger.
               </Text>
               {layout.targets.map((entry) => (
                 <ModuleBlock key={entry.moduleId} entry={entry} />

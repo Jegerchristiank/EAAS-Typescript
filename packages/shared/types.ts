@@ -45,10 +45,21 @@ import type {
   E1TargetScope,
   E1TargetStatus,
   E1ActionStatus,
+  E1TransitionStatus,
+  E1FinancialEffectType,
+  E1RemovalType,
   E2WaterInput,
   E3PollutionInput,
   E4BiodiversityInput,
   E5ResourcesInput,
+  SbmInput,
+  GovInput,
+  IroInput,
+  MrInput,
+  MrProgressStatus,
+  E1RemovalProject,
+  E1FinancialEffect,
+  E1TransitionPlanMeasure,
   S1Input,
   S2Input,
   S3Input,
@@ -93,6 +104,10 @@ export const moduleIds = [
   'E3Pollution',
   'E4Biodiversity',
   'E5Resources',
+  'SBM',
+  'GOV',
+  'IRO',
+  'MR',
   'S1',
   'S2',
   'S3',
@@ -141,6 +156,10 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   E3Pollution?: E3PollutionInput | null | undefined
   E4Biodiversity?: E4BiodiversityInput | null | undefined
   E5Resources?: E5ResourcesInput | null | undefined
+  SBM?: SbmInput | null | undefined
+  GOV?: GovInput | null | undefined
+  IRO?: IroInput | null | undefined
+  MR?: MrInput | null | undefined
   S1?: S1Input | null | undefined
   S2?: S2Input | null | undefined
   S3?: S3Input | null | undefined
@@ -219,6 +238,34 @@ export type ModuleActionItem = {
   status: E1ActionStatus | null
 }
 
+export type ModuleTransitionMeasure = {
+  initiative: string | null
+  status: E1TransitionStatus | null
+  milestoneYear: number | null
+  investmentNeedDkk: number | null
+  responsible: string | null
+  description: string | null
+}
+
+export type ModuleFinancialEffect = {
+  label: string | null
+  type: E1FinancialEffectType | null
+  amountDkk: number | null
+  timeframe: string | null
+  description: string | null
+}
+
+export type ModuleRemovalProject = {
+  projectName: string | null
+  removalType: E1RemovalType | null
+  annualRemovalTonnes: number | null
+  storageDescription: string | null
+  qualityStandard: string | null
+  permanenceYears: number | null
+  financedThroughCredits: boolean | null
+  responsible: string | null
+}
+
 export type ModuleNarrative = {
   label: string
   content: string
@@ -264,6 +311,9 @@ export type ModuleResult = {
   energyMix?: ModuleEnergyMixEntry[]
   targetsOverview?: ModuleTargetSummary[]
   plannedActions?: ModuleActionItem[]
+  transitionMeasures?: ModuleTransitionMeasure[]
+  financialEffects?: ModuleFinancialEffect[]
+  removalProjects?: ModuleRemovalProject[]
   narratives?: ModuleNarrative[]
   responsibilities?: ModuleResponsibility[]
   notes?: ModuleNote[]
@@ -326,9 +376,20 @@ export type {
   E1TargetScope,
   E1TargetStatus,
   E1ActionStatus,
+  E1TransitionStatus,
+  E1FinancialEffectType,
+  E1RemovalType,
   E2WaterInput,
   E3PollutionInput,
   E4BiodiversityInput,
-  E5ResourcesInput
+  E5ResourcesInput,
+  SbmInput,
+  GovInput,
+  IroInput,
+  MrInput,
+  MrProgressStatus,
+  E1RemovalProject,
+  E1FinancialEffect,
+  E1TransitionPlanMeasure
 }
 

@@ -46,6 +46,10 @@ import { runE2Water } from './modules/runE2Water'
 import { runE3Pollution } from './modules/runE3Pollution'
 import { runE4Biodiversity } from './modules/runE4Biodiversity'
 import { runE5Resources } from './modules/runE5Resources'
+import { runSBM } from './modules/runSBM'
+import { runGOV } from './modules/runGOV'
+import { runIRO } from './modules/runIRO'
+import { runMR } from './modules/runMR'
 import { runS1 } from './modules/runS1'
 import { runS2 } from './modules/runS2'
 import { runS3 } from './modules/runS3'
@@ -90,6 +94,10 @@ const moduleTitles: Record<ModuleId, string> = {
   E3Pollution: 'E3 – Emissioner til luft, vand og jord',
   E4Biodiversity: 'E4 – Påvirkning af biodiversitet',
   E5Resources: 'E5 – Ressourcer og materialeforbrug',
+  SBM: 'ESRS 2 – Strategi og forretningsmodel (SBM)',
+  GOV: 'ESRS 2 – Governance (GOV)',
+  IRO: 'ESRS 2 – Impacts, risici og muligheder (IRO)',
+  MR: 'ESRS 2 – Metrics og targets (MR)',
   S1: 'S1 – Arbejdsstyrke & headcount',
   S2: 'S2 – Værdikædearbejdere',
   S3: 'S3 – Lokalsamfund og påvirkninger',
@@ -135,6 +143,10 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   E3Pollution: runE3Pollution,
   E4Biodiversity: runE4Biodiversity,
   E5Resources: runE5Resources,
+  SBM: runSBM,
+  GOV: runGOV,
+  IRO: runIRO,
+  MR: runMR,
   S1: runS1,
   S2: runS2,
   S3: runS3,
