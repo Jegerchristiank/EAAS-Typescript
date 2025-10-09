@@ -291,7 +291,8 @@ function sanitiseRemovalProjects(
   const projects = Array.isArray(context?.ghgRemovalProjects) ? context!.ghgRemovalProjects : []
   return projects
     .map((project, index) => {
-      const projectName = normaliseText(project?.projectName) ?? `Removal projekt ${index + 1}`
+      const rawName = normaliseText(project?.projectName)
+      const projectName = rawName ?? `Removal projekt ${index + 1}`
       const removalType = normaliseRemovalType(project?.removalType)
       const annualRemovalTonnes = normaliseNumber(project?.annualRemovalTonnes)
       const storageDescription = normaliseText(project?.storageDescription)
@@ -301,7 +302,7 @@ function sanitiseRemovalProjects(
       const responsible = normaliseText(project?.responsible)
 
       if (
-        !projectName &&
+        !rawName &&
         removalType == null &&
         annualRemovalTonnes == null &&
         !storageDescription &&
@@ -330,7 +331,7 @@ function sanitiseRemovalProjects(
         permanenceYears,
         financedThroughCredits,
         responsible,
-      }
+      } as ModuleRemovalProject
     })
     .filter((entry): entry is ModuleRemovalProject => entry !== null)
 }

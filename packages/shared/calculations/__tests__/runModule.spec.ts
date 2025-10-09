@@ -1545,8 +1545,18 @@ describe('runB11', () => {
         energyProductionKwh: 12_000,
         renewableEnergyProductionKwh: 12_000,
         energyMixLines: [
-          { energyType: 'electricity', consumptionKwh: 120_000, documentationQualityPercent: 95 },
-          { energyType: 'districtHeat', consumptionKwh: 60_000, documentationQualityPercent: 80 }
+          {
+            energyType: 'electricity',
+            consumptionKwh: 120_000,
+            sharePercent: 66,
+            documentationQualityPercent: 95,
+          },
+          {
+            energyType: 'districtHeat',
+            consumptionKwh: 60_000,
+            sharePercent: 34,
+            documentationQualityPercent: 80,
+          }
         ],
         previousYearScope1Tonnes: null,
         previousYearScope2Tonnes: 35,
@@ -2207,15 +2217,27 @@ describe('runSBM', () => {
     const input: ModuleInput = {
       SBM: {
         businessModelNarrative: '  ',
+        valueChainNarrative: null,
+        sustainabilityStrategyNarrative: null,
+        resilienceNarrative: null,
         dependencies: [
           {
-            dependency: 'Kritisk leverandør'
+            dependency: 'Kritisk leverandør',
+            impact: null,
+            mitigation: null,
+            responsible: null,
           }
         ],
         transitionPlanNarrative: '',
+        stakeholderNarrative: null,
         transitionPlanMeasures: [
           {
-            initiative: 'Scope 3 roadmap'
+            initiative: 'Scope 3 roadmap',
+            description: null,
+            status: null,
+            milestoneYear: null,
+            investmentNeedDkk: null,
+            responsible: null,
           }
         ]
       }
@@ -2279,8 +2301,7 @@ describe('runGOV', () => {
           {
             role: 'Direktør',
             incentive: '10 % bonus koblet til scope 1-reduktion.',
-            metric: 'Scope 1 ton CO₂e',
-            owner: 'Direktør'
+            metric: 'Scope 1 ton CO₂e'
           }
         ]
       }
@@ -2317,19 +2338,30 @@ describe('runGOV', () => {
       GOV: {
         oversightNarrative: '  ',
         managementNarrative: '',
+        competenceNarrative: null,
+        reportingNarrative: null,
+        assuranceNarrative: null,
+        incentiveNarrative: null,
         oversightBodies: [
           {
-            body: 'Audit komité'
+            body: 'Audit komité',
+            mandate: null,
+            chair: null,
+            meetingFrequency: null,
           }
         ],
         controlProcesses: [
           {
-            process: 'Intern kontrol'
+            process: 'Intern kontrol',
+            description: null,
+            owner: null,
           }
         ],
         incentiveStructures: [
           {
-            role: 'CEO'
+            role: 'CEO',
+            incentive: null,
+            metric: null,
           }
         ]
       }
@@ -2414,14 +2446,26 @@ describe('runIRO', () => {
     const input: ModuleInput = {
       IRO: {
         processNarrative: ' ',
+        integrationNarrative: null,
+        stakeholderNarrative: null,
+        dueDiligenceNarrative: null,
+        escalationNarrative: null,
+        monitoringNarrative: null,
         riskProcesses: [
           {
-            step: 'Screening'
+            step: 'Screening',
+            description: null,
+            frequency: null,
+            owner: null,
           }
         ],
         impactResponses: [
           {
-            topic: 'Biodiversitet'
+            topic: 'Biodiversitet',
+            severity: null,
+            response: null,
+            status: null,
+            responsible: null,
           }
         ]
       }
@@ -2470,13 +2514,15 @@ describe('runMR', () => {
             currentValue: 10,
             targetYear: 2026,
             targetValue: 7,
-            status: 'inProgress',
+            status: 'lagging',
             owner: 'COO',
             description: 'Reduktion via energioptimering.'
           },
           {
             name: 'Vedvarende andel',
             unit: '%',
+            baselineYear: null,
+            baselineValue: null,
             currentYear: 2023,
             currentValue: 55,
             targetYear: 2025,
@@ -2497,6 +2543,16 @@ describe('runMR', () => {
         ]
       },
       E1Context: {
+        netRevenueDkk: null,
+        productionVolume: null,
+        productionUnit: null,
+        employeesFte: null,
+        totalEnergyConsumptionKwh: null,
+        energyProductionKwh: null,
+        renewableEnergyProductionKwh: null,
+        previousYearScope1Tonnes: null,
+        previousYearScope2Tonnes: null,
+        previousYearScope3Tonnes: null,
         transitionPlanMeasures: [
           {
             initiative: 'Solcellepark',
@@ -2576,31 +2632,69 @@ describe('runMR', () => {
         ],
         metrics: [
           {
-            name: 'Scope 1 intensitet'
+            name: 'Scope 1 intensitet',
+            unit: null,
+            baselineYear: null,
+            baselineValue: null,
+            currentYear: null,
+            currentValue: null,
+            targetYear: null,
+            targetValue: null,
+            status: null,
+            owner: null,
+            description: null,
           }
         ],
         financialEffects: [
           {
-            label: 'Intern opex'
+            label: 'Intern opex',
+            type: null,
+            amountDkk: null,
+            timeframe: null,
+            description: null,
           }
         ]
       },
       E1Context: {
+        netRevenueDkk: null,
+        productionVolume: null,
+        productionUnit: null,
+        employeesFte: null,
+        totalEnergyConsumptionKwh: null,
+        energyProductionKwh: null,
+        renewableEnergyProductionKwh: null,
+        previousYearScope1Tonnes: null,
+        previousYearScope2Tonnes: null,
+        previousYearScope3Tonnes: null,
         transitionPlanMeasures: [
           {
-            initiative: 'Grønnere transporter'
+            initiative: 'Grønnere transporter',
+            description: null,
+            status: null,
+            milestoneYear: null,
+            investmentNeedDkk: null,
+            responsible: null,
           }
         ],
         financialEffects: [
           {
             label: 'Capex solceller',
-            type: 'capex'
+            type: 'capex',
+            amountDkk: null,
+            timeframe: null,
+            description: null,
           }
         ],
         ghgRemovalProjects: [
           {
             projectName: 'Skovrejsning',
-            removalType: 'valueChain'
+            removalType: 'valueChain',
+            annualRemovalTonnes: null,
+            storageDescription: null,
+            qualityStandard: null,
+            permanenceYears: null,
+            financedThroughCredits: null,
+            responsible: null,
           }
         ]
       }

@@ -95,7 +95,7 @@ export function SBMStep({ state, onChange }: WizardStepProps): JSX.Element {
     if (field === 'milestoneYear' || field === 'investmentNeedDkk') {
       entry[field] = toNullableNumber(event as ChangeEvent<HTMLInputElement>)
     } else if (field === 'status') {
-      const value = event.target.value as SbmInput['transitionPlanMeasures'][number]['status']
+      const value = event.target.value as NonNullable<SbmInput['transitionPlanMeasures']>[number]['status']
       entry.status = value ? (value as typeof entry.status) : null
     } else if (field === 'responsible' || field === 'initiative' || field === 'description') {
       entry[field] = toNullableString(event as ChangeEvent<HTMLTextAreaElement | HTMLInputElement>)

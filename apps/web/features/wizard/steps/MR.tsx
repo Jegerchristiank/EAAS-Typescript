@@ -108,8 +108,18 @@ export function MRStep({ state, onChange }: WizardStepProps): JSX.Element {
 
     if (field === 'amountDkk') {
       entry.amountDkk = toNullableNumber(event as ChangeEvent<HTMLInputElement>)
+    } else if (field === 'type') {
+      const value = event.target.value as typeof entry.type
+      entry.type = value ? value : null
     } else {
-      entry[field] = toNullableString(event as ChangeEvent<HTMLTextAreaElement | HTMLInputElement | HTMLSelectElement>)
+      const value = toNullableString(event as ChangeEvent<HTMLTextAreaElement | HTMLInputElement>)
+      if (field === 'label') {
+        entry.label = value
+      } else if (field === 'timeframe') {
+        entry.timeframe = value
+      } else {
+        entry.description = value
+      }
     }
 
     list[index] = entry
