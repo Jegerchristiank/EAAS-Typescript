@@ -25,7 +25,9 @@ describe('ESRS taksonomi reference', () => {
         expect(declaration).toContain(`xbrli:periodType="${definition.periodType}"`)
       }
 
-      expect(unitIds.has(definition.unitId)).toBe(true)
+      if (typeof definition.unitId === 'string') {
+        expect(unitIds.has(definition.unitId)).toBe(true)
+      }
     }
   })
 })

@@ -15,7 +15,8 @@ import {
   type ModuleId,
   type ModuleResult,
   type ModuleEsrsFact,
-  type ModuleEsrsTable
+  type ModuleEsrsTable,
+  type ModuleEsrsTableRow
 } from '../types'
 
 const scope1ModuleIds = moduleIds.filter((id) => id.startsWith('A'))
@@ -75,13 +76,13 @@ export type CsrdReportPackage = {
 }
 
 type EmissionConceptKey = (typeof esrsEmissionConceptList)[number]['key']
-type EmissionTotals = Record<EmissionConceptKey, number>
+type EmissionTotals = Partial<Record<EmissionConceptKey, number>>
 
 type PreparedFact = {
   conceptKey: EsrsConceptKey
   value: string
-  unitId?: string | null
-  decimals?: string
+  unitId?: string | null | undefined
+  decimals?: string | undefined
   periodType: EsrsPeriodType
 }
 
@@ -171,13 +172,16 @@ function buildCsrdReportPackageInternal({
 
   const preparedFacts: PreparedFact[] = []
   for (const { key, definition } of esrsEmissionConceptList) {
-    preparedFacts.push({
+    const fact: PreparedFact = {
       conceptKey: key,
-      value: formatDecimal(totals[key], decimals),
-      unitId: definition.unitId ?? undefined,
+      value: formatDecimal(totals[key] ?? 0, decimals),
       decimals: String(decimals),
       periodType: definition.periodType
-    })
+    }
+    if (definition.unitId !== undefined) {
+      fact.unitId = definition.unitId
+    }
+    preparedFacts.push(fact)
   }
 
   for (const { result } of results) {
@@ -380,8 +384,8 @@ function isEsrsConceptKey(value: string): value is EsrsConceptKey {
 
 type SerialisedModuleFact = {
   value: string
-  unitId?: string | null
-  decimals?: string
+  unitId?: string | null | undefined
+  decimals?: string | undefined
 }
 
 function serialiseModuleFact(fact: ModuleEsrsFact, fallbackDecimals: number): SerialisedModuleFact | null {

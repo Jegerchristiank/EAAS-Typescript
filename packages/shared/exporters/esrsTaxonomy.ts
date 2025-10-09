@@ -543,14 +543,14 @@ export const esrsConceptDefinitions = {
 
 export type EsrsConceptKey = keyof typeof esrsConceptDefinitions
 
-export const esrsEmissionConceptKeys: EsrsConceptKey[] = [
+export const esrsEmissionConceptKeys = [
   'scope1',
   'scope2LocationBased',
   'scope2MarketBased',
   'scope3',
   'totalLocationBased',
   'totalMarketBased'
-]
+] as const satisfies readonly EsrsConceptKey[]
 
 export const esrsEmissionConceptList = esrsEmissionConceptKeys.map((key) => ({
   key,
