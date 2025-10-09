@@ -42,6 +42,10 @@ import { runE2Water } from '../modules/runE2Water'
 import { runE3Pollution } from '../modules/runE3Pollution'
 import { runE4Biodiversity } from '../modules/runE4Biodiversity'
 import { runE5Resources } from '../modules/runE5Resources'
+import { runSBM } from '../modules/runSBM'
+import { runGOV } from '../modules/runGOV'
+import { runIRO } from '../modules/runIRO'
+import { runMR } from '../modules/runMR'
 import { runS1 } from '../modules/runS1'
 import { runS2 } from '../modules/runS2'
 import { runS3 } from '../modules/runS3'
@@ -1541,8 +1545,18 @@ describe('runB11', () => {
         energyProductionKwh: 12_000,
         renewableEnergyProductionKwh: 12_000,
         energyMixLines: [
-          { energyType: 'electricity', consumptionKwh: 120_000, documentationQualityPercent: 95 },
-          { energyType: 'districtHeat', consumptionKwh: 60_000, documentationQualityPercent: 80 }
+          {
+            energyType: 'electricity',
+            consumptionKwh: 120_000,
+            sharePercent: 66,
+            documentationQualityPercent: 95,
+          },
+          {
+            energyType: 'districtHeat',
+            consumptionKwh: 60_000,
+            sharePercent: 34,
+            documentationQualityPercent: 80,
+          }
         ],
         previousYearScope1Tonnes: null,
         previousYearScope2Tonnes: 35,
@@ -2114,6 +2128,599 @@ describe('runC9', () => {
       'Feltet secondaryMaterialSharePercent er begrænset til 80%.',
       'Feltet renewableEnergySharePercent mangler og behandles som 0%.'
     ])
+  })
+})
+
+describe('runSBM', () => {
+  const longNarrative = 'Detaljeret beskrivelse af strategi og forretningsmodel '.repeat(6)
+
+  it('beregner score og samler overgangstiltag, noter og ansvarlige', () => {
+    const input: ModuleInput = {
+      SBM: {
+        businessModelNarrative: longNarrative,
+        valueChainNarrative: longNarrative,
+        sustainabilityStrategyNarrative: longNarrative,
+        resilienceNarrative: longNarrative,
+        transitionPlanNarrative: longNarrative,
+        stakeholderNarrative: longNarrative,
+        dependencies: [
+          {
+            dependency: 'Grøn strøm',
+            impact: 'Manglende adgang kan stoppe produktion.',
+            mitigation: 'Diversificering af leverandører.',
+            responsible: 'COO'
+          },
+          {
+            dependency: 'Logistikpartnere',
+            impact: 'Udsving i fragtpriser påvirker marginer.',
+            mitigation: 'Langsigtede kontrakter og effektiviseringsprogram.',
+            responsible: 'Supply Chain Lead'
+          }
+        ],
+        opportunities: [
+          {
+            title: 'Digital service',
+            description: 'Serviceforretning med lavere CO₂-intensitet end fysiske produkter.',
+            timeframe: '2025',
+            owner: 'CSO'
+          },
+          {
+            title: 'Partnerskaber',
+            description: 'Partnerskab med cirkulær platform reducerer materialeforbrug.',
+            timeframe: '2026',
+            owner: 'Sustainability Manager'
+          }
+        ],
+        transitionPlanMeasures: [
+          {
+            initiative: 'Energieffektivisering',
+            description: 'Opgradering af produktionslinjer med lavere energiforbrug.',
+            status: 'inProgress',
+            milestoneYear: 2026,
+            investmentNeedDkk: 1_500_000,
+            responsible: 'Energi Lead'
+          },
+          {
+            initiative: 'Leverandørsamarbejde',
+            description: 'Code of conduct for transportpartnere og CO₂-krav.',
+            status: 'planned',
+            milestoneYear: 2027,
+            investmentNeedDkk: 750_000,
+            responsible: 'Indkøbschef'
+          }
+        ]
+      }
+    }
+
+    const result = runSBM(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toEqual([])
+    expect(result.transitionMeasures).toHaveLength(2)
+    expect(result.responsibilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ subject: 'Grøn strøm', owner: 'COO', role: 'Ansvarlig for opfølgning' }),
+        expect.objectContaining({ subject: 'Digital service', owner: 'CSO', role: 'Mulighedsansvarlig' }),
+        expect.objectContaining({ subject: 'Energieffektivisering', owner: 'Energi Lead', role: 'Overgangstiltag' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^businessModelNarrativeLength=\d+$/),
+        'dependency[0]=Grøn strøm',
+        'transition[0]=Energieffektivisering'
+      ])
+    )
+  })
+
+  it('udsteder advarsler og returnerer nulscore ved manglende dokumentation', () => {
+    const input: ModuleInput = {
+      SBM: {
+        businessModelNarrative: '  ',
+        valueChainNarrative: null,
+        sustainabilityStrategyNarrative: null,
+        resilienceNarrative: null,
+        dependencies: [
+          {
+            dependency: 'Kritisk leverandør',
+            impact: null,
+            mitigation: null,
+            responsible: null,
+          }
+        ],
+        transitionPlanNarrative: '',
+        stakeholderNarrative: null,
+        transitionPlanMeasures: [
+          {
+            initiative: 'Scope 3 roadmap',
+            description: null,
+            status: null,
+            milestoneYear: null,
+            investmentNeedDkk: null,
+            responsible: null,
+          }
+        ]
+      }
+    }
+
+    const result = runSBM(input)
+
+    expect(result.value).toBe(13)
+    expect(result.transitionMeasures).toEqual([
+      {
+        initiative: 'Scope 3 roadmap',
+        description: null,
+        status: null,
+        milestoneYear: null,
+        investmentNeedDkk: null,
+        responsible: null
+      }
+    ])
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv forretningsmodellen og centrale aktiviteter for ESRS 2 SBM.',
+        'Angiv hvordan væsentlige ressourcer og partnere påvirker bæredygtighedsprofilen.',
+        'Forklar hvordan bæredygtighed indgår i strategi og governance.',
+        'Uddyb analyser af modstandsdygtighed over for klima- og overgangsrisici.',
+        'Angiv hvordan virksomheden planlægger at nå klimamål og overholde ESRS E1.',
+        'Beskriv hvordan væsentlige interessenter inddrages i strategien.',
+        'Uddyb påvirkning eller afbødning for afhængighed 1.'
+      ])
+    )
+  })
+})
+
+describe('runGOV', () => {
+  const longNarrative = 'Detaljeret governancebeskrivelse '.repeat(5)
+
+  it('beregner score og samler governance-noter uden advarsler', () => {
+    const input: ModuleInput = {
+      GOV: {
+        oversightNarrative: longNarrative,
+        managementNarrative: longNarrative,
+        competenceNarrative: longNarrative,
+        reportingNarrative: longNarrative,
+        assuranceNarrative: longNarrative,
+        incentiveNarrative: longNarrative,
+        oversightBodies: [
+          {
+            body: 'Revisionsudvalg',
+            mandate: 'Overvåger ESG-rapportering og interne kontroller.',
+            chair: 'Bestyrelsesformand',
+            meetingFrequency: 'Kvartalsvis'
+          }
+        ],
+        controlProcesses: [
+          {
+            process: 'ESG-kontroller',
+            description: 'Månedlig validering af emissionsdata.',
+            owner: 'Risk Manager'
+          }
+        ],
+        incentiveStructures: [
+          {
+            role: 'Direktør',
+            incentive: '10 % bonus koblet til scope 1-reduktion.',
+            metric: 'Scope 1 ton CO₂e'
+          }
+        ]
+      }
+    }
+
+    const result = runGOV(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toEqual([])
+    expect(result.notes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Revisionsudvalg', detail: expect.stringContaining('Kvartalsvis') }),
+        expect.objectContaining({ label: 'ESG-kontroller', detail: 'Månedlig validering af emissionsdata.' }),
+        expect.objectContaining({ label: 'Direktør', detail: expect.stringContaining('Scope 1 ton CO₂e') })
+      ])
+    )
+    expect(result.responsibilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ subject: 'Revisionsudvalg', owner: 'Bestyrelsesformand', role: 'Formand' }),
+        expect.objectContaining({ subject: 'ESG-kontroller', owner: 'Risk Manager', role: 'Procesansvarlig' }),
+        expect.objectContaining({ subject: 'Direktør', owner: 'Direktør', role: 'Incitament' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^oversightNarrativeLength=\d+$/),
+        'incentive[0]=Direktør'
+      ])
+    )
+  })
+
+  it('returnerer nulscore og advarsler når governance-felter mangler', () => {
+    const input: ModuleInput = {
+      GOV: {
+        oversightNarrative: '  ',
+        managementNarrative: '',
+        competenceNarrative: null,
+        reportingNarrative: null,
+        assuranceNarrative: null,
+        incentiveNarrative: null,
+        oversightBodies: [
+          {
+            body: 'Audit komité',
+            mandate: null,
+            chair: null,
+            meetingFrequency: null,
+          }
+        ],
+        controlProcesses: [
+          {
+            process: 'Intern kontrol',
+            description: null,
+            owner: null,
+          }
+        ],
+        incentiveStructures: [
+          {
+            role: 'CEO',
+            incentive: null,
+            metric: null,
+          }
+        ]
+      }
+    }
+
+    const result = runGOV(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv bestyrelsens rolle i ESG-styring for ESRS 2 GOV.',
+        'Forklar hvordan direktionen driver ESG-dagsordenen.',
+        'Dokumentér træning og kompetenceopbygning for ledelsen.',
+        'Beskriv kontrolmiljø og rapporteringscyklus for ESG-data.',
+        'Angiv omfang af intern/ekstern assurance på ESG-rapporteringen.',
+        'Forklar hvordan incitamentsstruktur knyttes til ESG-mål.',
+        'Tilføj mandat eller mødefrekvens for governance-organ 1.',
+        'Kontrolproces 1 mangler beskrivelse.',
+        'Incitament 1 mangler beskrivelse af kobling til ESG.'
+      ])
+    )
+  })
+})
+
+describe('runIRO', () => {
+  const longNarrative = 'Detaljeret beskrivelse af risikoproces '.repeat(5)
+
+  it('aggregerer processer, impacts og ansvarlige', () => {
+    const input: ModuleInput = {
+      IRO: {
+        processNarrative: longNarrative,
+        integrationNarrative: longNarrative,
+        stakeholderNarrative: longNarrative,
+        dueDiligenceNarrative: longNarrative,
+        escalationNarrative: longNarrative,
+        monitoringNarrative: longNarrative,
+        riskProcesses: [
+          {
+            step: 'Identifikation',
+            description: 'Halvårlig vurdering af leverandørkædens risici.',
+            frequency: 'Halvårlig',
+            owner: 'Procurement Lead'
+          }
+        ],
+        impactResponses: [
+          {
+            topic: 'CO₂e i leverandørkæden',
+            severity: 'Høj',
+            response: 'Implementerer auditprogram og datapartnerskab.',
+            status: 'inProgress',
+            responsible: 'CSO'
+          }
+        ]
+      }
+    }
+
+    const result = runIRO(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toEqual([])
+    expect(result.notes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Identifikation', detail: expect.stringContaining('Halvårlig') }),
+        expect.objectContaining({ label: 'CO₂e i leverandørkæden', detail: expect.stringContaining('Status: inProgress') })
+      ])
+    )
+    expect(result.responsibilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ subject: 'Identifikation', owner: 'Procurement Lead', role: 'Procesansvarlig' }),
+        expect.objectContaining({ subject: 'CO₂e i leverandørkæden', owner: 'CSO', role: 'Ansvarlig' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^processNarrativeLength=\d+$/),
+        'riskProcess[0]=Identifikation'
+      ])
+    )
+  })
+
+  it('returnerer nulscore og relevante advarsler ved manglende oplysninger', () => {
+    const input: ModuleInput = {
+      IRO: {
+        processNarrative: ' ',
+        integrationNarrative: null,
+        stakeholderNarrative: null,
+        dueDiligenceNarrative: null,
+        escalationNarrative: null,
+        monitoringNarrative: null,
+        riskProcesses: [
+          {
+            step: 'Screening',
+            description: null,
+            frequency: null,
+            owner: null,
+          }
+        ],
+        impactResponses: [
+          {
+            topic: 'Biodiversitet',
+            severity: null,
+            response: null,
+            status: null,
+            responsible: null,
+          }
+        ]
+      }
+    }
+
+    const result = runIRO(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv processen for at identificere væsentlige impacts, risici og muligheder.',
+        'Forklar hvordan resultater integreres i beslutninger og styring.',
+        'Dokumentér hvordan interessenter bidrager til analyserne.',
+        'Beskriv due diligence-processer for værdikæden.',
+        'Forklar hvordan alvorlige impacts eskaleres til ledelsen.',
+        'Dokumentér opfølgning og KPI’er for risici og muligheder.',
+        'Proces 1 mangler beskrivelse af fremgangsmåde.',
+        'Angiv afværge- eller handlingsplan for impact 1.'
+      ])
+    )
+  })
+})
+
+describe('runMR', () => {
+  const longNarrative = 'Detaljeret narrativ om metrics og mål '.repeat(5)
+
+  it('kombinerer narrativer, overgangsplaner, finansielle effekter og removals', () => {
+    const input: ModuleInput = {
+      MR: {
+        intensityNarrative: longNarrative,
+        targetNarrative: longNarrative,
+        dataQualityNarrative: longNarrative,
+        assuranceNarrative: longNarrative,
+        transitionPlanNarrative: longNarrative,
+        financialEffectNarrative: longNarrative,
+        keyNarratives: [
+          { title: 'Supplerende narrativ', content: 'Detaljeret status for klimatilpasning.' }
+        ],
+        metrics: [
+          {
+            name: 'Scope 1 intensitet',
+            unit: 'tCO₂e/mio. DKK',
+            baselineYear: 2022,
+            baselineValue: 12,
+            currentYear: 2023,
+            currentValue: 10,
+            targetYear: 2026,
+            targetValue: 7,
+            status: 'lagging',
+            owner: 'COO',
+            description: 'Reduktion via energioptimering.'
+          },
+          {
+            name: 'Vedvarende andel',
+            unit: '%',
+            baselineYear: null,
+            baselineValue: null,
+            currentYear: 2023,
+            currentValue: 55,
+            targetYear: 2025,
+            targetValue: 80,
+            status: 'onTrack',
+            owner: 'Energi Lead',
+            description: 'Forbedres via PPA og solceller.'
+          }
+        ],
+        financialEffects: [
+          {
+            label: 'Intern opex',
+            type: 'opex',
+            amountDkk: 400_000,
+            timeframe: '2024',
+            description: 'Energioptimering af produktionslinje.'
+          }
+        ]
+      },
+      E1Context: {
+        netRevenueDkk: null,
+        productionVolume: null,
+        productionUnit: null,
+        employeesFte: null,
+        totalEnergyConsumptionKwh: null,
+        energyProductionKwh: null,
+        renewableEnergyProductionKwh: null,
+        previousYearScope1Tonnes: null,
+        previousYearScope2Tonnes: null,
+        previousYearScope3Tonnes: null,
+        transitionPlanMeasures: [
+          {
+            initiative: 'Solcellepark',
+            description: '50 % af elforbrug dækkes af ny park.',
+            status: 'inProgress',
+            milestoneYear: 2025,
+            investmentNeedDkk: 8_000_000,
+            responsible: 'CTO'
+          },
+          {
+            initiative: 'Elektriske køretøjer',
+            description: 'Skifter 80 % af flåden til el.',
+            status: 'planned',
+            milestoneYear: 2027,
+            investmentNeedDkk: 5_500_000,
+            responsible: 'Fleet Manager'
+          }
+        ],
+        financialEffects: [
+          {
+            label: 'Capex solceller',
+            type: 'capex',
+            amountDkk: 8_000_000,
+            timeframe: '2024-2025',
+            description: 'Investering i solcellepark.'
+          }
+        ],
+        ghgRemovalProjects: [
+          {
+            projectName: 'Skovrejsning',
+            removalType: 'valueChain',
+            annualRemovalTonnes: 120,
+            storageDescription: 'Langsigtet binding i certificeret skov.',
+            qualityStandard: 'Verra',
+            permanenceYears: 40,
+            financedThroughCredits: false,
+            responsible: 'Sustainability Manager'
+          }
+        ]
+      }
+    }
+
+    const result = runMR(input)
+
+    expect(result.value).toBe(100)
+    expect(result.transitionMeasures).toHaveLength(2)
+    expect(result.financialEffects).toHaveLength(2)
+    expect(result.removalProjects).toHaveLength(1)
+    expect(result.warnings).toEqual([])
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^intensityNarrativeLength=\d+$/),
+        'transitionPlan[0]=Solcellepark',
+        'financialEffect[1]=Intern opex',
+        'removalProject[0]=Skovrejsning'
+      ])
+    )
+    expect(result.notes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Scope 1 intensitet', detail: expect.stringContaining('Mål 2026: 7') }),
+        expect.objectContaining({ label: 'Vedvarende andel', detail: expect.stringContaining('Seneste 2023: 55') })
+      ])
+    )
+  })
+
+  it('udsteder advarsler og nulscore når data mangler', () => {
+    const input: ModuleInput = {
+      MR: {
+        intensityNarrative: ' ',
+        targetNarrative: '',
+        dataQualityNarrative: '',
+        assuranceNarrative: '',
+        transitionPlanNarrative: '',
+        financialEffectNarrative: '',
+        keyNarratives: [
+          { title: 'Tom narrativ', content: '' }
+        ],
+        metrics: [
+          {
+            name: 'Scope 1 intensitet',
+            unit: null,
+            baselineYear: null,
+            baselineValue: null,
+            currentYear: null,
+            currentValue: null,
+            targetYear: null,
+            targetValue: null,
+            status: null,
+            owner: null,
+            description: null,
+          }
+        ],
+        financialEffects: [
+          {
+            label: 'Intern opex',
+            type: null,
+            amountDkk: null,
+            timeframe: null,
+            description: null,
+          }
+        ]
+      },
+      E1Context: {
+        netRevenueDkk: null,
+        productionVolume: null,
+        productionUnit: null,
+        employeesFte: null,
+        totalEnergyConsumptionKwh: null,
+        energyProductionKwh: null,
+        renewableEnergyProductionKwh: null,
+        previousYearScope1Tonnes: null,
+        previousYearScope2Tonnes: null,
+        previousYearScope3Tonnes: null,
+        transitionPlanMeasures: [
+          {
+            initiative: 'Grønnere transporter',
+            description: null,
+            status: null,
+            milestoneYear: null,
+            investmentNeedDkk: null,
+            responsible: null,
+          }
+        ],
+        financialEffects: [
+          {
+            label: 'Capex solceller',
+            type: 'capex',
+            amountDkk: null,
+            timeframe: null,
+            description: null,
+          }
+        ],
+        ghgRemovalProjects: [
+          {
+            projectName: 'Skovrejsning',
+            removalType: 'valueChain',
+            annualRemovalTonnes: null,
+            storageDescription: null,
+            qualityStandard: null,
+            permanenceYears: null,
+            financedThroughCredits: null,
+            responsible: null,
+          }
+        ]
+      }
+    }
+
+    const result = runMR(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv udviklingen i intensiteter for ESRS 2 MR.',
+        'Forklar fremdrift på klimamål og væsentlige KPI’er.',
+        'Dokumentér kvalitet og kontroller for nøgletal.',
+        'Angiv scope for intern og ekstern assurance.',
+        'Beskriv hvordan overgangsplanen understøtter klimamål.',
+        'Opsummer finansielle konsekvenser af klimaindsatsen.',
+        'Tilføj aktuelle værdier eller mål for Scope 1 intensitet.',
+        'Angiv beløb eller beskrivelse for Capex solceller.',
+        'Angiv beløb eller beskrivelse for Intern opex.',
+        'Uddyb overgangstiltag 1 med status eller milepæl.',
+        'Tilføj kvantificerede data for removal-projekt 1.'
+      ])
+    )
+    expect(result.transitionMeasures).toHaveLength(1)
+    expect(result.financialEffects).toHaveLength(2)
+    expect(result.removalProjects).toHaveLength(1)
   })
 })
 

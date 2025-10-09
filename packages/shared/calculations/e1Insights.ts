@@ -199,8 +199,9 @@ function resolveEnergyMix(context: E1ContextInput): ModuleEnergyMixEntry[] {
       const rawType = line.energyType as E1EnergyMixType | undefined
       const energyType: E1EnergyMixType = isEnergyMixType(rawType) ? rawType : 'other'
       const consumption = toPositiveNumber(line.consumptionKwh) ?? 0
+      const share = clampPercent(line.sharePercent)
       const documentationQualityPercent = clampPercent(line.documentationQualityPercent)
-      return { energyType, consumption, documentationQualityPercent }
+      return { energyType, consumption, share, documentationQualityPercent }
     })
     .filter((entry) => entry.consumption > 0)
 
@@ -209,12 +210,16 @@ function resolveEnergyMix(context: E1ContextInput): ModuleEnergyMixEntry[] {
     return []
   }
 
-  return sanitised.map<ModuleEnergyMixEntry>((entry) => ({
-    energyType: entry.energyType,
-    consumptionKwh: round(entry.consumption, 3),
-    sharePercent: round((entry.consumption / total) * 100, 1),
-    documentationQualityPercent: entry.documentationQualityPercent,
-  }))
+  return sanitised.map<ModuleEnergyMixEntry>((entry) => {
+    const defaultShare = round((entry.consumption / total) * 100, 1)
+    const sharePercent = entry.share != null ? round(entry.share, 1) : defaultShare
+    return {
+      energyType: entry.energyType,
+      consumptionKwh: round(entry.consumption, 3),
+      sharePercent,
+      documentationQualityPercent: entry.documentationQualityPercent,
+    }
+  })
 }
 
 function resolveTargetProgress(

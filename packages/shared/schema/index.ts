@@ -22,6 +22,9 @@ export const e1EnergyMixOptions = ['electricity', 'districtHeat', 'steam', 'cool
 export const e1TargetScopeOptions = ['scope1', 'scope2', 'scope3', 'combined'] as const
 export const e1TargetStatusOptions = ['onTrack', 'lagging', 'atRisk'] as const
 export const e1ActionStatusOptions = ['planned', 'inProgress', 'delayed', 'completed'] as const
+export const e1TransitionStatusOptions = ['planned', 'inProgress', 'lagging', 'completed', 'notStarted'] as const
+export const e1FinancialEffectTypeOptions = ['capex', 'opex', 'revenues', 'costs', 'impairments', 'other'] as const
+export const e1RemovalTypeOptions = ['inHouse', 'valueChain', 'carbonCredits', 'other'] as const
 export const remediationStatusOptions = ['notStarted', 'inProgress', 'completed'] as const
 export const s2IssueTypeOptions = [
   'healthAndSafety',
@@ -706,7 +709,42 @@ const e1EnergyMixLineSchema = z
   .object({
     energyType: z.enum(e1EnergyMixOptions),
     consumptionKwh: z.number().min(0).nullable(),
+    sharePercent: z.number().min(0).max(100).nullable(),
     documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+const e1RemovalProjectSchema = z
+  .object({
+    projectName: z.string().max(160).nullable(),
+    removalType: z.enum(e1RemovalTypeOptions).nullable(),
+    annualRemovalTonnes: z.number().min(0).nullable(),
+    storageDescription: z.string().max(320).nullable(),
+    qualityStandard: z.string().max(160).nullable(),
+    permanenceYears: z.number().min(0).max(200).nullable(),
+    financedThroughCredits: z.boolean().nullable(),
+    responsible: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const e1FinancialEffectSchema = z
+  .object({
+    label: z.string().max(160).nullable(),
+    type: z.enum(e1FinancialEffectTypeOptions).nullable(),
+    amountDkk: z.number().nullable(),
+    timeframe: z.string().max(80).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1TransitionPlanMeasureSchema = z
+  .object({
+    initiative: z.string().max(160).nullable(),
+    milestoneYear: z.number().min(2000).max(2100).nullable(),
+    investmentNeedDkk: z.number().min(0).nullable(),
+    status: z.enum(e1TransitionStatusOptions).nullable(),
+    responsible: z.string().max(120).nullable(),
+    description: z.string().max(500).nullable(),
   })
   .strict()
 
@@ -722,7 +760,152 @@ export const e1ContextInputSchema = z
     energyMixLines: z.array(e1EnergyMixLineSchema).max(10).optional(),
     previousYearScope1Tonnes: z.number().min(0).nullable(),
     previousYearScope2Tonnes: z.number().min(0).nullable(),
-    previousYearScope3Tonnes: z.number().min(0).nullable()
+    previousYearScope3Tonnes: z.number().min(0).nullable(),
+    ghgRemovalProjects: z.array(e1RemovalProjectSchema).max(12).optional(),
+    financialEffects: z.array(e1FinancialEffectSchema).max(12).optional(),
+    transitionPlanMeasures: z.array(e1TransitionPlanMeasureSchema).max(12).optional(),
+  })
+  .strict()
+
+const sbmDependencySchema = z
+  .object({
+    dependency: z.string().max(160).nullable(),
+    impact: z.string().max(500).nullable(),
+    mitigation: z.string().max(500).nullable(),
+    responsible: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const sbmOpportunitySchema = z
+  .object({
+    title: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    timeframe: z.string().max(80).nullable(),
+    owner: z.string().max(120).nullable(),
+  })
+  .strict()
+
+export const sbmInputSchema = z
+  .object({
+    businessModelNarrative: z.string().max(2000).nullable(),
+    valueChainNarrative: z.string().max(2000).nullable(),
+    sustainabilityStrategyNarrative: z.string().max(2000).nullable(),
+    resilienceNarrative: z.string().max(2000).nullable(),
+    transitionPlanNarrative: z.string().max(2000).nullable(),
+    stakeholderNarrative: z.string().max(2000).nullable(),
+    dependencies: z.array(sbmDependencySchema).max(12).optional(),
+    opportunities: z.array(sbmOpportunitySchema).max(12).optional(),
+    transitionPlanMeasures: z.array(e1TransitionPlanMeasureSchema).max(12).optional(),
+  })
+  .strict()
+
+const govOversightSchema = z
+  .object({
+    body: z.string().max(160).nullable(),
+    mandate: z.string().max(500).nullable(),
+    chair: z.string().max(120).nullable(),
+    meetingFrequency: z.string().max(80).nullable(),
+  })
+  .strict()
+
+const govControlSchema = z
+  .object({
+    process: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    owner: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const govIncentiveSchema = z
+  .object({
+    role: z.string().max(160).nullable(),
+    incentive: z.string().max(500).nullable(),
+    metric: z.string().max(120).nullable(),
+  })
+  .strict()
+
+export const govInputSchema = z
+  .object({
+    oversightNarrative: z.string().max(2000).nullable(),
+    managementNarrative: z.string().max(2000).nullable(),
+    competenceNarrative: z.string().max(2000).nullable(),
+    reportingNarrative: z.string().max(2000).nullable(),
+    assuranceNarrative: z.string().max(2000).nullable(),
+    incentiveNarrative: z.string().max(2000).nullable(),
+    oversightBodies: z.array(govOversightSchema).max(12).optional(),
+    controlProcesses: z.array(govControlSchema).max(12).optional(),
+    incentiveStructures: z.array(govIncentiveSchema).max(12).optional(),
+  })
+  .strict()
+
+const iroProcessSchema = z
+  .object({
+    step: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    frequency: z.string().max(80).nullable(),
+    owner: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const iroImpactResponseSchema = z
+  .object({
+    topic: z.string().max(160).nullable(),
+    severity: z.string().max(80).nullable(),
+    response: z.string().max(500).nullable(),
+    status: z.string().max(80).nullable(),
+    responsible: z.string().max(120).nullable(),
+  })
+  .strict()
+
+export const iroInputSchema = z
+  .object({
+    processNarrative: z.string().max(2000).nullable(),
+    integrationNarrative: z.string().max(2000).nullable(),
+    stakeholderNarrative: z.string().max(2000).nullable(),
+    dueDiligenceNarrative: z.string().max(2000).nullable(),
+    escalationNarrative: z.string().max(2000).nullable(),
+    monitoringNarrative: z.string().max(2000).nullable(),
+    riskProcesses: z.array(iroProcessSchema).max(12).optional(),
+    impactResponses: z.array(iroImpactResponseSchema).max(20).optional(),
+  })
+  .strict()
+
+export const mrProgressStatusOptions = ['onTrack', 'lagging', 'atRisk', 'achieved', 'notStarted'] as const
+
+const mrMetricSchema = z
+  .object({
+    name: z.string().max(160).nullable(),
+    unit: z.string().max(32).nullable(),
+    baselineYear: z.number().min(1990).max(2100).nullable(),
+    baselineValue: z.number().nullable(),
+    currentYear: z.number().min(1990).max(2100).nullable(),
+    currentValue: z.number().nullable(),
+    targetYear: z.number().min(1990).max(2100).nullable(),
+    targetValue: z.number().nullable(),
+    status: z.enum(mrProgressStatusOptions).nullable(),
+    owner: z.string().max(120).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const mrNarrativeSchema = z
+  .object({
+    title: z.string().max(160).nullable(),
+    content: z.string().max(500).nullable(),
+  })
+  .strict()
+
+export const mrInputSchema = z
+  .object({
+    intensityNarrative: z.string().max(2000).nullable(),
+    targetNarrative: z.string().max(2000).nullable(),
+    dataQualityNarrative: z.string().max(2000).nullable(),
+    assuranceNarrative: z.string().max(2000).nullable(),
+    transitionPlanNarrative: z.string().max(2000).nullable(),
+    financialEffectNarrative: z.string().max(2000).nullable(),
+    metrics: z.array(mrMetricSchema).max(20).optional(),
+    keyNarratives: z.array(mrNarrativeSchema).max(12).optional(),
+    financialEffects: z.array(e1FinancialEffectSchema).max(12).optional(),
   })
   .strict()
 
@@ -865,6 +1048,10 @@ export type E1EnergyMixType = (typeof e1EnergyMixOptions)[number]
 export type E1TargetScope = (typeof e1TargetScopeOptions)[number]
 export type E1TargetStatus = (typeof e1TargetStatusOptions)[number]
 export type E1ActionStatus = (typeof e1ActionStatusOptions)[number]
+export type E1TransitionStatus = (typeof e1TransitionStatusOptions)[number]
+export type E1FinancialEffectType = (typeof e1FinancialEffectTypeOptions)[number]
+export type E1RemovalType = (typeof e1RemovalTypeOptions)[number]
+export type MrProgressStatus = (typeof mrProgressStatusOptions)[number]
 export type E1ContextInput = z.infer<typeof e1ContextInputSchema>
 export type E1TargetMilestone = z.infer<typeof e1TargetMilestoneSchema>
 export type E1TargetLine = z.infer<typeof e1TargetLineSchema>
@@ -874,6 +1061,13 @@ export type E2WaterInput = z.infer<typeof e2WaterInputSchema>
 export type E3PollutionInput = z.infer<typeof e3PollutionInputSchema>
 export type E4BiodiversityInput = z.infer<typeof e4BiodiversityInputSchema>
 export type E5ResourcesInput = z.infer<typeof e5ResourcesInputSchema>
+export type SbmInput = z.infer<typeof sbmInputSchema>
+export type GovInput = z.infer<typeof govInputSchema>
+export type IroInput = z.infer<typeof iroInputSchema>
+export type MrInput = z.infer<typeof mrInputSchema>
+export type E1RemovalProject = z.infer<typeof e1RemovalProjectSchema>
+export type E1FinancialEffect = z.infer<typeof e1FinancialEffectSchema>
+export type E1TransitionPlanMeasure = z.infer<typeof e1TransitionPlanMeasureSchema>
 
 
 export const esgInputSchema = z
@@ -914,6 +1108,10 @@ export const esgInputSchema = z
     E3Pollution: e3PollutionInputSchema.optional(),
     E4Biodiversity: e4BiodiversityInputSchema.optional(),
     E5Resources: e5ResourcesInputSchema.optional(),
+    SBM: sbmInputSchema.optional(),
+    GOV: govInputSchema.optional(),
+    IRO: iroInputSchema.optional(),
+    MR: mrInputSchema.optional(),
     S1: s1InputSchema.optional(),
     S2: s2InputSchema.optional(),
     S3: s3InputSchema.optional(),

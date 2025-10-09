@@ -18,9 +18,9 @@ export type EsrsLayout = {
   doubleMateriality: CalculatedModuleResult | null
 }
 
-const generalSectionIds = ['D1', 'D2'] as const
+const generalSectionIds = ['SBM', 'GOV', 'IRO', 'D1'] as const
 const policySectionIds = ['G1', 'S4'] as const
-const targetSectionIds = ['E1Targets'] as const
+const targetSectionIds = ['MR', 'E1Targets'] as const
 
 const metricDefinitions = [
   {

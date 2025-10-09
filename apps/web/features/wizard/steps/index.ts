@@ -66,6 +66,10 @@ const E2WaterStep = createLazyStep(() => import('./E2Water'), 'E2WaterStep')
 const E3PollutionStep = createLazyStep(() => import('./E3Pollution'), 'E3PollutionStep')
 const E4BiodiversityStep = createLazyStep(() => import('./E4Biodiversity'), 'E4BiodiversityStep')
 const E5ResourcesStep = createLazyStep(() => import('./E5Resources'), 'E5ResourcesStep')
+const SBMStep = createLazyStep(() => import('./SBM'), 'SBMStep')
+const GOVStep = createLazyStep(() => import('./GOV'), 'GOVStep')
+const IROStep = createLazyStep(() => import('./IRO'), 'IROStep')
+const MRStep = createLazyStep(() => import('./MR'), 'MRStep')
 const S1Step = createLazyStep(() => import('./S1'), 'S1Step')
 const S2Step = createLazyStep(() => import('./S2'), 'S2Step')
 const S3Step = createLazyStep(() => import('./S3'), 'S3Step')
@@ -150,6 +154,34 @@ export const wizardSteps: WizardStep[] = [
     label: 'E5 – Ressourcer og materialeforbrug',
     component: E5ResourcesStep,
     scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'SBM',
+    label: 'ESRS 2 – Strategi og forretningsmodel',
+    component: SBMStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'GOV',
+    label: 'ESRS 2 – Governance',
+    component: GOVStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'IRO',
+    label: 'ESRS 2 – Impacts, risici og muligheder',
+    component: IROStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'MR',
+    label: 'ESRS 2 – Metrics og targets',
+    component: MRStep,
+    scope: 'Governance',
     status: 'ready'
   },
   { id: 'S1', label: 'S1 – Arbejdsstyrke & headcount', component: S1Step, scope: 'Social', status: 'ready' },

@@ -35,6 +35,8 @@ Denne fil opsummerer de vigtigste arbejdsgange og faldgruber for dette monorepo.
 - Hvert nyt modul kræver mindst én enhedstest, ét fixturesæt og én linje i `CHANGELOG.md`.
 - Ingen lint-fejl, ingen TypeScript-`any`, ingen build-advarsler.
 - PDF-tests bør hashe buffer-output for determinisme.
+- GitHub CI-testene må ikke brydes; kør altid hele pipelinesættet (`pnpm -w run lint && pnpm -w run typecheck && pnpm -w run test && pnpm -w run build`) lokalt inden aflevering.
+- Efter hver prompt-udførelse skal der tages et skærmbillede af den kørende webapplikation til dokumentation.
 
 ## CI og publicering
 - npm-pakker udgives via GitHub Packages. Tjek `.npmrc` og `publishConfig` i relevante pakker.
