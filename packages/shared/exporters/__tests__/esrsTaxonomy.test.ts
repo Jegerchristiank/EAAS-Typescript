@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { esrsConceptList } from '../esrsTaxonomy'
+import { esrsEmissionConceptList } from '../esrsTaxonomy'
 
 function loadFile(path: string): string {
   return readFileSync(new URL(path, import.meta.url), 'utf-8')
@@ -16,7 +16,7 @@ const unitIds = buildUnitIdSet(utrXml)
 
 describe('ESRS taksonomi reference', () => {
   it('indeholder alle koncepter og de korrekte periodetyper', () => {
-    for (const { definition } of esrsConceptList) {
+    for (const { definition } of esrsEmissionConceptList) {
       const localName = definition.qname.split(':')[1] ?? definition.qname
       const declaration = elementDeclarations.get(localName)
       expect(declaration, `Konceptet ${definition.qname} findes ikke i esrs_cor.xsd`).toBeTruthy()

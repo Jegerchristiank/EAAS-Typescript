@@ -1,7 +1,7 @@
 /**
  * Beregning for modul E2 – vandforbrug og vandstress.
  */
-import type { E2WaterInput, ModuleInput, ModuleResult } from '../../types'
+import type { E2WaterInput, ModuleEsrsFact, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
 
 const { e2Water } = factors
@@ -92,12 +92,29 @@ export function runE2Water(input: ModuleInput): ModuleResult {
 
   trace.push(`dataQualityPercent=${dataQualityPercent.toFixed(2)}`)
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number, unitId: string, decimals: number) => {
+    if (!Number.isFinite(value)) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('E2TotalWaterWithdrawalM3', totalWithdrawal, 'm3', 0)
+  pushNumericFact('E2WaterWithdrawalInStressRegionsM3', stressWithdrawal, 'm3', 0)
+  pushNumericFact('E2WaterDischargeM3', discharge, 'm3', 0)
+  pushNumericFact('E2WaterReusePercent', reusePercent, 'percent', 1)
+  pushNumericFact('E2WaterStressSharePercent', stressShare * 100, 'percent', 1)
+  pushNumericFact('E2WaterDischargeRatioPercent', dischargeRatio * 100, 'percent', 1)
+  pushNumericFact('E2WaterDataQualityPercent', dataQualityPercent, 'percent', 1)
+
   return {
     value,
     unit: e2Water.unit,
     assumptions,
     trace,
     warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {})
   }
 }
 

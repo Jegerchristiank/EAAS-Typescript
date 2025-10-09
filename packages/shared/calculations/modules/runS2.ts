@@ -1,7 +1,13 @@
 /**
  * Beregning for modul S2 – værdikædearbejdere og arbejdsforhold.
  */
-import type { ModuleInput, ModuleResult, S2Input } from '../../types'
+import type {
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult,
+  S2Input
+} from '../../types'
 import { factors } from '../factors'
 
 const { s2 } = factors
@@ -35,6 +41,16 @@ export function runS2(input: ModuleInput): ModuleResult {
     'Alvorlige hændelser reducerer score afhængigt af antal berørte arbejdstagere og status på remediering.'
   ]
 
+  const valueChainWorkers = clampCount(raw?.valueChainWorkersCount)
+  const workersAtRisk = clampCount(raw?.workersAtRiskCount)
+  const valueChainCoveragePercent = clampPercent(raw?.valueChainCoveragePercent)
+  const highRiskSupplierPercent = clampPercent(raw?.highRiskSupplierSharePercent)
+  const livingWagePercent = clampPercent(raw?.livingWageCoveragePercent)
+  const bargainingPercent = clampPercent(raw?.collectiveBargainingCoveragePercent)
+  const socialAuditPercent = clampPercent(raw?.socialAuditsCompletedPercent)
+  const grievancesOpen = clampCount(raw?.grievancesOpenCount)
+  const grievanceMechanism = raw?.grievanceMechanismForWorkers ?? null
+
   const coverageScore = resolveCoverageScore(raw, trace, warnings)
   const protectionScore = resolveProtectionScore(raw, warnings, trace)
   const auditScore = resolveAuditScore(raw, warnings, trace)
@@ -67,12 +83,61 @@ export function runS2(input: ModuleInput): ModuleResult {
     warnings.push('Tilføj narrativ om afhjælpning og kompensation til leverandørarbejdere (ESRS S2 §28).')
   }
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('S2ValueChainWorkersCount', valueChainWorkers, 'pure', 0)
+  pushNumericFact('S2WorkersAtRiskCount', workersAtRisk, 'pure', 0)
+  pushNumericFact('S2ValueChainCoveragePercent', valueChainCoveragePercent, 'percent', 1)
+  pushNumericFact('S2HighRiskSupplierSharePercent', highRiskSupplierPercent, 'percent', 1)
+  pushNumericFact('S2LivingWageCoveragePercent', livingWagePercent, 'percent', 1)
+  pushNumericFact('S2CollectiveBargainingCoveragePercent', bargainingPercent, 'percent', 1)
+  pushNumericFact('S2SocialAuditsCompletedPercent', socialAuditPercent, 'percent', 1)
+  pushNumericFact('S2GrievancesOpenCount', grievancesOpen, 'pure', 0)
+
+  if (grievanceMechanism !== null) {
+    esrsFacts.push({ conceptKey: 'S2GrievanceMechanismForWorkers', value: grievanceMechanism, unitId: null })
+  }
+
+  const incidentsCount = incidents.length
+  pushNumericFact('S2IncidentsCount', incidentsCount, 'pure', 0)
+
+  const totalWorkersAffected = incidents
+    .map((incident) => incident.workersAffected ?? 0)
+    .reduce((sum, workers) => sum + workers, 0)
+  pushNumericFact('S2WorkersAffectedTotal', totalWorkersAffected, 'pure', 0)
+
+  const esrsTables: ModuleEsrsTable[] | undefined =
+    incidents.length === 0
+      ? undefined
+      : [
+          {
+            conceptKey: 'S2IncidentsTable',
+            rows: incidents.map((incident) => ({
+              supplier: incident.supplier,
+              country: incident.country,
+              issueType: incident.issueType,
+              workersAffected: incident.workersAffected,
+              severityLevel: incident.severityLevel,
+              remediationStatus: incident.remediationStatus,
+              description: incident.description
+            }))
+          }
+        ]
+
   return {
     value,
     unit: s2.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables ? { esrsTables } : {})
   }
 }
 

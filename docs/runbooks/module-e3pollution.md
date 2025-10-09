@@ -29,6 +29,11 @@ Denne runbook beskriver, hvordan modul E3 indsamler data om udledninger og bereg
 - Wizardformularen er bygget med grid-layout, så luft/vand/jord-data er lette at sammenligne.
 - Profilafhængigheden sikrer, at modulet kun vises for virksomheder med relevante emissioner.
 
+## CSRD/XBRL-eksport
+
+- Udledninger, grænser og overskridelsesprocenter eksporteres som ESRS E3-fakta for luft, vand og jord.
+- Rapportérbare hændelser og dokumentationskvalitet indgår ligeledes som numeriske facts, mens et sammendrag gemmes i `E3MediumsTable`.
+
 ## Videreudvikling
 
 - Udbyg modulet med artsopdelte emissioner eller COD/TOC-målinger, hvis behov opstår.

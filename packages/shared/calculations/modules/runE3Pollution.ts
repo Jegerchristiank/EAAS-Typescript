@@ -1,7 +1,7 @@
 /**
  * Beregning for modul E3 – emissioner til luft, vand og jord.
  */
-import type { E3PollutionInput, ModuleInput, ModuleResult } from '../../types'
+import type { E3PollutionInput, ModuleEsrsFact, ModuleEsrsTable, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
 
 const { e3Pollution } = factors
@@ -103,13 +103,53 @@ export function runE3Pollution(input: ModuleInput): ModuleResult {
   trace.push(`incidents=${incidents}`)
   trace.push(`dataQualityPercent=${dataQualityPercent.toFixed(2)}`)
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number, unitId: string, decimals: number) => {
+    if (!Number.isFinite(value)) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  const mediumFacts: ModuleEsrsTable['rows'] = []
+
+  mediums.forEach((medium) => {
+    pushNumericFact(`E3${capitalize(medium.key)}EmissionsTonnes`, medium.quantity, 'tonnes', 2)
+    pushNumericFact(`E3${capitalize(medium.key)}LimitTonnes`, medium.limit, 'tonnes', 2)
+    const exceedPercent = medium.limit === 0 ? 0 : Math.max(0, ((medium.quantity - medium.limit) / medium.limit) * 100)
+    pushNumericFact(`E3${capitalize(medium.key)}ExceedPercent`, exceedPercent, 'percent', 2)
+    mediumFacts.push({
+      medium: medium.key,
+      quantityTonnes: Number(medium.quantity.toFixed(3)),
+      limitTonnes: Number(medium.limit.toFixed(3)),
+      exceedPercent: Number(exceedPercent.toFixed(2))
+    })
+  })
+
+  pushNumericFact('E3ReportableIncidentsCount', incidents, 'pure', 0)
+  pushNumericFact('E3DocumentationQualityPercent', dataQualityPercent, 'percent', 1)
+
+  const esrsTables: ModuleEsrsTable[] = []
+  if (mediumFacts.length > 0) {
+    esrsTables.push({ conceptKey: 'E3MediumsTable', rows: mediumFacts })
+  }
+
   return {
     value,
     unit: e3Pollution.unit,
     assumptions,
     trace,
     warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables.length > 0 ? { esrsTables } : {})
   }
+}
+
+function capitalize(value: string): string {
+  if (!value) {
+    return value
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
 function normaliseMass(value: number | null | undefined): number {

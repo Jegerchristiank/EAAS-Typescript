@@ -1,7 +1,13 @@
 /**
  * Beregning for modul D1 – governance-score baseret på metodevalg og beskrivelser.
  */
-import type { D1Input, ModuleInput, ModuleResult } from '../../types'
+import type {
+  D1Input,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult
+} from '../../types'
 import { factors } from '../factors'
 
 type ImpactsDetails = NonNullable<D1Input['impactsRisksOpportunities']>
@@ -395,12 +401,95 @@ export function runD1(input: ModuleInput): ModuleResult {
     trace.push(`${metric.label}Score=${metric.score}`)
   }
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushStringFact = (key: string, value: string | null | undefined) => {
+    const resolved = value == null ? '' : value.trim()
+    if (resolved.length === 0) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: resolved, unitId: null })
+  }
+
+  const pushBooleanFact = (key: string, value: boolean | null | undefined) => {
+    if (value == null) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value, unitId: null })
+  }
+
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushStringFact('D1OrganizationalBoundary', boundary)
+  pushStringFact('D1Scope2Method', scope2Method)
+  pushBooleanFact('D1Scope3ScreeningCompleted', screeningCompleted)
+  pushStringFact('D1DataQuality', dataQuality)
+  pushStringFact('D1MaterialityAssessmentDescription', materiality)
+  pushStringFact('D1StrategySummary', strategySummary)
+  pushStringFact('D1ValueChainCoverage', valueChainCoverage)
+  pushBooleanFact('D1QuantitativeTargets', quantitativeTargets)
+  pushNumericFact('D1TimeHorizonsCoveredCount', uniqueHorizons.length, 'pure', 0)
+  pushNumericFact('D1KpiCount', meaningfulKpis.length, 'pure', 0)
+  pushBooleanFact('D1HasEsgCommittee', hasCommittee)
+
+  const esrsTables: ModuleEsrsTable[] = []
+
+  const strategyRows = strategyEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (strategyRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1StrategyNarrativesTable', rows: strategyRows })
+  }
+
+  const governanceRows = governanceEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (governanceRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1GovernanceNarrativesTable', rows: governanceRows })
+  }
+
+  const impactsRows = impactsEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (impactsRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1ImpactsProcessTable', rows: impactsRows })
+  }
+
+  const targetsRows = targetEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (targetsRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1TargetsNarrativesTable', rows: targetsRows })
+  }
+
+  if (meaningfulKpis.length > 0) {
+    esrsTables.push({
+      conceptKey: 'D1KpiOverviewTable',
+      rows: meaningfulKpis.map((kpi) => ({
+        name: normaliseText(kpi.name),
+        kpi: normaliseText(kpi.kpi),
+        unit: normaliseText(kpi.unit),
+        baselineYear: kpi.baselineYear ?? null,
+        baselineValue: kpi.baselineValue ?? null,
+        targetYear: kpi.targetYear ?? null,
+        targetValue: kpi.targetValue ?? null,
+        comments: normaliseText(kpi.comments)
+      }))
+    })
+  }
+
   return {
     value,
     unit: factors.d1.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables.length > 0 ? { esrsTables } : {})
   }
 }
 

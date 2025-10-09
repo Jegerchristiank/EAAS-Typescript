@@ -282,6 +282,24 @@ export type ModuleNote = {
   detail: string
 }
 
+export type ModuleEsrsFactValue = string | number | boolean | null
+
+export type ModuleEsrsFact = {
+  conceptKey: string
+  value: ModuleEsrsFactValue
+  /** Angiv decimals hvis faktaværdien er numerisk og skal afrundes anderledes end standarden. */
+  decimals?: number | null
+  /** Valgfrit override for unit-id. Hvis ikke sat anvendes konfigurationen fra taksonomien. */
+  unitId?: string | null
+}
+
+export type ModuleEsrsTableRow = Record<string, string | number | boolean | null>
+
+export type ModuleEsrsTable = {
+  conceptKey: string
+  rows: ModuleEsrsTableRow[]
+}
+
 export type ModuleDoubleMaterialityTopic = {
   name: string
   impactScore: number
@@ -318,6 +336,8 @@ export type ModuleResult = {
   responsibilities?: ModuleResponsibility[]
   notes?: ModuleNote[]
   doubleMateriality?: ModuleDoubleMateriality | null
+  esrsFacts?: ModuleEsrsFact[]
+  esrsTables?: ModuleEsrsTable[]
 }
 
 export type ModuleCalculator = (input: ModuleInput) => ModuleResult

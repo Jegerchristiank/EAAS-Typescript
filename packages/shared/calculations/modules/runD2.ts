@@ -1,7 +1,13 @@
 /**
  * Beregning for modul D2 – dobbelt væsentlighed og CSRD-gapstatus.
  */
-import type { D2Input, ModuleInput, ModuleResult } from '../../types'
+import type {
+  D2Input,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult
+} from '../../types'
 import { factors } from '../factors'
 
 const { d2 } = factors
@@ -219,6 +225,47 @@ export function runD2(input: ModuleInput): ModuleResult {
     .filter((topic) => topic.csrdGapStatus === 'missing')
     .map((topic) => topic.name)
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number, unitId: string, decimals: number) => {
+    if (!Number.isFinite(value)) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('D2ValidTopicsCount', normalisedTopics.length, 'pure', 0)
+  pushNumericFact('D2PrioritisedTopicsCount', prioritisedTopics.length, 'pure', 0)
+  pushNumericFact('D2AttentionTopicsCount', attentionTopics.length, 'pure', 0)
+  pushNumericFact('D2GapAlertsCount', gapAlerts.length, 'pure', 0)
+  pushNumericFact('D2AverageWeightedScore', (averageScore / d2.maxScore) * 100, 'percent', 1)
+
+  const esrsTables: ModuleEsrsTable[] = []
+
+  if (normalisedTopics.length > 0) {
+    esrsTables.push({
+      conceptKey: 'D2MaterialTopicsTable',
+      rows: normalisedTopics.map((topic) => ({
+        name: topic.name,
+        impactScore: topic.impactScore,
+        financialScore: topic.financialScore,
+        combinedScore: Number(topic.combinedScore.toFixed(2)),
+        riskType: topic.riskType ?? null,
+        timeline: topic.timeline ?? null,
+        responsible: topic.responsible ?? null,
+        csrdGapStatus: topic.csrdGapStatus ?? null,
+        missingImpact: topic.missingImpact,
+        missingFinancial: topic.missingFinancial
+      }))
+    })
+  }
+
+  if (gapAlerts.length > 0) {
+    esrsTables.push({
+      conceptKey: 'D2GapAlertsTable',
+      rows: gapAlerts.map((topic) => ({ topic }))
+    })
+  }
+
   return {
     value,
     unit: d2.unit,
@@ -242,6 +289,8 @@ export function runD2(input: ModuleInput): ModuleResult {
       })),
       gapAlerts,
     },
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables.length > 0 ? { esrsTables } : {})
   }
 }
 

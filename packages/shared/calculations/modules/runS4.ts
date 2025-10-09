@@ -1,7 +1,13 @@
 /**
  * Beregning for modul S4 – forbrugere og slutbrugere.
  */
-import type { ModuleInput, ModuleResult, S4Input } from '../../types'
+import type {
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult,
+  S4Input
+} from '../../types'
 import { factors } from '../factors'
 
 const { s4 } = factors
@@ -35,6 +41,14 @@ export function runS4(input: ModuleInput): ModuleResult {
     'Indberettede hændelser reducerer scoren efter alvorlighed, antal berørte brugere og status på afhjælpning.'
   ]
 
+  const productsAssessedPercent = clampPercent(raw?.productsAssessedPercent)
+  const severeIncidents = clampCount(raw?.severeIncidentsCount)
+  const recalls = clampCount(raw?.recallsCount)
+  const complaintsResolvedPercent = clampPercent(raw?.complaintsResolvedPercent)
+  const dataBreaches = clampCount(raw?.dataBreachesCount)
+  const grievanceMechanism = raw?.grievanceMechanismInPlace ?? null
+  const escalationDays = raw?.escalationTimeframeDays ?? null
+
   const coverageScore = resolveCoverageScore(raw, trace, warnings)
   const complaintsScore = resolveComplaintsScore(raw, trace, warnings)
   const mechanismScore = resolveMechanismScore(raw, warnings)
@@ -67,12 +81,62 @@ export function runS4(input: ModuleInput): ModuleResult {
     warnings.push('Tilføj narrativ om forbrugerkommunikation, uddannelse og samarbejde (ESRS S4 §22).')
   }
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('S4ProductsAssessedPercent', productsAssessedPercent, 'percent', 1)
+  pushNumericFact('S4SevereIncidentsCount', severeIncidents, 'pure', 0)
+  pushNumericFact('S4RecallsCount', recalls, 'pure', 0)
+  pushNumericFact('S4ComplaintsResolvedPercent', complaintsResolvedPercent, 'percent', 1)
+  pushNumericFact('S4DataBreachesCount', dataBreaches, 'pure', 0)
+
+  if (grievanceMechanism !== null) {
+    esrsFacts.push({ conceptKey: 'S4GrievanceMechanismInPlace', value: grievanceMechanism, unitId: null })
+  }
+
+  if (escalationDays != null && Number.isFinite(escalationDays)) {
+    esrsFacts.push({ conceptKey: 'S4EscalationTimeframeDays', value: Number(escalationDays), unitId: 'days', decimals: 0 })
+  }
+
+  const issuesCount = issues.length
+  pushNumericFact('S4IssuesCount', issuesCount, 'pure', 0)
+
+  const usersAffectedTotal = issues
+    .map((issue) => issue.usersAffected ?? 0)
+    .reduce((sum, users) => sum + users, 0)
+  pushNumericFact('S4UsersAffectedTotal', usersAffectedTotal, 'pure', 0)
+
+  const esrsTables: ModuleEsrsTable[] | undefined =
+    issues.length === 0
+      ? undefined
+      : [
+          {
+            conceptKey: 'S4ConsumerIssuesTable',
+            rows: issues.map((issue) => ({
+              productOrService: issue.productOrService,
+              market: issue.market,
+              issueType: issue.issueType,
+              usersAffected: issue.usersAffected,
+              severityLevel: issue.severityLevel,
+              remediationStatus: issue.remediationStatus,
+              description: issue.description
+            }))
+          }
+        ]
+
   return {
     value,
     unit: s4.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables ? { esrsTables } : {})
   }
 }
 

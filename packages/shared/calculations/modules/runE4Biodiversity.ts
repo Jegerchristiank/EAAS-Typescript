@@ -1,7 +1,7 @@
 /**
  * Beregning for modul E4 – påvirkning af biodiversitet.
  */
-import type { E4BiodiversityInput, ModuleInput, ModuleResult } from '../../types'
+import type { E4BiodiversityInput, ModuleEsrsFact, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
 
 const { e4Biodiversity } = factors
@@ -74,12 +74,28 @@ export function runE4Biodiversity(input: ModuleInput): ModuleResult {
 
   trace.push(`dataQualityPercent=${dataQualityPercent.toFixed(2)}`)
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number, unitId: string, decimals: number) => {
+    if (!Number.isFinite(value)) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('E4SitesInProtectedAreasCount', sites, 'pure', 0)
+  pushNumericFact('E4ProtectedAreaHectares', impactedArea, 'hectares', 2)
+  pushNumericFact('E4RestorationHectares', restoredArea, 'hectares', 2)
+  pushNumericFact('E4SignificantIncidentsCount', incidents, 'pure', 0)
+  pushNumericFact('E4RestorationRatioPercent', restorationRatio * 100, 'percent', 1)
+  pushNumericFact('E4DocumentationQualityPercent', dataQualityPercent, 'percent', 1)
+
   return {
     value,
     unit: e4Biodiversity.unit,
     assumptions,
     trace,
     warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {})
   }
 }
 

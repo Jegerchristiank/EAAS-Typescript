@@ -42,3 +42,8 @@ opfølgning.
   tilføje væsentlige emner.
 - Inputfelter begrænser tekstlængder og scorer til forventede intervaller
   for at understøtte kvalitet i dataindsamlingen.
+
+## CSRD/XBRL-eksport
+
+- Prioriteringer, opmærksomhedsemner og gap-advarsler eksporteres som ESRS D2-fakta (`D2PrioritisedTopicsCount`, `D2GapAlertsCount` m.fl.).
+- Hver materialitetspost serialiseres som `D2MaterialTopicsTable`, så kombinerede scorer, tidslinje og ansvarlig kan læses direkte i XBRL.

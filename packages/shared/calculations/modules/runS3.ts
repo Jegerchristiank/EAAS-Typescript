@@ -1,7 +1,13 @@
 /**
  * Beregning for modul S3 – berørte lokalsamfund.
  */
-import type { ModuleInput, ModuleResult, S3Input } from '../../types'
+import type {
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult,
+  S3Input
+} from '../../types'
 import { factors } from '../factors'
 
 const { s3 } = factors
@@ -37,6 +43,11 @@ export function runS3(input: ModuleInput): ModuleResult {
     'Registrerede impacts reducerer score afhængigt af alvorlighed, antal husholdninger og status på remediering.'
   ]
 
+  const communitiesIdentified = clampCount(raw?.communitiesIdentifiedCount)
+  const impactAssessmentPercent = clampPercent(raw?.impactAssessmentsCoveragePercent)
+  const highRiskSharePercent = clampPercent(raw?.highRiskCommunitySharePercent)
+  const grievancesOpen = clampCount(raw?.grievancesOpenCount)
+
   const assessmentScore = resolveAssessmentScore(raw, trace, warnings)
   const highRiskScore = resolveHighRiskScore(raw, trace, warnings)
   const grievanceScore = resolveGrievanceScore(raw, trace, warnings)
@@ -64,12 +75,53 @@ export function runS3(input: ModuleInput): ModuleResult {
     warnings.push('Tilføj narrativ om afhjælpning og samarbejde med lokalsamfund (ESRS S3 §23-27).')
   }
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('S3CommunitiesIdentifiedCount', communitiesIdentified, 'pure', 0)
+  pushNumericFact('S3ImpactAssessmentsCoveragePercent', impactAssessmentPercent, 'percent', 1)
+  pushNumericFact('S3HighRiskCommunitySharePercent', highRiskSharePercent, 'percent', 1)
+  pushNumericFact('S3GrievancesOpenCount', grievancesOpen, 'pure', 0)
+
+  const incidentsCount = impacts.length
+  pushNumericFact('S3ImpactsCount', incidentsCount, 'pure', 0)
+
+  const householdsAffectedTotal = impacts
+    .map((impact) => impact.householdsAffected ?? 0)
+    .reduce((sum, households) => sum + households, 0)
+  pushNumericFact('S3HouseholdsAffectedTotal', householdsAffectedTotal, 'pure', 0)
+
+  const esrsTables: ModuleEsrsTable[] | undefined =
+    impacts.length === 0
+      ? undefined
+      : [
+          {
+            conceptKey: 'S3CommunityImpactsTable',
+            rows: impacts.map((impact) => ({
+              community: impact.community,
+              geography: impact.geography,
+              impactType: impact.impactType,
+              householdsAffected: impact.householdsAffected,
+              severityLevel: impact.severityLevel,
+              remediationStatus: impact.remediationStatus,
+              description: impact.description
+            }))
+          }
+        ]
+
   return {
     value,
     unit: s3.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables ? { esrsTables } : {})
   }
 }
 

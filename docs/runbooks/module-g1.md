@@ -21,3 +21,8 @@ Modulet vurderer governance-setup via politikker, targets og bestyrelsestilsyn. 
 - Unit-testen `runG1` i `runModule.spec.ts` dækker et scenarie med kombinerede politikker og targets samt warnings.
 - `G1Step` giver formularer til både politikker og targets samt narrativ felt.
 - `g1InputSchema` sikrer validering af status-felter og tekstlængder – opdater schemaer og test ved ændringer.
+
+## CSRD/XBRL-eksport
+
+- Optællinger og gennemsnit eksponeres som ESRS G1-fakta (`G1PolicyCount`, `G1PolicyAverageScore` osv.).
+- Politikker og targets serialiseres som tabeller (`G1PoliciesTable`, `G1TargetsTable`), så hver række kan efterprøves i XBRL.
