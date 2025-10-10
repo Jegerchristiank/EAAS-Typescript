@@ -322,12 +322,23 @@ export function runD2(input: ModuleInput): ModuleResult {
     })
     .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null)
 
-  const notes = normalisedTopics.map((topic) => ({
-    label: topic.name,
-    detail: `Impact-type: ${topic.impactType} · Severity: ${topic.severity} · Sandsynlighed: ${topic.likelihood} · Værdikæde: ${
-      topic.valueChainSegment ?? 'ukendt'
-    } · Afhjælpning: ${topic.remediationStatus}`
-  }))
+  const notes = normalisedTopics.map((topic) => {
+    const impactTypeLabel = impactTypeLabelMap[topic.impactType] ?? topic.impactType
+    const severityLabel = severityLabelMap[topic.severity] ?? topic.severity
+    const likelihoodLabel = likelihoodLabelMap[topic.likelihood] ?? topic.likelihood
+    const valueChainLabel =
+      topic.valueChainSegment && valueChainLabelMap[topic.valueChainSegment]
+        ? valueChainLabelMap[topic.valueChainSegment]
+        : valueChainLabelMap['unknown']
+    const remediationLabel = remediationLabelMap[topic.remediationStatus] ?? topic.remediationStatus
+
+    return {
+      label: topic.name,
+      detail: `Impact-type: ${impactTypeLabel} · Alvor: ${severityLabel} · Sandsynlighed: ${likelihoodLabel} · Værdikæde: ${
+        valueChainLabel
+      } · Afhjælpning: ${remediationLabel}`
+    }
+  })
 
   const gapAlerts = normalisedTopics
     .filter((topic) => topic.csrdGapStatus === 'missing')
