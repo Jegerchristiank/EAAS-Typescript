@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Changed
+- Omstillede ESRS 2 D1 og MR til kravbaseret validering med kvalitative outputs, opdaterede UI-komponenter og dækkende tests/fixtures.
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.
 - Normalised wizard infrastructure to rely on strongly typed module input and removed duplicate step registrations.
 - Tuned Turbo test outputs to avoid false cache warnings while coverage instrumentation is not yet enabled.

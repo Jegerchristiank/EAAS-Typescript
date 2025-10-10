@@ -69,6 +69,7 @@ function toNullableNumber(event: ChangeEvent<HTMLInputElement>): number | null {
 export function MRStep({ state, onChange }: WizardStepProps): JSX.Element {
   const current = (state.MR as MrInput | undefined) ?? EMPTY_MR
   const preview = useMemo<ModuleResult>(() => runMR({ MR: current } as ModuleInput), [current])
+  const totalRequirements = preview.metrics?.length ?? 0
 
   const handleNarrativeChange = (key: keyof MrInput) => (event: ChangeEvent<HTMLTextAreaElement>) => {
     const next: MrInput = { ...current, [key]: toNullableString(event) }
@@ -422,10 +423,30 @@ export function MRStep({ state, onChange }: WizardStepProps): JSX.Element {
         </div>
 
         <aside className="ds-card ds-stack" aria-live="polite">
-          <h3 className="ds-heading-xs">Forhåndsresultat</h3>
-          <p className="ds-text-strong">
-            {preview.value} {preview.unit}
-          </p>
+          <h3 className="ds-heading-xs">ESRS 2 MR kravvurdering</h3>
+          <p className="ds-text-strong">Opfyldte krav: {preview.value} / {totalRequirements}</p>
+          {preview.metrics && preview.metrics.length > 0 && (
+            <div className="ds-stack-xs">
+              <h4 className="ds-text-muted">Kravstatus</h4>
+              <ul className="ds-stack-xs">
+                {preview.metrics.map((metric, index) => (
+                  <li key={`metric-${index}`}>
+                    <span className="ds-text-strong">{metric.label}:</span>{' '}
+                    <span>{metric.value}</span>
+                    {metric.context ? <div className="ds-text-subtle">{metric.context}</div> : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="ds-stack-xs">
+            <h4 className="ds-text-muted">Antagelser</h4>
+            <ul className="ds-stack-xs">
+              {preview.assumptions.map((assumption, index) => (
+                <li key={`assumption-${index}`}>{assumption}</li>
+              ))}
+            </ul>
+          </div>
           <div className="ds-stack-xs">
             <h4 className="ds-text-muted">Advarsler</h4>
             {preview.warnings.length === 0 ? (

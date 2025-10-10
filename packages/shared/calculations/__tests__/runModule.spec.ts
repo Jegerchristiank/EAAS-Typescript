@@ -57,6 +57,12 @@ import { runS4 } from '../modules/runS4'
 import { runG1 } from '../modules/runG1'
 import { e1TargetsFixture } from './fixtures/e1Targets'
 import { e1NewModulesFixture } from './fixtures/e1NewModules'
+import {
+  createD1ApprovedFixture,
+  createD1RejectedFixture,
+  createMRApprovedFixture,
+  createMRRejectedFixture
+} from './fixtures/esrs2Governance'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -2812,121 +2818,31 @@ describe('runIRO', () => {
 })
 
 describe('runMR', () => {
-  const longNarrative = 'Detaljeret narrativ om metrics og mål '.repeat(5)
-
-  it('kombinerer narrativer, overgangsplaner, finansielle effekter og removals', () => {
-    const input: ModuleInput = {
-      MR: {
-        intensityNarrative: longNarrative,
-        targetNarrative: longNarrative,
-        dataQualityNarrative: longNarrative,
-        assuranceNarrative: longNarrative,
-        transitionPlanNarrative: longNarrative,
-        financialEffectNarrative: longNarrative,
-        keyNarratives: [
-          { title: 'Supplerende narrativ', content: 'Detaljeret status for klimatilpasning.' }
-        ],
-        metrics: [
-          {
-            name: 'Scope 1 intensitet',
-            unit: 'tCO₂e/mio. DKK',
-            baselineYear: 2022,
-            baselineValue: 12,
-            currentYear: 2023,
-            currentValue: 10,
-            targetYear: 2026,
-            targetValue: 7,
-            status: 'lagging',
-            owner: 'COO',
-            description: 'Reduktion via energioptimering.'
-          },
-          {
-            name: 'Vedvarende andel',
-            unit: '%',
-            baselineYear: null,
-            baselineValue: null,
-            currentYear: 2023,
-            currentValue: 55,
-            targetYear: 2025,
-            targetValue: 80,
-            status: 'onTrack',
-            owner: 'Energi Lead',
-            description: 'Forbedres via PPA og solceller.'
-          }
-        ],
-        financialEffects: [
-          {
-            label: 'Intern opex',
-            type: 'opex',
-            amountDkk: 400_000,
-            timeframe: '2024',
-            description: 'Energioptimering af produktionslinje.'
-          }
-        ]
-      },
-      E1Context: {
-        netRevenueDkk: null,
-        productionVolume: null,
-        productionUnit: null,
-        employeesFte: null,
-        totalEnergyConsumptionKwh: null,
-        energyProductionKwh: null,
-        renewableEnergyProductionKwh: null,
-        previousYearScope1Tonnes: null,
-        previousYearScope2Tonnes: null,
-        previousYearScope3Tonnes: null,
-        transitionPlanMeasures: [
-          {
-            initiative: 'Solcellepark',
-            description: '50 % af elforbrug dækkes af ny park.',
-            status: 'inProgress',
-            milestoneYear: 2025,
-            investmentNeedDkk: 8_000_000,
-            responsible: 'CTO'
-          },
-          {
-            initiative: 'Elektriske køretøjer',
-            description: 'Skifter 80 % af flåden til el.',
-            status: 'planned',
-            milestoneYear: 2027,
-            investmentNeedDkk: 5_500_000,
-            responsible: 'Fleet Manager'
-          }
-        ],
-        financialEffects: [
-          {
-            label: 'Capex solceller',
-            type: 'capex',
-            amountDkk: 8_000_000,
-            timeframe: '2024-2025',
-            description: 'Investering i solcellepark.'
-          }
-        ],
-        ghgRemovalProjects: [
-          {
-            projectName: 'Skovrejsning',
-            removalType: 'valueChain',
-            annualRemovalTonnes: 120,
-            storageDescription: 'Langsigtet binding i certificeret skov.',
-            qualityStandard: 'Verra',
-            permanenceYears: 40,
-            financedThroughCredits: false,
-            responsible: 'Sustainability Manager'
-          }
-        ]
-      }
-    }
+  it('klassificerer krav, overgangsplaner, finansielle effekter og removals', () => {
+    const input = createMRApprovedFixture()
 
     const result = runMR(input)
 
-    expect(result.value).toBe(100)
+    expect(result.value).toBe(8)
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.assumptions[0]).toBe('Evalueringen tester 8 krav fra ESRS 2 MR med binære resultater (opfyldt/ikke opfyldt).')
     expect(result.transitionMeasures).toHaveLength(2)
     expect(result.financialEffects).toHaveLength(2)
     expect(result.removalProjects).toHaveLength(1)
     expect(result.warnings).toEqual([])
+    expect(result.metrics).toHaveLength(8)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Intensiteter og udvikling er beskrevet', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'Finansielle effekter er dokumenteret', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'GHG-removal projekter er dokumenteret', value: 'Opfyldt' })
+      ])
+    )
     expect(result.trace).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^intensityNarrativeLength=\d+$/),
+        expect.stringMatching(/^requirement:intensityNarrative=pass$/),
+        expect.stringMatching(/^requirement:metrics=pass$/),
         'transitionPlan[0]=Solcellepark',
         'financialEffect[1]=Intern opex',
         'removalProject[0]=Skovrejsning'
@@ -2941,103 +2857,35 @@ describe('runMR', () => {
   })
 
   it('udsteder advarsler og nulscore når data mangler', () => {
-    const input: ModuleInput = {
-      MR: {
-        intensityNarrative: ' ',
-        targetNarrative: '',
-        dataQualityNarrative: '',
-        assuranceNarrative: '',
-        transitionPlanNarrative: '',
-        financialEffectNarrative: '',
-        keyNarratives: [
-          { title: 'Tom narrativ', content: '' }
-        ],
-        metrics: [
-          {
-            name: 'Scope 1 intensitet',
-            unit: null,
-            baselineYear: null,
-            baselineValue: null,
-            currentYear: null,
-            currentValue: null,
-            targetYear: null,
-            targetValue: null,
-            status: null,
-            owner: null,
-            description: null,
-          }
-        ],
-        financialEffects: [
-          {
-            label: 'Intern opex',
-            type: null,
-            amountDkk: null,
-            timeframe: null,
-            description: null,
-          }
-        ]
-      },
-      E1Context: {
-        netRevenueDkk: null,
-        productionVolume: null,
-        productionUnit: null,
-        employeesFte: null,
-        totalEnergyConsumptionKwh: null,
-        energyProductionKwh: null,
-        renewableEnergyProductionKwh: null,
-        previousYearScope1Tonnes: null,
-        previousYearScope2Tonnes: null,
-        previousYearScope3Tonnes: null,
-        transitionPlanMeasures: [
-          {
-            initiative: 'Grønnere transporter',
-            description: null,
-            status: null,
-            milestoneYear: null,
-            investmentNeedDkk: null,
-            responsible: null,
-          }
-        ],
-        financialEffects: [
-          {
-            label: 'Capex solceller',
-            type: 'capex',
-            amountDkk: null,
-            timeframe: null,
-            description: null,
-          }
-        ],
-        ghgRemovalProjects: [
-          {
-            projectName: 'Skovrejsning',
-            removalType: 'valueChain',
-            annualRemovalTonnes: null,
-            storageDescription: null,
-            qualityStandard: null,
-            permanenceYears: null,
-            financedThroughCredits: null,
-            responsible: null,
-          }
-        ]
-      }
-    }
+    const input = createMRRejectedFixture()
 
     const result = runMR(input)
 
     expect(result.value).toBe(0)
+    expect(result.unit).toBe('opfyldte krav')
     expect(result.warnings).toEqual(
       expect.arrayContaining([
         'Beskriv udviklingen i intensiteter for ESRS 2 MR.',
         'Forklar fremdrift på klimamål og væsentlige KPI’er.',
         'Dokumentér kvalitet og kontroller for nøgletal.',
         'Angiv scope for intern og ekstern assurance.',
-        'Beskriv hvordan overgangsplanen understøtter klimamål.',
-        'Opsummer finansielle konsekvenser af klimaindsatsen.',
+        'Uddyb registrerede overgangstiltag med status, milepæl eller investering.',
+        'Angiv beløb eller uddybelse for de registrerede finansielle effekter.',
+        'Tilføj mindst én klimarelateret metric med baseline og mål eller aktuel status.',
+        'Tilføj kvantificerede data for removal-projekterne.',
         'Tilføj aktuelle værdier eller mål for Scope 1 intensitet.',
         'Angiv beløb eller beskrivelse for Capex solceller.',
         'Angiv beløb eller beskrivelse for Intern opex.',
         'Uddyb overgangstiltag 1 med status eller milepæl.',
         'Tilføj kvantificerede data for removal-projekt 1.'
+      ])
+    )
+    expect(result.metrics).toHaveLength(8)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Intensiteter og udvikling er beskrevet', value: 'Mangler' }),
+        expect.objectContaining({ label: 'Klimametrics er dokumenteret', value: 'Mangler' }),
+        expect.objectContaining({ label: 'GHG-removal projekter er dokumenteret', value: 'Mangler' })
       ])
     )
     expect(result.transitionMeasures).toHaveLength(1)
@@ -3051,78 +2899,48 @@ describe('runD1', () => {
     const result = runD1({} as ModuleInput)
 
     expect(result.value).toBe(0)
-    expect(result.unit).toBe(factors.d1.unit)
-    expect(result.assumptions).toContain('Udfyld governance-felterne for at beregne en D1-score.')
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.assumptions).toContain('Udfyld D1-felterne for at validere governance-oplysningerne mod ESRS-krav.')
     expect(result.warnings).toHaveLength(0)
     expect(result.trace).toContain('organizationalBoundary=null')
+    expect(result.metrics).toBeUndefined()
   })
 
-  it('scorer governance-dimensionerne og fremhæver mangler', () => {
-    const input: ModuleInput = {
-      D1: {
-        organizationalBoundary: 'financialControl',
-        scope2Method: 'locationBased',
-        scope3ScreeningCompleted: false,
-        dataQuality: 'proxy',
-        materialityAssessmentDescription: 'Kort note om væsentlighed',
-        strategyDescription: null,
-        strategy: {
-          businessModelSummary: 'Kort beskrivelse',
-          sustainabilityIntegration: null,
-          resilienceDescription: null,
-          stakeholderEngagement: null
-        },
-        governance: {
-          oversight: 'Kort note',
-          managementRoles: null,
-          esgExpertise: null,
-          incentives: null,
-          policies: null,
-          hasEsgCommittee: false
-        },
-        impactsRisksOpportunities: {
-          processDescription: null,
-          prioritisationCriteria: null,
-          integrationIntoManagement: null,
-          mitigationActions: null,
-          valueChainCoverage: 'ownOperations',
-          timeHorizons: ['shortTerm']
-        },
-        targetsAndKpis: {
-          hasQuantitativeTargets: false,
-          governanceIntegration: null,
-          progressDescription: null,
-          kpis: [
-            {
-              name: 'CO₂-reduktion',
-              kpi: 'Ton CO₂e',
-              unit: 't',
-              baselineYear: 2020,
-              baselineValue: 100,
-              targetYear: 2030,
-              targetValue: 50,
-              comments: null
-            }
-          ]
-        }
-      }
-    }
+  it('klassificerer krav og fremhæver mangler', () => {
+    const input = createD1RejectedFixture()
 
     const result = runD1(input)
 
-    expect(result.assumptions[0]).toContain('Governance-scoren er gennemsnittet')
-    expect(result.value).toBeCloseTo(41.1, 1)
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.assumptions[0]).toBe('Evalueringen tester 7 krav fra ESRS 2 D1 (opfyldt/ikke opfyldt).')
+    expect(result.value).toBe(1)
     expect(result.warnings).toEqual(
       expect.arrayContaining([
-        'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.',
-        'Uddyb væsentlighedsvurderingen med centrale risici og muligheder.',
-        'Beskriv strategi, målsætninger og politikker for ESG-governance.',
-        'Markér screening som gennemført, når scope 3 kategorier er vurderet.',
-        'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.',
-        'Tilføj flere KPI’er for at dække alle væsentlige mål.'
+        'Proxy-data er svag dokumentation – planlæg overgang til primære eller sekundære kilder.',
+        'Markér at Scope 3 screeningen er gennemført.',
+        'Uddyb væsentlighedsvurderingen (mindst 200 tegn).',
+        'Beskriv strategi og politikker (mindst 200 tegn).',
+        'Uddyb bestyrelsens tilsyn, ledelsesroller, incitamenter og politikker.',
+        'Uddyb processen for identificering, prioritering og håndtering af impacts/risici/muligheder.',
+        'Bekræft kvantitative mål for væsentlige impacts og risici.',
+        'Uddyb governance-forankring og fremdrift for målene.'
       ])
     )
-    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=0.6')
+    expect(result.metrics).toHaveLength(7)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Metodegrundlag er dokumenteret', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'Scope 3 screening dækker værdikæden og tidshorisonter', value: 'Mangler' }),
+        expect.objectContaining({ label: 'Mål, opfølgning og KPI’er er dokumenteret', value: 'Mangler' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^requirement:methodology=pass$/),
+        expect.stringMatching(/^requirement:scope3Coverage=fail$/),
+        expect.stringMatching(/^requirement:targets=fail$/)
+      ])
+    )
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'D1OrganizationalBoundary', value: 'financialControl' }),
@@ -3144,87 +2962,27 @@ describe('runD1', () => {
     )
   })
 
-  it('giver fuld score ved best practice governance', () => {
-    const detailedText = 'Detaljeret beskrivelse af processer og kontroller. '.repeat(8)
-    const strategyText = 'Strategi og politikker for hele organisationen med klare mål. '.repeat(8)
-    const longNote = 'Lang beskrivelse af robust governance-setup og processer. '.repeat(8)
-    const input: ModuleInput = {
-      D1: {
-        organizationalBoundary: 'operationalControl',
-        scope2Method: 'marketBased',
-        scope3ScreeningCompleted: true,
-        dataQuality: 'primary',
-        materialityAssessmentDescription: detailedText,
-        strategyDescription: strategyText,
-        strategy: {
-          businessModelSummary: longNote,
-          sustainabilityIntegration: longNote,
-          resilienceDescription: longNote,
-          stakeholderEngagement: longNote
-        },
-        governance: {
-          oversight: longNote,
-          managementRoles: longNote,
-          esgExpertise: longNote,
-          incentives: longNote,
-          policies: longNote,
-          hasEsgCommittee: true
-        },
-        impactsRisksOpportunities: {
-          processDescription: longNote,
-          prioritisationCriteria: longNote,
-          integrationIntoManagement: longNote,
-          mitigationActions: longNote,
-          valueChainCoverage: 'fullValueChain',
-          timeHorizons: ['shortTerm', 'mediumTerm', 'longTerm']
-        },
-        targetsAndKpis: {
-          hasQuantitativeTargets: true,
-          governanceIntegration: longNote,
-          progressDescription: longNote,
-          kpis: [
-            {
-              name: 'CO₂-intensitet',
-              kpi: 'kg CO₂e/omsætning',
-              unit: 'kg/kr',
-              baselineYear: 2020,
-              baselineValue: 10,
-              targetYear: 2025,
-              targetValue: 5,
-              comments: 'Reduceret via energiprojekter'
-            },
-            {
-              name: 'Andel vedvarende energi',
-              kpi: 'Procent',
-              unit: '%',
-              baselineYear: 2020,
-              baselineValue: 30,
-              targetYear: 2027,
-              targetValue: 80,
-              comments: 'Indkøb af grøn strøm og PPAs'
-            },
-            {
-              name: 'Leverandør-audits',
-              kpi: 'Antal audits',
-              unit: 'antal',
-              baselineYear: 2021,
-              baselineValue: 20,
-              targetYear: 2026,
-              targetValue: 60,
-              comments: 'Udvidet auditprogram' 
-            }
-          ]
-        }
-      }
-    }
+  it('markerer alle krav som opfyldt ved best practice governance', () => {
+    const input = createD1ApprovedFixture()
 
     const result = runD1(input)
 
-    expect(result.value).toBe(100)
+    expect(result.value).toBe(7)
+    expect(result.unit).toBe('opfyldte krav')
     expect(result.warnings).toHaveLength(0)
-    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=1')
-    expect(result.trace).toContain('valueChainCoverageScore=1')
-    expect(result.trace).toContain('kpiCoverageScore=1')
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Metodegrundlag er dokumenteret', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'Mål, opfølgning og KPI’er er dokumenteret', value: 'Opfyldt' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^requirement:methodology=pass$/),
+        expect.stringMatching(/^requirement:scope3Coverage=pass$/),
+        expect.stringMatching(/^requirement:targets=pass$/)
+      ])
+    )
   })
 })
 
