@@ -87,6 +87,70 @@ const styles = StyleSheet.create({
   },
 })
 
+const impactTypeLabels = {
+  actual: 'Faktisk påvirkning',
+  potential: 'Potentiel påvirkning',
+} as const
+
+const severityLabels = {
+  minor: 'Begrænset alvor',
+  moderate: 'Middel alvor',
+  major: 'Væsentlig alvor',
+  severe: 'Kritisk alvor',
+} as const
+
+const likelihoodLabels = {
+  rare: 'Sjælden',
+  unlikely: 'Usandsynlig',
+  possible: 'Mulig',
+  likely: 'Sandsynlig',
+  veryLikely: 'Meget sandsynlig',
+} as const
+
+const valueChainLabels = {
+  ownOperations: 'Egne aktiviteter',
+  upstream: 'Upstream',
+  downstream: 'Downstream',
+} as const
+
+const remediationLabels = {
+  none: 'Ingen afhjælpning',
+  planned: 'Planlagt indsats',
+  inPlace: 'Afhjælpning implementeret',
+} as const
+
+const riskLabels = {
+  risk: 'Risiko',
+  opportunity: 'Mulighed',
+  both: 'Risiko & mulighed',
+} as const
+
+const timelineLabels = {
+  shortTerm: '0-12 mdr.',
+  mediumTerm: '1-3 år',
+  longTerm: '3+ år',
+  ongoing: 'Løbende',
+} as const
+
+const gapStatusLabels = {
+  aligned: 'Ingen gap',
+  partial: 'Delvist afdækket',
+  missing: 'Gap mangler',
+} as const
+
+const priorityBandLabels = {
+  priority: 'Høj prioritet',
+  attention: 'Observation',
+  monitor: 'Monitorering',
+} as const
+
+function formatLabel(value: string | null | undefined, labels: Record<string, string>): string {
+  if (!value) {
+    return 'Ukendt'
+  }
+  return labels[value] ?? value
+}
+
 type ModuleBlockProps = {
   entry: CalculatedModuleResult
 }
@@ -289,9 +353,9 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
 
 function DoubleMaterialitySection({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
   const { result } = entry
-  const summary = result.doubleMateriality
+  const materiality = result.doubleMateriality
 
-  if (!summary) {
+  if (!materiality) {
     return (
       <View style={styles.section} wrap={false}>
         <Text style={styles.sectionTitle}>Dobbelt væsentlighed</Text>
@@ -301,36 +365,110 @@ function DoubleMaterialitySection({ entry }: { entry: CalculatedModuleResult }):
       </View>
     )
   }
+  const { overview, prioritisationCriteria, tables, dueDiligence } = materiality
+  const gapAlerts = tables.gapAlerts
+  const topTopics = tables.topics
+  const impactMatrix = tables.impactMatrix
 
   return (
     <View style={styles.section} wrap={false}>
       <Text style={styles.sectionTitle}>Dobbelt væsentlighed</Text>
-      <Text style={styles.sectionDescription}>{summary.summary}</Text>
+      <Text style={styles.sectionDescription}>
+        Prioritets-score {overview.averageScore.toFixed(1)} · Prioriterede emner {overview.prioritisedTopics}/
+        {overview.totalTopics} · Gap-advarsler {overview.gapAlerts}
+      </Text>
 
-      {summary.gapAlerts.length > 0 && (
+      <View style={styles.list}>
+        <Text style={styles.label}>Overblik</Text>
+        <Text style={styles.listItem}>• Emner i alt: {overview.totalTopics}</Text>
+        <Text style={styles.listItem}>• Prioriterede emner: {overview.prioritisedTopics}</Text>
+        <Text style={styles.listItem}>• Observationer: {overview.attentionTopics}</Text>
+        <Text style={styles.listItem}>• Gap-advarsler: {overview.gapAlerts}</Text>
+      </View>
+
+      {prioritisationCriteria.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Prioriteringskriterier</Text>
+          {prioritisationCriteria.map((criterion, index) => (
+            <Text key={`${entry.moduleId}-criterion-${index}`} style={styles.listItem}>
+              • {criterion.title}: {criterion.description}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {topTopics.map((topic, index) => (
+        <View key={`${entry.moduleId}-topic-${index}`} style={styles.topicRow} wrap={false}>
+          <Text style={styles.topicHeader}>{topic.name}</Text>
+          <Text style={styles.inline}>
+            {priorityBandLabels[topic.priorityBand]} · Score {topic.combinedScore.toFixed(1)}
+          </Text>
+          <Text style={styles.inline}>
+            Impactmatrix: {formatLabel(topic.impactType, impactTypeLabels as Record<string, string>)} ·{' '}
+            {formatLabel(topic.severity, severityLabels as Record<string, string>)} ·{' '}
+            {formatLabel(topic.likelihood, likelihoodLabels as Record<string, string>)}
+          </Text>
+          <Text style={styles.inline}>
+            Impactscore {topic.impactScore.toFixed(1)} · Finansiel score{' '}
+            {topic.financialScore != null ? topic.financialScore.toFixed(1) : 'n/a'} · Tidslinje-score{' '}
+            {topic.timelineScore != null ? topic.timelineScore.toFixed(1) : 'n/a'}
+          </Text>
+          <Text style={styles.inline}>
+            Tidslinje {formatLabel(topic.timeline, timelineLabels as Record<string, string>)} · Værdikæde{' '}
+            {formatLabel(topic.valueChainSegment, valueChainLabels as Record<string, string>)} · Afhjælpning{' '}
+            {formatLabel(topic.remediationStatus, remediationLabels as Record<string, string>)} · Risiko{' '}
+            {formatLabel(topic.riskType, riskLabels as Record<string, string>)} · CSRD-gap{' '}
+            {formatLabel(topic.csrdGapStatus, gapStatusLabels as Record<string, string>)}
+          </Text>
+          {topic.description && <Text style={styles.inline}>Note: {topic.description}</Text>}
+        </View>
+      ))}
+
+      {impactMatrix.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Impact-matrix</Text>
+          {impactMatrix.map((row, index) => (
+            <Text key={`${entry.moduleId}-matrix-${index}`} style={styles.listItem}>
+              • {formatLabel(row.severity, severityLabels as Record<string, string>)} ×{' '}
+              {formatLabel(row.likelihood, likelihoodLabels as Record<string, string>)}: {row.topics}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {(dueDiligence.impactTypes.length > 0 ||
+        dueDiligence.valueChain.length > 0 ||
+        dueDiligence.remediation.length > 0) && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Due diligence reference</Text>
+          {dueDiligence.impactTypes.length > 0 && (
+            <Text style={styles.listItem}>
+              • Påvirkningstyper: {dueDiligence.impactTypes.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+            </Text>
+          )}
+          {dueDiligence.valueChain.length > 0 && (
+            <Text style={styles.listItem}>
+              • Værdikædeled: {dueDiligence.valueChain.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+            </Text>
+          )}
+          {dueDiligence.remediation.length > 0 && (
+            <Text style={styles.listItem}>
+              • Afhjælpning: {dueDiligence.remediation.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {gapAlerts.length > 0 && (
         <View style={styles.list}>
           <Text style={styles.label}>Gap-advarsler</Text>
-          {summary.gapAlerts.map((topic, index) => (
+          {gapAlerts.map((topic, index) => (
             <Text key={`${entry.moduleId}-gap-${index}`} style={styles.gapAlert}>
               • Manglende CSRD-gap for {topic}
             </Text>
           ))}
         </View>
       )}
-
-      {summary.topics.map((topic, index) => (
-        <View key={`${entry.moduleId}-topic-${index}`} style={styles.topicRow} wrap={false}>
-          <Text style={styles.topicHeader}>{topic.name}</Text>
-          <Text style={styles.inline}>
-            Impact: {topic.impactScore.toFixed(1)} · Finansiel: {topic.financialScore.toFixed(1)} · Kombineret:{' '}
-            {topic.combinedScore.toFixed(2)}
-          </Text>
-          <Text style={styles.inline}>
-            Risiko: {topic.riskType ?? 'ukendt'} · Tidslinje: {topic.timeline ?? 'ukendt'} · Ansvarlig:{' '}
-            {topic.responsible ?? 'n/a'} · CSRD-gap: {topic.csrdGapStatus ?? 'ukendt'}
-          </Text>
-        </View>
-      ))}
     </View>
   )
 }

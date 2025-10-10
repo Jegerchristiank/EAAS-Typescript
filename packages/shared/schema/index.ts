@@ -16,6 +16,11 @@ const d1ValueChainCoverageOptions = [
   'fullValueChain'
 ] as const
 export const materialityRiskOptions = ['risk', 'opportunity', 'both'] as const
+export const materialityImpactTypeOptions = ['actual', 'potential'] as const
+export const materialitySeverityOptions = ['minor', 'moderate', 'major', 'severe'] as const
+export const materialityLikelihoodOptions = ['rare', 'unlikely', 'possible', 'likely', 'veryLikely'] as const
+export const materialityValueChainStageOptions = ['ownOperations', 'upstream', 'downstream'] as const
+export const materialityRemediationStatusOptions = ['none', 'planned', 'inPlace'] as const
 export const materialityTimelineOptions = ['shortTerm', 'mediumTerm', 'longTerm', 'ongoing'] as const
 export const materialityGapStatusOptions = ['aligned', 'partial', 'missing'] as const
 export const e1EnergyMixOptions = ['electricity', 'districtHeat', 'steam', 'cooling', 'biogas', 'diesel', 'other'] as const
@@ -494,11 +499,16 @@ const d2MaterialTopicSchema = z
     title: z.string().trim().min(1).max(120),
     description: z.string().max(500).nullable(),
     riskType: z.enum(materialityRiskOptions).nullable(),
+    impactType: z.enum(materialityImpactTypeOptions).nullable(),
+    severity: z.enum(materialitySeverityOptions).nullable(),
+    likelihood: z.enum(materialityLikelihoodOptions).nullable(),
     impactScore: z.number().min(0).max(5).nullable(),
     financialScore: z.number().min(0).max(5).nullable(),
     timeline: z.enum(materialityTimelineOptions).nullable(),
+    valueChainSegment: z.enum(materialityValueChainStageOptions).nullable(),
     responsible: z.string().max(120).nullable(),
-    csrdGapStatus: z.enum(materialityGapStatusOptions).nullable()
+    csrdGapStatus: z.enum(materialityGapStatusOptions).nullable(),
+    remediationStatus: z.enum(materialityRemediationStatusOptions).nullable()
   })
   .strict()
 

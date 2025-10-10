@@ -578,7 +578,12 @@ describe('runD2', () => {
             title: 'Klimarisiko i forsyningskæden',
             description: 'Leverandører i højrisikoområder',
             riskType: 'risk',
-            impactScore: 5,
+            impactType: 'actual',
+            severity: 'severe',
+            likelihood: 'likely',
+            valueChainSegment: 'upstream',
+            remediationStatus: 'planned',
+            impactScore: null,
             financialScore: 4,
             timeline: 'shortTerm',
             responsible: 'CFO',
@@ -588,7 +593,12 @@ describe('runD2', () => {
             title: 'Cirkulære services',
             description: 'Nye take-back modeller',
             riskType: 'opportunity',
-            impactScore: 3,
+            impactType: 'potential',
+            severity: 'major',
+            likelihood: 'possible',
+            valueChainSegment: 'downstream',
+            remediationStatus: 'none',
+            impactScore: null,
             financialScore: 2,
             timeline: 'longTerm',
             responsible: null,
@@ -598,6 +608,11 @@ describe('runD2', () => {
             title: 'Datastyring',
             description: 'Mangler moden data governance',
             riskType: 'risk',
+            impactType: 'actual',
+            severity: null,
+            likelihood: null,
+            valueChainSegment: 'ownOperations',
+            remediationStatus: 'inPlace',
             impactScore: null,
             financialScore: null,
             timeline: null,
@@ -610,16 +625,17 @@ describe('runD2', () => {
 
     const result = runD2(input)
 
-    expect(result.value).toBeCloseTo(72, 1)
+    expect(result.value).toBeCloseTo(67.2, 1)
     expect(result.unit).toBe(factors.d2.unit)
     expect(result.assumptions.some((entry) => entry.includes('Top prioriterede emner'))).toBe(true)
     expect(result.trace).toContain('inputTopics=3')
     expect(result.trace).toContain('validTopics=2')
+    expect(result.trace.some((entry) => entry.includes('averageCompositeScore'))).toBe(true)
     expect(result.warnings.some((warning) => warning.includes('Prioriteret emne: Klimarisiko'))).toBe(true)
     expect(result.warnings.some((warning) => warning.includes('CSRD-gap mangler for Klimarisiko'))).toBe(true)
     expect(
       result.warnings.some((warning) =>
-        warning.includes('"Datastyring" mangler både impact- og finansiel score')
+        warning.includes('"Datastyring" mangler registreret alvor/omfang')
       )
     ).toBe(true)
     expect(result.esrsFacts).toEqual(
@@ -633,10 +649,42 @@ describe('runD2', () => {
         expect.objectContaining({
           conceptKey: 'D2MaterialTopicsTable',
           rows: expect.arrayContaining([
-            expect.objectContaining({ name: 'Klimarisiko i forsyningskæden', combinedScore: expect.any(Number) })
+            expect.objectContaining({
+              name: 'Klimarisiko i forsyningskæden',
+              impactType: 'actual',
+              severity: 'severe',
+              likelihood: 'likely',
+              priorityBand: 'priority'
+            })
           ])
         })
       ])
+    )
+
+    expect(result.doubleMateriality).toEqual(
+      expect.objectContaining({
+        overview: expect.objectContaining({
+          totalTopics: 2,
+          prioritisedTopics: 1,
+          attentionTopics: 1,
+          gapAlerts: 1,
+          averageScore: expect.any(Number)
+        }),
+        tables: expect.objectContaining({
+          topics: expect.arrayContaining([
+            expect.objectContaining({ name: 'Klimarisiko i forsyningskæden', priorityBand: 'priority' })
+          ]),
+          impactMatrix: expect.arrayContaining([
+            expect.objectContaining({ severity: 'severe', likelihood: 'likely', topics: expect.any(Number) })
+          ]),
+          gapAlerts: expect.arrayContaining(['Klimarisiko i forsyningskæden'])
+        }),
+        dueDiligence: expect.objectContaining({
+          impactTypes: expect.arrayContaining([
+            expect.objectContaining({ key: 'actual', topics: expect.any(Number) })
+          ])
+        })
+      })
     )
   })
 

@@ -336,16 +336,42 @@ export const factors = {
   },
   d2: {
     unit: 'prioritets-score (0-100)',
-    maxScore: 5,
+    maxScore: 100,
     resultPrecision: 1,
-    impactWeight: 0.6,
-    financialWeight: 0.4,
-    priorityThreshold: 4,
-    attentionThreshold: 3,
+    priorityThreshold: 70,
+    attentionThreshold: 50,
     summaryLimit: 3,
     gapWarningStatuses: ['missing'] as ReadonlyArray<'aligned' | 'partial' | 'missing'>,
     timelineWarningForPriority: true,
-    responsibleWarningForPriority: true
+    responsibleWarningForPriority: true,
+    severityWeights: {
+      minor: 1,
+      moderate: 3,
+      major: 4,
+      severe: 5
+    } as const,
+    likelihoodWeights: {
+      rare: 1,
+      unlikely: 2,
+      possible: 3,
+      likely: 4,
+      veryLikely: 5
+    } as const,
+    impactTypeModifiers: {
+      actual: 1,
+      potential: 0.85
+    } as const,
+    remediationModifiers: {
+      none: 1,
+      planned: 0.9,
+      inPlace: 0.75
+    } as const,
+    timelineWeights: {
+      shortTerm: 1,
+      mediumTerm: 0.85,
+      longTerm: 0.7,
+      ongoing: 0.9
+    } as const
   },
   s1: {
     unit: 'social score',
