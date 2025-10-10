@@ -10,6 +10,8 @@ import type {
   E1TargetStatus,
   E1TargetsInput,
   ModuleActionItem,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
   ModuleInput,
   ModuleResult,
   ModuleTargetSummary,
@@ -50,6 +52,103 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
   trace.push(`targets.atRisk=${atRiskCount}`)
   trace.push(`actions.count=${sanitisedActions.length}`)
 
+  const narratives = [
+    ...sanitisedTargets
+      .map((target) => {
+        if (!target.description) {
+          return null
+        }
+        return {
+          label: target.name,
+          content: target.description,
+        }
+      })
+      .filter((entry): entry is { label: string; content: string } => entry !== null),
+    ...sanitisedActions
+      .map((action) => {
+        if (!action.description) {
+          return null
+        }
+        return {
+          label: action.title ?? 'Handling',
+          content: action.description,
+        }
+      })
+      .filter((entry): entry is { label: string; content: string } => entry !== null),
+  ]
+
+  const responsibilities = [
+    ...sanitisedTargets
+      .map((target) => {
+        if (!target.owner) {
+          return null
+        }
+        return {
+          subject: target.name,
+          owner: target.owner,
+          role: `Mål (${target.scope})`,
+        }
+      })
+      .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null),
+    ...sanitisedActions
+      .map((action) => {
+        if (!action.owner) {
+          return null
+        }
+        return {
+          subject: action.title ?? 'Handling',
+          owner: action.owner,
+          role: 'Klimahandling',
+        }
+      })
+      .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null),
+  ]
+
+  const notes = [
+    ...sanitisedTargets.map((target) => ({
+      label: `${target.name} (${target.scope})`,
+      detail: `Baseline ${target.baselineYear ?? 'n/a'}: ${target.baselineValueTonnes ?? 'n/a'} t · Mål ${
+        target.targetYear ?? 'n/a'
+      }: ${target.targetValueTonnes ?? 'n/a'} t · Status: ${target.status ?? 'ukendt'}`,
+    })),
+    ...sanitisedActions.map((action, index) => ({
+      label: action.title ?? `Handling ${index + 1}`,
+      detail: `Deadline: ${action.dueQuarter ?? 'ukendt'} · Status: ${action.status ?? 'ukendt'}`,
+    })),
+  ]
+
+  const esrsFacts: ModuleEsrsFact[] = [
+    { conceptKey: 'E1TargetsPresent', value: sanitisedTargets.length > 0 },
+  ]
+
+  const targetNarrativeLines = [
+    ...sanitisedTargets.map((target) => describeTarget(target)).filter((line): line is string => line !== null),
+    ...sanitisedActions.map((action) => describeAction(action)).filter((line): line is string => line !== null),
+  ]
+  if (targetNarrativeLines.length > 0) {
+    esrsFacts.push({ conceptKey: 'E1TargetsNarrative', value: targetNarrativeLines.join('\n') })
+  }
+
+  const esrsTables: ModuleEsrsTable[] = sanitisedTargets.length
+    ? [
+        {
+          conceptKey: 'E1TargetsTable',
+          rows: sanitisedTargets.map((target) => ({
+            scope: target.scope,
+            name: target.name,
+            targetYear: target.targetYear ?? null,
+            targetValueTonnes: target.targetValueTonnes ?? null,
+            baselineYear: target.baselineYear ?? null,
+            baselineValueTonnes: target.baselineValueTonnes ?? null,
+            owner: target.owner ?? null,
+            status: target.status ?? null,
+            description: target.description ?? null,
+            milestones: formatMilestoneSummary(target.milestones),
+          })),
+        },
+      ]
+    : []
+
   return {
     value,
     unit: 'mål',
@@ -58,69 +157,81 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
     warnings,
     targetsOverview: sanitisedTargets,
     plannedActions: sanitisedActions,
-    narratives: [
-      ...sanitisedTargets
-        .map((target) => {
-          if (!target.description) {
-            return null
-          }
-          return {
-            label: target.name,
-            content: target.description,
-          }
-        })
-        .filter((entry): entry is { label: string; content: string } => entry !== null),
-      ...sanitisedActions
-        .map((action) => {
-          if (!action.description) {
-            return null
-          }
-          return {
-            label: action.title ?? 'Handling',
-            content: action.description,
-          }
-        })
-        .filter((entry): entry is { label: string; content: string } => entry !== null),
-    ],
-    responsibilities: [
-      ...sanitisedTargets
-        .map((target) => {
-          if (!target.owner) {
-            return null
-          }
-          return {
-            subject: target.name,
-            owner: target.owner,
-            role: `Mål (${target.scope})`,
-          }
-        })
-        .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null),
-      ...sanitisedActions
-        .map((action) => {
-          if (!action.owner) {
-            return null
-          }
-          return {
-            subject: action.title ?? 'Handling',
-            owner: action.owner,
-            role: 'Klimahandling',
-          }
-        })
-        .filter((entry): entry is { subject: string; owner: string; role: string } => entry !== null),
-    ],
-    notes: [
-      ...sanitisedTargets.map((target) => ({
-        label: `${target.name} (${target.scope})`,
-        detail: `Baseline ${target.baselineYear ?? 'n/a'}: ${target.baselineValueTonnes ?? 'n/a'} t · Mål ${
-          target.targetYear ?? 'n/a'
-        }: ${target.targetValueTonnes ?? 'n/a'} t · Status: ${target.status ?? 'ukendt'}`,
-      })),
-      ...sanitisedActions.map((action, index) => ({
-        label: action.title ?? `Handling ${index + 1}`,
-        detail: `Deadline: ${action.dueQuarter ?? 'ukendt'} · Status: ${action.status ?? 'ukendt'}`,
-      })),
-    ],
+    narratives,
+    responsibilities,
+    notes,
+    ...(esrsFacts.length ? { esrsFacts } : {}),
+    ...(esrsTables.length ? { esrsTables } : {}),
   }
+}
+
+function describeTarget(target: ModuleTargetSummary): string | null {
+  const segments: string[] = []
+  segments.push(`${target.name} (${target.scope})`)
+
+  if (target.targetValueTonnes != null && target.targetYear != null) {
+    segments.push(`mål ${target.targetValueTonnes} t i ${target.targetYear}`)
+  }
+  if (target.baselineValueTonnes != null && target.baselineYear != null) {
+    segments.push(`baseline ${target.baselineValueTonnes} t i ${target.baselineYear}`)
+  }
+  if (target.status) {
+    segments.push(`status: ${target.status}`)
+  }
+  if (target.description) {
+    segments.push(target.description)
+  }
+
+  const line = segments.join(' – ').trim()
+  return line.length > 0 ? line : null
+}
+
+function describeAction(action: ModuleActionItem): string | null {
+  const segments: string[] = []
+  const title = action.title ?? 'Handling'
+  segments.push(title)
+
+  if (action.status) {
+    segments.push(`status: ${action.status}`)
+  }
+  if (action.dueQuarter) {
+    segments.push(`deadline ${action.dueQuarter}`)
+  }
+  if (action.description) {
+    segments.push(action.description)
+  }
+
+  const line = segments.join(' – ').trim()
+  return line.length > 0 ? line : null
+}
+
+function formatMilestoneSummary(milestones: ModuleTargetSummary['milestones']): string | null {
+  if (!Array.isArray(milestones) || milestones.length === 0) {
+    return null
+  }
+
+  const parts = milestones
+    .map((milestone) => {
+      const label = milestone.label?.trim() ?? ''
+      const year = milestone.dueYear != null ? String(milestone.dueYear) : ''
+
+      if (!label && !year) {
+        return null
+      }
+
+      if (label && year) {
+        return `${label} (${year})`
+      }
+
+      return label || year
+    })
+    .filter((value): value is string => value != null && value.trim().length > 0)
+
+  if (parts.length === 0) {
+    return null
+  }
+
+  return parts.join('; ')
 }
 
 function normaliseTarget(

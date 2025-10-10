@@ -1877,6 +1877,22 @@ describe('runE1Targets', () => {
     expect(result.plannedActions?.length).toBe(2)
     expect(result.trace).toEqual(expect.arrayContaining(['targets.onTrack=1', 'targets.lagging=1']))
     expect(result.warnings).toEqual([])
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1TargetsPresent', value: true }),
+        expect.objectContaining({ conceptKey: 'E1TargetsNarrative', value: expect.stringContaining('Scope 1 reduktion') }),
+      ]),
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'E1TargetsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ scope: 'scope1', targetYear: 2027, status: 'lagging' }),
+          ]),
+        }),
+      ]),
+    )
   })
 })
 

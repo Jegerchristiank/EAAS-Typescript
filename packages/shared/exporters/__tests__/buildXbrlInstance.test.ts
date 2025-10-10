@@ -41,6 +41,28 @@ describe('buildXbrlInstance', () => {
       makeResult('A1', { value: 1200, unit: 't CO2e' }),
       makeResult('C1', { value: 87.5, unit: 't CO2e' }),
       makeResult('S1', { value: 42, unit: 'social score' }),
+      makeResult('E1Targets', {
+        esrsFacts: [
+          { conceptKey: 'E1TargetsPresent', value: true },
+          {
+            conceptKey: 'E1TargetsNarrative',
+            value: 'Scope 1 target – mål 45 t i 2027',
+          },
+        ],
+        esrsTables: [
+          {
+            conceptKey: 'E1TargetsTable',
+            rows: [
+              {
+                scope: 'scope1',
+                name: 'Scope 1 target',
+                targetYear: 2027,
+                targetValueTonnes: 45,
+              },
+            ],
+          },
+        ],
+      }),
     ]
 
     const instance = buildXbrlInstance(results, baseOptions)
@@ -57,20 +79,23 @@ describe('buildXbrlInstance', () => {
     expect(units.length).toBeGreaterThanOrEqual(1)
 
     const csrdPackage = buildCsrdReportPackage(results, baseOptions)
-    expect(csrdPackage.facts).toHaveLength(esrsEmissionConceptList.length)
+    expect(csrdPackage.facts.length).toBeGreaterThanOrEqual(esrsEmissionConceptList.length)
+
+    const emissionConceptQnames = new Set(esrsEmissionConceptList.map(({ definition }) => definition.qname))
 
     for (const fact of csrdPackage.facts) {
-      expect(fact.contextRef).toBe('ctx_reporting_period')
-      expect(fact.decimals).toBe('3')
-
       const factNode = xbrl[fact.concept]
       expect(factNode).toBeDefined()
       const nodes = ensureArray(factNode)
       const firstNode = nodes[0]
-      expect(firstNode['@_contextRef']).toBe('ctx_reporting_period')
-      expect(firstNode['@_decimals']).toBe('3')
-      const numericValue = Number.parseFloat(String(firstNode['#text']))
-      expect(Number.isNaN(numericValue)).toBe(false)
+      expect(firstNode['@_contextRef']).toMatch(/^ctx_reporting_period/)
+
+      if (emissionConceptQnames.has(fact.concept)) {
+        expect(fact.decimals).toBe('3')
+        expect(firstNode['@_decimals']).toBe('3')
+        const numericValue = Number.parseFloat(String(firstNode['#text']))
+        expect(Number.isNaN(numericValue)).toBe(false)
+      }
     }
 
     expect(csrdPackage.instance).toBe(instance)
@@ -81,6 +106,26 @@ describe('buildXbrlInstance', () => {
 
     const scope3Fact = ensureArray(xbrl['esrs:GrossScope3GreenhouseGasEmissions'])
     expect(String(scope3Fact[0]['#text'])).toBe('87.5')
+
+    const targetsFlag = ensureArray(
+      xbrl[
+        'esrs:GHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunities'
+      ],
+    )
+    expect(String(targetsFlag[0]['#text'])).toBe('true')
+    expect(targetsFlag[0]['@_contextRef']).toBe('ctx_reporting_period')
+
+    const targetsNarrative = ensureArray(
+      xbrl[
+        'esrs:DisclosureOfHowGHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunitiesExplanatory'
+      ],
+    )
+    expect(String(targetsNarrative[0]['#text'])).toContain('Scope 1 target')
+
+    const targetsTable = ensureArray(
+      xbrl['esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'],
+    )
+    expect(String(targetsTable[0]['#text'])).toContain('"scope":"scope1"')
   })
 
   it('generates instant contexts for stock metrics', () => {
