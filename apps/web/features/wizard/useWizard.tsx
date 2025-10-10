@@ -209,6 +209,7 @@ export function useWizard(): WizardHook {
   const persistTimerRef = useRef<number | null>(null)
   const lastMetadataRef = useRef<PersistMetadata | null>(null)
   const hasPendingSyncRef = useRef(false)
+  const persistSequenceRef = useRef(0)
 
   useEffect(() => {
     storageRef.current = session.storage
@@ -220,20 +221,32 @@ export function useWizard(): WizardHook {
 
   const syncWithServer = useCallback(
     async (metadata: PersistMetadata) => {
+      const requestId = persistSequenceRef.current + 1
+      persistSequenceRef.current = requestId
+      const persistedStorage = storageRef.current
       try {
-        const snapshot = await persistWizardStorage(storageRef.current, metadata)
-        setSession({
-          storage: snapshot.storage,
+        const snapshot = await persistWizardStorage(persistedStorage, metadata)
+        if (requestId !== persistSequenceRef.current) {
+          return
+        }
+        const storageChangedSinceRequest = storageRef.current !== persistedStorage
+        setSession((prev) => ({
+          ...prev,
+          storage: storageChangedSinceRequest ? prev.storage : snapshot.storage,
           permissions: snapshot.permissions,
           user: snapshot.user,
           auditLog: snapshot.auditLog,
-        })
-        storageRef.current = snapshot.storage
+        }))
+        if (!storageChangedSinceRequest) {
+          storageRef.current = snapshot.storage
+          hasPendingSyncRef.current = false
+        }
         userRef.current = snapshot.user
-        hasPendingSyncRef.current = false
       } catch (error) {
         console.error('Kunne ikke gemme wizard-data', error)
-        hasPendingSyncRef.current = false
+        if (requestId === persistSequenceRef.current) {
+          hasPendingSyncRef.current = false
+        }
       }
     },
     [],
