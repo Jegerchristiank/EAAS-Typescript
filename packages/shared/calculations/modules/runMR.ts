@@ -1,5 +1,5 @@
 /**
- * Modul til ESRS 2 MR – metrics og targets.
+ * ESRS 2 MR – qualitative validation of metrics and targets.
  */
 import type {
   ModuleInput,
@@ -10,53 +10,72 @@ import type {
   ModuleNote,
   ModuleTransitionMeasure,
   ModuleFinancialEffect,
-  ModuleRemovalProject,
+  ModuleRemovalProject
 } from '../../types'
 
-const MINIMUM_DETAIL_LENGTH = 100
+const MINIMUM_DETAIL_LENGTH = 200
 
 const ASSUMPTIONS = [
-  'ESRS 2 MR opsamler nøgletal, finansielle effekter og overgangstiltag relateret til klimamål.',
-  'Scoren beregnes ud fra udfyldte narrativer, metrics og tilknyttede planer.',
-]
+  'Evalueringen tester 8 krav fra ESRS 2 MR med binære resultater (opfyldt/ikke opfyldt).',
+  `Narrativer skal være på mindst ${MINIMUM_DETAIL_LENGTH} tegn for at tælle som dokumenteret.`,
+  'Mindst én klimarelateret metric skal have baseline og mål eller aktuel status.',
+  'Overgangstiltag, finansielle effekter og removals kan dokumenteres via narrativ eller strukturerede felter.'
+] as const
+
+type RequirementResult = {
+  id: string
+  label: string
+  passes: boolean
+  detail: string
+}
+
+type RequirementOptions = {
+  id: string
+  label: string
+  passes: boolean
+  successDetail: string
+  failureDetail: string
+  warnings?: string[]
+}
+
+type CollectionResult<T> = {
+  items: T[]
+  total: number
+  detailed: number
+}
 
 type NarrativeField = {
-  key: keyof MrInput
+  id: string
+  key: 'intensityNarrative' | 'targetNarrative' | 'dataQualityNarrative' | 'assuranceNarrative'
   label: string
-  warning: string
+  missingMessage: string
 }
 
 const narrativeFields: NarrativeField[] = [
   {
+    id: 'intensityNarrative',
     key: 'intensityNarrative',
     label: 'Intensiteter og udvikling',
-    warning: 'Beskriv udviklingen i intensiteter for ESRS 2 MR.',
+    missingMessage: 'Beskriv udviklingen i intensiteter for ESRS 2 MR.'
   },
   {
+    id: 'targetNarrative',
     key: 'targetNarrative',
     label: 'Mål og status',
-    warning: 'Forklar fremdrift på klimamål og væsentlige KPI’er.',
+    missingMessage: 'Forklar fremdrift på klimamål og væsentlige KPI’er.'
   },
   {
+    id: 'dataQualityNarrative',
     key: 'dataQualityNarrative',
     label: 'Datakvalitet',
-    warning: 'Dokumentér kvalitet og kontroller for nøgletal.',
+    missingMessage: 'Dokumentér kvalitet og kontroller for nøgletal.'
   },
   {
+    id: 'assuranceNarrative',
     key: 'assuranceNarrative',
     label: 'Assurance',
-    warning: 'Angiv scope for intern og ekstern assurance.',
-  },
-  {
-    key: 'transitionPlanNarrative',
-    label: 'Overgangsplan',
-    warning: 'Beskriv hvordan overgangsplanen understøtter klimamål.',
-  },
-  {
-    key: 'financialEffectNarrative',
-    label: 'Finansielle effekter',
-    warning: 'Opsummer finansielle konsekvenser af klimaindsatsen.',
-  },
+    missingMessage: 'Angiv scope for intern og ekstern assurance.'
+  }
 ]
 
 export function runMR(input: ModuleInput): ModuleResult {
@@ -68,28 +87,52 @@ export function runMR(input: ModuleInput): ModuleResult {
   const narratives: ModuleNarrative[] = []
   const notes: ModuleNote[] = []
 
-  let totalElements = 0
-  let completedCount = 0
+  const requirements: RequirementResult[] = []
+  const addRequirement = ({ id, label, passes, successDetail, failureDetail, warnings: extraWarnings = [] }: RequirementOptions) => {
+    requirements.push({ id, label, passes, detail: passes ? successDetail : failureDetail })
+    trace.push(`requirement:${id}=${passes ? 'pass' : 'fail'}`)
+    if (!passes) {
+      warnings.push(failureDetail)
+    }
+    if (extraWarnings.length > 0) {
+      warnings.push(...extraWarnings)
+    }
+  }
 
-  narrativeFields.forEach(({ key, label, warning }) => {
-    totalElements += 1
+  narrativeFields.forEach(({ id, key, label, missingMessage }) => {
     const value = normaliseText(mrRaw?.[key])
-    trace.push(`${String(key)}Length=${value?.length ?? 0}`)
+    trace.push(`${key}Length=${value?.length ?? 0}`)
 
-    if (!value) {
-      warnings.push(warning)
-      return
+    if (value) {
+      narratives.push({ label, content: value })
     }
 
-    narratives.push({ label, content: value })
-    completedCount += 1
+    const passes = value != null && value.length >= MINIMUM_DETAIL_LENGTH
+    const failureDetail = value == null ? missingMessage : `Uddyb "${label}" (mindst ${MINIMUM_DETAIL_LENGTH} tegn).`
+    const successDetail = passes ? `Narrativet er udfyldt med ${value.length} tegn.` : ''
 
-    if (value.length < MINIMUM_DETAIL_LENGTH) {
-      warnings.push(`Uddyb beskrivelsen af "${label}" for at gøre rede for ESRS 2 MR.`)
-    }
+    addRequirement({
+      id,
+      label: `${label} er beskrevet`,
+      passes,
+      successDetail,
+      failureDetail
+    })
   })
 
-  const extraNarratives = Array.isArray(mrRaw?.keyNarratives) ? mrRaw?.keyNarratives : []
+  const transitionNarrative = normaliseText(mrRaw?.transitionPlanNarrative)
+  trace.push(`transitionPlanNarrativeLength=${transitionNarrative?.length ?? 0}`)
+  if (transitionNarrative) {
+    narratives.push({ label: 'Overgangsplan', content: transitionNarrative })
+  }
+
+  const financialNarrative = normaliseText(mrRaw?.financialEffectNarrative)
+  trace.push(`financialEffectNarrativeLength=${financialNarrative?.length ?? 0}`)
+  if (financialNarrative) {
+    narratives.push({ label: 'Finansielle effekter', content: financialNarrative })
+  }
+
+  const extraNarratives = Array.isArray(mrRaw?.keyNarratives) ? mrRaw.keyNarratives : []
   extraNarratives.forEach((entry, index) => {
     const title = normaliseText(entry?.title) ?? `Narrativ ${index + 1}`
     const content = normaliseText(entry?.content)
@@ -98,11 +141,69 @@ export function runMR(input: ModuleInput): ModuleResult {
       return
     }
     narratives.push({ label: title, content })
-    totalElements += 1
-    completedCount += 1
   })
 
-  const metrics = Array.isArray(mrRaw?.metrics) ? mrRaw?.metrics : []
+  const transitionMeasuresResult = combineTransitionMeasures(mrRaw, context, trace, warnings)
+  const financialEffectsResult = combineFinancialEffects(mrRaw, context, trace, warnings)
+  const removalProjectsResult = collectRemovalProjects(context, trace, warnings)
+
+  const transitionPass =
+    (transitionNarrative != null && transitionNarrative.length >= MINIMUM_DETAIL_LENGTH) ||
+    transitionMeasuresResult.detailed > 0
+  const transitionFailureDetail = (() => {
+    if (transitionNarrative != null && transitionNarrative.length < MINIMUM_DETAIL_LENGTH && transitionMeasuresResult.total === 0) {
+      return `Uddyb overgangsplanen (mindst ${MINIMUM_DETAIL_LENGTH} tegn) eller registrer konkrete tiltag.`
+    }
+    if (transitionMeasuresResult.total > 0 && transitionMeasuresResult.detailed === 0) {
+      return 'Uddyb registrerede overgangstiltag med status, milepæl eller investering.'
+    }
+    return 'Beskriv overgangsplanen eller registrer konkrete tiltag.'
+  })()
+
+  const transitionSuccessDetail = transitionMeasuresResult.detailed > 0
+    ? `${transitionMeasuresResult.detailed} overgangstiltag er dokumenteret med status eller milepæle.`
+    : transitionNarrative != null
+      ? `Narrativet om overgangsplanen er udfyldt med ${transitionNarrative.length} tegn.`
+      : ''
+
+  addRequirement({
+    id: 'transitionPlan',
+    label: 'Overgangsplanen er dokumenteret',
+    passes: transitionPass,
+    successDetail: transitionSuccessDetail,
+    failureDetail: transitionFailureDetail
+  })
+
+  const financialPass =
+    (financialNarrative != null && financialNarrative.length >= MINIMUM_DETAIL_LENGTH) ||
+    financialEffectsResult.detailed > 0
+  const financialFailureDetail = (() => {
+    if (financialNarrative != null && financialNarrative.length < MINIMUM_DETAIL_LENGTH && financialEffectsResult.total === 0) {
+      return `Uddyb finansielle effekter (mindst ${MINIMUM_DETAIL_LENGTH} tegn) eller registrer beløb/beskrivelser.`
+    }
+    if (financialEffectsResult.total > 0 && financialEffectsResult.detailed === 0) {
+      return 'Angiv beløb eller uddybelse for de registrerede finansielle effekter.'
+    }
+    return 'Beskriv finansielle effekter eller registrer konkrete beløb.'
+  })()
+
+  const financialSuccessDetail = financialEffectsResult.detailed > 0
+    ? `${financialEffectsResult.detailed} finansielle effekter har beløb eller detaljer.`
+    : financialNarrative != null
+      ? `Narrativet om finansielle effekter er udfyldt med ${financialNarrative.length} tegn.`
+      : ''
+
+  addRequirement({
+    id: 'financialEffects',
+    label: 'Finansielle effekter er dokumenteret',
+    passes: financialPass,
+    successDetail: financialSuccessDetail,
+    failureDetail: financialFailureDetail
+  })
+
+  const metrics = Array.isArray(mrRaw?.metrics) ? mrRaw.metrics : []
+  let metricsWithData = 0
+
   metrics.forEach((metric, index) => {
     const name = normaliseText(metric?.name) ?? `Metric ${index + 1}`
     const unit = normaliseText(metric?.unit)
@@ -132,12 +233,16 @@ export function runMR(input: ModuleInput): ModuleResult {
       return
     }
 
-    totalElements += 1
     trace.push(`metric[${index}]=${name}`)
 
-    const hasData = currentValue != null || targetValue != null || description != null
+    const hasData =
+      (baselineYear != null && baselineValue != null) ||
+      (currentYear != null && currentValue != null) ||
+      (targetYear != null && targetValue != null) ||
+      description != null
+
     if (hasData) {
-      completedCount += 1
+      metricsWithData += 1
     } else {
       warnings.push(`Tilføj aktuelle værdier eller mål for ${name}.`)
     }
@@ -149,10 +254,10 @@ export function runMR(input: ModuleInput): ModuleResult {
         currentYear != null ? `Seneste ${currentYear}: ${currentValue ?? 'ukendt'} ${unit ?? ''}`.trim() : null,
         targetYear != null ? `Mål ${targetYear}: ${targetValue ?? 'ukendt'} ${unit ?? ''}`.trim() : null,
         status ? `Status: ${status}` : null,
-        description,
+        description
       ]
         .filter(Boolean)
-        .join(' · '),
+        .join(' · ')
     })
 
     if (owner) {
@@ -160,40 +265,48 @@ export function runMR(input: ModuleInput): ModuleResult {
     }
   })
 
-  const transitionMeasures = combineTransitionMeasures(mrRaw, context, trace, warnings, (hasDetail) => {
-    totalElements += 1
-    if (hasDetail) {
-      completedCount += 1
-    }
+  const metricsPass = metricsWithData > 0
+  addRequirement({
+    id: 'metrics',
+    label: 'Klimametrics er dokumenteret',
+    passes: metricsPass,
+    successDetail: `${metricsWithData} metrics har baseline, status eller mål.`,
+    failureDetail: 'Tilføj mindst én klimarelateret metric med baseline og mål eller aktuel status.'
   })
 
-  const financialEffects = combineFinancialEffects(mrRaw, context, trace, warnings, (hasDetail) => {
-    totalElements += 1
-    if (hasDetail) {
-      completedCount += 1
-    }
+  const removalPass =
+    removalProjectsResult.total === 0 || removalProjectsResult.detailed === removalProjectsResult.total
+  const removalSuccessDetail = removalProjectsResult.total === 0
+    ? 'Ingen removal-projekter registreret i ESRS E1 Context.'
+    : 'Alle removal-projekter er kvantificeret.'
+  const removalFailureDetail = 'Tilføj kvantificerede data for removal-projekterne.'
+
+  addRequirement({
+    id: 'removalProjects',
+    label: 'GHG-removal projekter er dokumenteret',
+    passes: removalPass,
+    successDetail: removalSuccessDetail,
+    failureDetail: removalFailureDetail
   })
 
-  const removalProjects = sanitiseRemovalProjects(context, trace, warnings, (hasDetail) => {
-    totalElements += 1
-    if (hasDetail) {
-      completedCount += 1
-    }
-  })
-
-  const score = totalElements > 0 ? Math.round((completedCount / totalElements) * 100) : 0
+  const passedCount = requirements.filter((requirement) => requirement.passes).length
 
   return {
-    value: score,
-    unit: 'score',
-    assumptions: ASSUMPTIONS,
+    value: passedCount,
+    unit: 'opfyldte krav',
+    assumptions: Array.from(ASSUMPTIONS),
     trace,
     warnings,
     narratives,
     notes,
-    transitionMeasures,
-    financialEffects,
-    removalProjects,
+    transitionMeasures: transitionMeasuresResult.items,
+    financialEffects: financialEffectsResult.items,
+    removalProjects: removalProjectsResult.items,
+    metrics: requirements.map((requirement) => ({
+      label: requirement.label,
+      value: requirement.passes ? 'Opfyldt' : 'Mangler',
+      context: requirement.detail
+    }))
   }
 }
 
@@ -201,12 +314,13 @@ function combineTransitionMeasures(
   input: MrInput | null,
   context: E1ContextInput | null,
   trace: string[],
-  warnings: string[],
-  onItem: (hasDetail: boolean) => void,
-): ModuleTransitionMeasure[] {
+  warnings: string[]
+): CollectionResult<ModuleTransitionMeasure> {
   const collected: ModuleTransitionMeasure[] = []
+  let total = 0
+  let detailed = 0
 
-  const contextMeasures = Array.isArray(context?.transitionPlanMeasures) ? context!.transitionPlanMeasures : []
+  const contextMeasures = Array.isArray(context?.transitionPlanMeasures) ? context.transitionPlanMeasures : []
   contextMeasures.forEach((measure, index) => {
     const initiative = normaliseText(measure?.initiative)
     const description = normaliseText(measure?.description)
@@ -219,11 +333,12 @@ function combineTransitionMeasures(
       return
     }
 
+    total += 1
     trace.push(`transitionPlan[${index}]=${initiative ?? 'ukendt'}`)
     const hasDetail = description != null || status != null || milestoneYear != null || investmentNeed != null
-    onItem(hasDetail)
-
-    if (!hasDetail) {
+    if (hasDetail) {
+      detailed += 1
+    } else {
       warnings.push(`Uddyb overgangstiltag ${index + 1} med status eller milepæl.`)
     }
 
@@ -233,7 +348,7 @@ function combineTransitionMeasures(
       status,
       milestoneYear,
       investmentNeedDkk: investmentNeed,
-      responsible,
+      responsible
     })
   })
 
@@ -241,20 +356,22 @@ function combineTransitionMeasures(
     warnings.push('Overvej at registrere konkrete overgangstiltag under overgangsplanen.')
   }
 
-  return collected
+  return { items: collected, total, detailed }
 }
 
 function combineFinancialEffects(
   input: MrInput | null,
   context: E1ContextInput | null,
   trace: string[],
-  warnings: string[],
-  onItem: (hasDetail: boolean) => void,
-): ModuleFinancialEffect[] {
+  warnings: string[]
+): CollectionResult<ModuleFinancialEffect> {
   const collected: ModuleFinancialEffect[] = []
+  let total = 0
+  let detailed = 0
+
   const sources = [
-    ...(Array.isArray(context?.financialEffects) ? context!.financialEffects : []),
-    ...(Array.isArray(input?.financialEffects) ? input!.financialEffects : []),
+    ...(Array.isArray(context?.financialEffects) ? context.financialEffects : []),
+    ...(Array.isArray(input?.financialEffects) ? input.financialEffects : [])
   ]
 
   sources.forEach((effect, index) => {
@@ -268,72 +385,77 @@ function combineFinancialEffects(
       return
     }
 
+    total += 1
     trace.push(`financialEffect[${index}]=${label}`)
     const hasDetail = amount != null || description != null
-    onItem(hasDetail)
-
-    if (!hasDetail) {
+    if (hasDetail) {
+      detailed += 1
+    } else {
       warnings.push(`Angiv beløb eller beskrivelse for ${label}.`)
     }
 
     collected.push({ label, type, amountDkk: amount, timeframe, description })
   })
 
-  return collected
+  return { items: collected, total, detailed }
 }
 
-function sanitiseRemovalProjects(
+function collectRemovalProjects(
   context: E1ContextInput | null,
   trace: string[],
-  warnings: string[],
-  onItem: (hasDetail: boolean) => void,
-): ModuleRemovalProject[] {
-  const projects = Array.isArray(context?.ghgRemovalProjects) ? context!.ghgRemovalProjects : []
-  return projects
-    .map((project, index) => {
-      const rawName = normaliseText(project?.projectName)
-      const projectName = rawName ?? `Removal projekt ${index + 1}`
-      const removalType = normaliseRemovalType(project?.removalType)
-      const annualRemovalTonnes = normaliseNumber(project?.annualRemovalTonnes)
-      const storageDescription = normaliseText(project?.storageDescription)
-      const qualityStandard = normaliseText(project?.qualityStandard)
-      const permanenceYears = normaliseNumber(project?.permanenceYears)
-      const financedThroughCredits = normaliseBoolean(project?.financedThroughCredits)
-      const responsible = normaliseText(project?.responsible)
+  warnings: string[]
+): CollectionResult<ModuleRemovalProject> {
+  const projects = Array.isArray(context?.ghgRemovalProjects) ? context.ghgRemovalProjects : []
+  const items: ModuleRemovalProject[] = []
+  let total = 0
+  let detailed = 0
 
-      if (
-        !rawName &&
-        removalType == null &&
-        annualRemovalTonnes == null &&
-        !storageDescription &&
-        !qualityStandard &&
-        permanenceYears == null &&
-        financedThroughCredits == null &&
-        !responsible
-      ) {
-        return null
-      }
+  projects.forEach((project, index) => {
+    const rawName = normaliseText(project?.projectName)
+    const projectName = rawName ?? `Removal projekt ${index + 1}`
+    const removalType = normaliseRemovalType(project?.removalType)
+    const annualRemovalTonnes = normaliseNumber(project?.annualRemovalTonnes)
+    const storageDescription = normaliseText(project?.storageDescription)
+    const qualityStandard = normaliseText(project?.qualityStandard)
+    const permanenceYears = normaliseNumber(project?.permanenceYears)
+    const financedThroughCredits = normaliseBoolean(project?.financedThroughCredits)
+    const responsible = normaliseText(project?.responsible)
 
-      trace.push(`removalProject[${index}]=${projectName}`)
-      const hasDetail = annualRemovalTonnes != null || storageDescription != null || qualityStandard != null
-      onItem(hasDetail)
+    if (
+      !rawName &&
+      removalType == null &&
+      annualRemovalTonnes == null &&
+      !storageDescription &&
+      !qualityStandard &&
+      permanenceYears == null &&
+      financedThroughCredits == null &&
+      !responsible
+    ) {
+      return
+    }
 
-      if (!hasDetail) {
-        warnings.push(`Tilføj kvantificerede data for removal-projekt ${index + 1}.`)
-      }
+    total += 1
+    trace.push(`removalProject[${index}]=${projectName}`)
+    const hasDetail = annualRemovalTonnes != null || storageDescription != null || qualityStandard != null
+    if (hasDetail) {
+      detailed += 1
+    } else {
+      warnings.push(`Tilføj kvantificerede data for removal-projekt ${index + 1}.`)
+    }
 
-      return {
-        projectName,
-        removalType,
-        annualRemovalTonnes,
-        storageDescription,
-        qualityStandard,
-        permanenceYears,
-        financedThroughCredits,
-        responsible,
-      } as ModuleRemovalProject
+    items.push({
+      projectName,
+      removalType,
+      annualRemovalTonnes,
+      storageDescription,
+      qualityStandard,
+      permanenceYears,
+      financedThroughCredits,
+      responsible
     })
-    .filter((entry): entry is ModuleRemovalProject => entry !== null)
+  })
+
+  return { items, total, detailed }
 }
 
 function normaliseText(value: unknown): string | null {

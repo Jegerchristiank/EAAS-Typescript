@@ -379,6 +379,7 @@ export function D1Step({ state, onChange }: WizardStepProps): JSX.Element {
   const preview = useMemo<ModuleResult>(() => {
     return runD1(createPreviewInput(current))
   }, [current])
+  const totalRequirements = preview.metrics?.length ?? 0
 
   const handleSelectChange = (field: SelectFieldKey) => (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value === '' ? null : (event.target.value as D1Input[SelectFieldKey])
@@ -1051,10 +1052,24 @@ export function D1Step({ state, onChange }: WizardStepProps): JSX.Element {
           padding: '1.25rem'
         }}
       >
-        <h3 style={{ margin: 0 }}>Governance-score</h3>
-        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600 }}>
-          {preview.value} {preview.unit}
+        <h3 style={{ margin: 0 }}>ESRS 2 D1 kravvurdering</h3>
+        <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>
+          Opfyldte krav: {preview.value} / {totalRequirements}
         </p>
+        {preview.metrics && preview.metrics.length > 0 && (
+          <div>
+            <strong>Kravstatus</strong>
+            <ul style={{ margin: 0, paddingLeft: '1.25rem', display: 'grid', gap: '0.5rem' }}>
+              {preview.metrics.map((metric, index) => (
+                <li key={`metric-${index}`}>
+                  <span style={{ fontWeight: 600 }}>{metric.label}:</span>{' '}
+                  <span>{metric.value}</span>
+                  {metric.context ? <span style={{ display: 'block', color: '#4a5c58' }}>{metric.context}</span> : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div>
           <strong>Antagelser</strong>
           <ul>
@@ -1063,16 +1078,18 @@ export function D1Step({ state, onChange }: WizardStepProps): JSX.Element {
             ))}
           </ul>
         </div>
-        {preview.warnings.length > 0 && (
-          <div>
-            <strong>Forslag til opfølgning</strong>
+        <div>
+          <strong>Forslag til opfølgning</strong>
+          {preview.warnings.length === 0 ? (
+            <p style={{ margin: 0 }}>Ingen advarsler registreret.</p>
+          ) : (
             <ul>
               {preview.warnings.map((warning, index) => (
                 <li key={`warning-${index}`}>{warning}</li>
               ))}
             </ul>
-          </div>
-        )}
+          )}
+        </div>
         <details>
           <summary>Teknisk trace</summary>
           <ul>
