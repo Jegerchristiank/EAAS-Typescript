@@ -70,6 +70,43 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
 
   const preview = useMemo<ModuleResult>(() => runS4({ S4: current } as ModuleInput), [current])
 
+  const rootErrors = useMemo(() => {
+    const errors: Partial<Record<NumericField, string>> = {}
+    const percentFields: Array<{ key: Extract<NumericField, `${string}Percent`>; label: string }> = [
+      { key: 'productsAssessedPercent', label: 'Risikovurderede produkter' },
+      { key: 'complaintsResolvedPercent', label: 'Klager løst' },
+    ]
+    for (const { key, label } of percentFields) {
+      const value = current[key]
+      if (value != null && (value < 0 || value > 100)) {
+        errors[key] = `${label} skal være mellem 0 og 100%.`
+      }
+    }
+    const countFields: Array<{ key: Extract<NumericField, `${string}Count` | `${string}Days`>; label: string }> = [
+      { key: 'dataBreachesCount', label: 'Datasikkerhedsbrud' },
+      { key: 'severeIncidentsCount', label: 'Alvorlige hændelser' },
+      { key: 'recallsCount', label: 'Tilbagekaldelser' },
+      { key: 'escalationTimeframeDays', label: 'Eskaleringsfrist' },
+    ]
+    for (const { key, label } of countFields) {
+      const value = current[key]
+      if (value != null && value < 0) {
+        errors[key] = `${label} kan ikke være negativt.`
+      }
+    }
+    return errors
+  }, [current])
+
+  const issueErrors = useMemo(() => {
+    return issues.map((issue) => {
+      const errors: { usersAffected?: string } = {}
+      if (issue.usersAffected != null && issue.usersAffected < 0) {
+        errors.usersAffected = 'Antal berørte skal være 0 eller højere.'
+      }
+      return errors
+    })
+  }, [issues])
+
   const updateRoot = (partial: Partial<S4Input>) => {
     onChange('S4', { ...current, ...partial })
   }
@@ -185,7 +222,17 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="65"
+              data-invalid={rootErrors.productsAssessedPercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.productsAssessedPercent)}
+              aria-describedby={
+                rootErrors.productsAssessedPercent ? 's4-productsAssessedPercent-error' : undefined
+              }
             />
+            {rootErrors.productsAssessedPercent && (
+              <p id="s4-productsAssessedPercent-error" className="ds-error">
+                {rootErrors.productsAssessedPercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Klager løst inden for SLA (%)</span>
@@ -197,7 +244,17 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="80"
+              data-invalid={rootErrors.complaintsResolvedPercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.complaintsResolvedPercent)}
+              aria-describedby={
+                rootErrors.complaintsResolvedPercent ? 's4-complaintsResolvedPercent-error' : undefined
+              }
             />
+            {rootErrors.complaintsResolvedPercent && (
+              <p id="s4-complaintsResolvedPercent-error" className="ds-error">
+                {rootErrors.complaintsResolvedPercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Datasikkerhedsbrud</span>
@@ -208,7 +265,15 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="0"
+              data-invalid={rootErrors.dataBreachesCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.dataBreachesCount)}
+              aria-describedby={rootErrors.dataBreachesCount ? 's4-dataBreachesCount-error' : undefined}
             />
+            {rootErrors.dataBreachesCount && (
+              <p id="s4-dataBreachesCount-error" className="ds-error">
+                {rootErrors.dataBreachesCount}
+              </p>
+            )}
           </label>
         </div>
 
@@ -222,7 +287,17 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="1"
+              data-invalid={rootErrors.severeIncidentsCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.severeIncidentsCount)}
+              aria-describedby={
+                rootErrors.severeIncidentsCount ? 's4-severeIncidentsCount-error' : undefined
+              }
             />
+            {rootErrors.severeIncidentsCount && (
+              <p id="s4-severeIncidentsCount-error" className="ds-error">
+                {rootErrors.severeIncidentsCount}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Produkt-/service-recalls</span>
@@ -233,7 +308,15 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="0"
+              data-invalid={rootErrors.recallsCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.recallsCount)}
+              aria-describedby={rootErrors.recallsCount ? 's4-recallsCount-error' : undefined}
             />
+            {rootErrors.recallsCount && (
+              <p id="s4-recallsCount-error" className="ds-error">
+                {rootErrors.recallsCount}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Escalationstid (dage)</span>
@@ -244,7 +327,17 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="14"
+              data-invalid={rootErrors.escalationTimeframeDays ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.escalationTimeframeDays)}
+              aria-describedby={
+                rootErrors.escalationTimeframeDays ? 's4-escalationTimeframeDays-error' : undefined
+              }
             />
+            {rootErrors.escalationTimeframeDays && (
+              <p id="s4-escalationTimeframeDays-error" className="ds-error">
+                {rootErrors.escalationTimeframeDays}
+              </p>
+            )}
           </label>
         </div>
 
@@ -338,7 +431,17 @@ export function S4Step({ state, onChange }: WizardStepProps): JSX.Element {
                       className="ds-input"
                       min={0}
                       placeholder="150"
+                      data-invalid={issueErrors[index]?.usersAffected ? 'true' : 'false'}
+                      aria-invalid={Boolean(issueErrors[index]?.usersAffected)}
+                      aria-describedby={
+                        issueErrors[index]?.usersAffected ? `s4-issue-${index}-users-error` : undefined
+                      }
                     />
+                    {issueErrors[index]?.usersAffected && (
+                      <p id={`s4-issue-${index}-users-error`} className="ds-error">
+                        {issueErrors[index]?.usersAffected}
+                      </p>
+                    )}
                   </label>
                   <label className="ds-field">
                     <span>Alvorlighed</span>

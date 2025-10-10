@@ -600,6 +600,7 @@ export const s1InputSchema = z
     reportingYear: z.number().min(1900).max(2100).nullable(),
     totalHeadcount: z.number().min(0).nullable(),
     dataCoveragePercent: z.number().min(0).max(100).nullable(),
+    averageWeeklyHours: z.number().min(0).max(80).nullable(),
     headcountBreakdown: z.array(s1HeadcountLineSchema).max(20).optional(),
     workforceNarrative: z.string().max(2000).nullable()
   })

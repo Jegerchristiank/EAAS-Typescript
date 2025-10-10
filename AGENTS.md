@@ -62,6 +62,8 @@ _Seneste læringer:_
 - 2024-XX-XX: Husk altid at inkludere meta-instruktion ovenfor og udvide denne log med ny viden fra prompts eller reviewer-kommentarer.
 - 2025-XX-XX: CSRD/XBRL-eksporten kræver separate `duration`- og `instant`-kontekster når taksonomien markerer lager-tal (fx S1 headcount). Sørg for at testsne dækker begge konteksttyper efter ændringer i ESRS-mapningen.
 - 2025-02-14: TypeScript kører med `exactOptionalPropertyTypes`; undgå at sætte `undefined` på optionelle felter, eller udvid deres typer eksplicit når eksportere/taksonomiobjekter skal håndtere manglende `unitId`/`decimals` værdier.
+- 2025-03-10: Next.js dev-server skal startes med `pnpm --filter @org/web dev --hostname 0.0.0.0 --port 3000` – ekstra `--` før flagene tolkes som stiargument og fejler.
+- 2025-10-10: React-PDF `View`-stile kan ikke modtage `null` i array-sammensætning; brug conditionelle spreads eller dedikerede stilklasser til specialtilfælde som sidste række uden border for at undgå TypeScript-fejl.
 
 ## Sidst men ikke mindst
 - Dokumentér større ændringer i `CHANGELOG.md` og opdater `README`/`docs` ved behov.

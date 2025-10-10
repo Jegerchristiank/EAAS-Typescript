@@ -5,7 +5,10 @@ import type {
   ModuleEsrsFact,
   ModuleEsrsTable,
   ModuleInput,
+  ModuleMetric,
+  ModuleNarrative,
   ModuleResult,
+  ModuleTable,
   S2Input
 } from '../../types'
 import { factors } from '../factors'
@@ -130,12 +133,86 @@ export function runS2(input: ModuleInput): ModuleResult {
           }
         ]
 
+  const metrics: ModuleMetric[] = []
+  if (valueChainWorkers != null) {
+    metrics.push({ label: 'Arbejdstagere i værdikæden', value: valueChainWorkers, unit: 'personer' })
+  }
+  if (workersAtRisk != null) {
+    metrics.push({ label: 'Arbejdstagere i risikogrupper', value: workersAtRisk, unit: 'personer' })
+  }
+  if (valueChainCoveragePercent != null) {
+    metrics.push({ label: 'Screening af værdikæden', value: valueChainCoveragePercent, unit: '%' })
+  }
+  if (highRiskSupplierPercent != null) {
+    metrics.push({ label: 'Højrisikoleverandører', value: highRiskSupplierPercent, unit: '%' })
+  }
+  if (livingWagePercent != null) {
+    metrics.push({ label: 'Dækning af leve-/mindsteløn', value: livingWagePercent, unit: '%' })
+  }
+  if (bargainingPercent != null) {
+    metrics.push({ label: 'Kollektive aftaler', value: bargainingPercent, unit: '%' })
+  }
+  if (socialAuditPercent != null) {
+    metrics.push({ label: 'Gennemførte sociale audits', value: socialAuditPercent, unit: '%' })
+  }
+  if (grievancesOpen != null) {
+    metrics.push({ label: 'Åbne klager', value: grievancesOpen, unit: 'sager' })
+  }
+  if (incidents.length > 0) {
+    metrics.push({ label: 'Registrerede hændelser', value: incidents.length, unit: 'sager' })
+    metrics.push({ label: 'Berørte arbejdstagere', value: totalWorkersAffected, unit: 'personer' })
+  }
+
+  const tables: ModuleTable[] = []
+  if (incidents.length > 0) {
+    tables.push({
+      id: 's2-incident-list',
+      title: 'Hændelser i værdikæden',
+      summary: 'Registrerede hændelser fordelt på leverandører, type og status.',
+      columns: [
+        { key: 'supplier', label: 'Leverandør' },
+        { key: 'country', label: 'Land' },
+        { key: 'issueType', label: 'Issue-type' },
+        { key: 'workersAffected', label: 'Berørte', align: 'end', format: 'number' },
+        { key: 'severityLevel', label: 'Alvorlighed' },
+        { key: 'remediationStatus', label: 'Status' },
+        { key: 'description', label: 'Beskrivelse' }
+      ],
+      rows: incidents.map((incident) => ({
+        supplier: incident.supplier,
+        country: incident.country,
+        issueType: incident.issueType,
+        workersAffected: incident.workersAffected,
+        severityLevel: incident.severityLevel,
+        remediationStatus: incident.remediationStatus,
+        description: incident.description
+      }))
+    })
+  }
+
+  const narratives: ModuleNarrative[] = []
+  if (raw?.socialDialogueNarrative && raw.socialDialogueNarrative.trim().length > 0) {
+    narratives.push({
+      label: 'Social dialog og træning',
+      content: raw.socialDialogueNarrative.trim()
+    })
+  }
+  if (raw?.remediationNarrative && raw.remediationNarrative.trim().length > 0) {
+    narratives.push({
+      label: 'Afhjælpning og kompensation',
+      content: raw.remediationNarrative.trim()
+    })
+  }
+
   return {
     value,
     unit: s2.unit,
     assumptions,
     trace,
     warnings,
+    ...(metrics.length > 0 ? { metrics } : {}),
+    ...(narratives.length > 0 ? { narratives } : {}),
+    ...(tables.length > 0 ? { tables } : {}),
     ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
     ...(esrsTables ? { esrsTables } : {})
   }

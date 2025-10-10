@@ -74,6 +74,43 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
 
   const preview = useMemo<ModuleResult>(() => runS2({ S2: current } as ModuleInput), [current])
 
+  const rootErrors = useMemo(() => {
+    const errors: Partial<Record<NumericField, string>> = {}
+    if (current.valueChainWorkersCount != null && current.valueChainWorkersCount < 0) {
+      errors.valueChainWorkersCount = 'Antal arbejdstagere kan ikke være negativt.'
+    }
+    if (current.workersAtRiskCount != null && current.workersAtRiskCount < 0) {
+      errors.workersAtRiskCount = 'Angiv 0 eller derover.'
+    }
+    const percentFields: Array<{ key: Extract<NumericField, `${string}Percent`>; label: string }> = [
+      { key: 'valueChainCoveragePercent', label: 'Screening af værdikæden' },
+      { key: 'highRiskSupplierSharePercent', label: 'Højrisikoleverandører' },
+      { key: 'livingWageCoveragePercent', label: 'Leve-/mindsteløn' },
+      { key: 'collectiveBargainingCoveragePercent', label: 'Kollektive aftaler' },
+      { key: 'socialAuditsCompletedPercent', label: 'Sociale audits' },
+    ]
+    for (const { key, label } of percentFields) {
+      const value = current[key]
+      if (value != null && (value < 0 || value > 100)) {
+        errors[key] = `${label} skal være mellem 0 og 100%.`
+      }
+    }
+    if (current.grievancesOpenCount != null && current.grievancesOpenCount < 0) {
+      errors.grievancesOpenCount = 'Åbne klager kan ikke være negative.'
+    }
+    return errors
+  }, [current])
+
+  const incidentErrors = useMemo(() => {
+    return incidents.map((incident) => {
+      const errors: { workersAffected?: string } = {}
+      if (incident.workersAffected != null && incident.workersAffected < 0) {
+        errors.workersAffected = 'Antal berørte skal være 0 eller højere.'
+      }
+      return errors
+    })
+  }, [incidents])
+
   const updateRoot = (partial: Partial<S2Input>) => {
     onChange('S2', { ...current, ...partial })
   }
@@ -188,7 +225,17 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="2500"
+              data-invalid={rootErrors.valueChainWorkersCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.valueChainWorkersCount)}
+              aria-describedby={
+                rootErrors.valueChainWorkersCount ? 's2-valueChainWorkersCount-error' : undefined
+              }
             />
+            {rootErrors.valueChainWorkersCount && (
+              <p id="s2-valueChainWorkersCount-error" className="ds-error">
+                {rootErrors.valueChainWorkersCount}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Særligt udsatte arbejdstagere</span>
@@ -199,7 +246,15 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="120"
+              data-invalid={rootErrors.workersAtRiskCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.workersAtRiskCount)}
+              aria-describedby={rootErrors.workersAtRiskCount ? 's2-workersAtRiskCount-error' : undefined}
             />
+            {rootErrors.workersAtRiskCount && (
+              <p id="s2-workersAtRiskCount-error" className="ds-error">
+                {rootErrors.workersAtRiskCount}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Risikodækning (%)</span>
@@ -211,7 +266,17 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="75"
+              data-invalid={rootErrors.valueChainCoveragePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.valueChainCoveragePercent)}
+              aria-describedby={
+                rootErrors.valueChainCoveragePercent ? 's2-valueChainCoveragePercent-error' : undefined
+              }
             />
+            {rootErrors.valueChainCoveragePercent && (
+              <p id="s2-valueChainCoveragePercent-error" className="ds-error">
+                {rootErrors.valueChainCoveragePercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Højrisiko-leverandører (%)</span>
@@ -223,7 +288,17 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="18"
+              data-invalid={rootErrors.highRiskSupplierSharePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.highRiskSupplierSharePercent)}
+              aria-describedby={
+                rootErrors.highRiskSupplierSharePercent ? 's2-highRiskSupplierSharePercent-error' : undefined
+              }
             />
+            {rootErrors.highRiskSupplierSharePercent && (
+              <p id="s2-highRiskSupplierSharePercent-error" className="ds-error">
+                {rootErrors.highRiskSupplierSharePercent}
+              </p>
+            )}
           </label>
         </div>
 
@@ -238,7 +313,17 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="82"
+              data-invalid={rootErrors.livingWageCoveragePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.livingWageCoveragePercent)}
+              aria-describedby={
+                rootErrors.livingWageCoveragePercent ? 's2-livingWageCoveragePercent-error' : undefined
+              }
             />
+            {rootErrors.livingWageCoveragePercent && (
+              <p id="s2-livingWageCoveragePercent-error" className="ds-error">
+                {rootErrors.livingWageCoveragePercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Kollektive aftaler (%)</span>
@@ -250,7 +335,19 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="55"
+              data-invalid={rootErrors.collectiveBargainingCoveragePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.collectiveBargainingCoveragePercent)}
+              aria-describedby={
+                rootErrors.collectiveBargainingCoveragePercent
+                  ? 's2-collectiveBargainingCoveragePercent-error'
+                  : undefined
+              }
             />
+            {rootErrors.collectiveBargainingCoveragePercent && (
+              <p id="s2-collectiveBargainingCoveragePercent-error" className="ds-error">
+                {rootErrors.collectiveBargainingCoveragePercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Sociale audits gennemført (%)</span>
@@ -262,7 +359,17 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="90"
+              data-invalid={rootErrors.socialAuditsCompletedPercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.socialAuditsCompletedPercent)}
+              aria-describedby={
+                rootErrors.socialAuditsCompletedPercent ? 's2-socialAuditsCompletedPercent-error' : undefined
+              }
             />
+            {rootErrors.socialAuditsCompletedPercent && (
+              <p id="s2-socialAuditsCompletedPercent-error" className="ds-error">
+                {rootErrors.socialAuditsCompletedPercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Åbne klager</span>
@@ -273,7 +380,15 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="2"
+              data-invalid={rootErrors.grievancesOpenCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.grievancesOpenCount)}
+              aria-describedby={rootErrors.grievancesOpenCount ? 's2-grievancesOpenCount-error' : undefined}
             />
+            {rootErrors.grievancesOpenCount && (
+              <p id="s2-grievancesOpenCount-error" className="ds-error">
+                {rootErrors.grievancesOpenCount}
+              </p>
+            )}
           </label>
         </div>
 
@@ -367,7 +482,17 @@ export function S2Step({ state, onChange }: WizardStepProps): JSX.Element {
                       className="ds-input"
                       min={0}
                       placeholder="45"
+                      data-invalid={incidentErrors[index]?.workersAffected ? 'true' : 'false'}
+                      aria-invalid={Boolean(incidentErrors[index]?.workersAffected)}
+                      aria-describedby={
+                        incidentErrors[index]?.workersAffected ? `s2-incident-${index}-workers-error` : undefined
+                      }
                     />
+                    {incidentErrors[index]?.workersAffected && (
+                      <p id={`s2-incident-${index}-workers-error`} className="ds-error">
+                        {incidentErrors[index]?.workersAffected}
+                      </p>
+                    )}
                   </label>
                   <label className="ds-field">
                     <span>Alvorlighed</span>

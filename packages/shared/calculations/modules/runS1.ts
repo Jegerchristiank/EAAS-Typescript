@@ -5,7 +5,9 @@ import type {
   ModuleEsrsFact,
   ModuleEsrsTable,
   ModuleInput,
+  ModuleMetric,
   ModuleResult,
+  ModuleTable,
   S1Input
 } from '../../types'
 import { factors } from '../factors'
@@ -32,6 +34,7 @@ export function runS1(input: ModuleInput): ModuleResult {
 
   const totalHeadcount = resolveNumber(raw?.totalHeadcount)
   const coveragePercent = clampPercent(raw?.dataCoveragePercent)
+  const averageWeeklyHours = clampHours(raw?.averageWeeklyHours)
 
   if (totalHeadcount == null || totalHeadcount <= 0) {
     warnings.push('Total headcount mangler. Udfyld samlet medarbejdertal for at forbedre scoringen.')
@@ -64,6 +67,14 @@ export function runS1(input: ModuleInput): ModuleResult {
   const averageFemalePercent = computeAverage(
     breakdown.map((row) => (row.femalePercent == null ? null : clampPercent(row.femalePercent)))
   )
+
+  const totalSegmentHeadcount = breakdown.reduce((sum, row) => sum + row.headcount, 0)
+  const totalFemaleHeadcount = breakdown.reduce((sum, row) => {
+    if (row.femalePercent == null) {
+      return sum
+    }
+    return sum + Number(((row.femalePercent / 100) * row.headcount).toFixed(1))
+  }, 0)
 
   if (labourRightsCoverage != null) {
     trace.push(`avgLabourRightsCoverage=${labourRightsCoverage}`)
@@ -125,12 +136,88 @@ export function runS1(input: ModuleInput): ModuleResult {
           }
         ]
 
+  const metrics: ModuleMetric[] = []
+  if (totalHeadcount != null) {
+    metrics.push({ label: 'Total headcount', value: totalHeadcount, unit: 'personer' })
+  }
+  if (totalSegmentHeadcount > 0 && (totalHeadcount == null || Math.abs(totalHeadcount - totalSegmentHeadcount) > 1)) {
+    metrics.push({
+      label: 'Headcount i segmenter',
+      value: totalSegmentHeadcount,
+      unit: 'personer',
+      context: 'Sum af registrerede segmenter'
+    })
+  }
+  if (averageFemalePercent != null) {
+    metrics.push({ label: 'Gennemsnitlig andel kvinder', value: averageFemalePercent, unit: '%' })
+  }
+  if (totalFemaleHeadcount > 0) {
+    metrics.push({
+      label: 'Estimeret antal kvinder',
+      value: Number(totalFemaleHeadcount.toFixed(0)),
+      unit: 'personer',
+      context: 'Beregnet ud fra segmentfordeling'
+    })
+  }
+  if (labourRightsCoverage != null) {
+    metrics.push({
+      label: 'Dækning af kollektive aftaler',
+      value: labourRightsCoverage,
+      unit: '%'
+    })
+  }
+  if (coveragePercent != null) {
+    metrics.push({ label: 'Datadækning', value: coveragePercent, unit: '%' })
+  }
+  if (averageWeeklyHours != null) {
+    metrics.push({ label: 'Gns. ugentlige arbejdstimer', value: averageWeeklyHours, unit: 'timer' })
+  }
+
+  const tables: ModuleTable[] = []
+  if (breakdown.length > 0) {
+    tables.push({
+      id: 's1-headcount-breakdown',
+      title: 'Headcount pr. segment',
+      summary: 'Segmenteret headcount med kønsfordeling og faglig repræsentation.',
+      columns: [
+        { key: 'segment', label: 'Segment' },
+        { key: 'headcount', label: 'Headcount', align: 'end', format: 'number' },
+        { key: 'femalePercent', label: 'Kvinder (%)', align: 'end', format: 'percent' },
+        {
+          key: 'collectiveAgreementCoveragePercent',
+          label: 'Kollektive aftaler (%)',
+          align: 'end',
+          format: 'percent'
+        }
+      ],
+      rows: breakdown.map((row) => ({
+        segment: row.segment,
+        headcount: row.headcount,
+        femalePercent: row.femalePercent,
+        collectiveAgreementCoveragePercent: row.labourRightsCoverage
+      }))
+    })
+  }
+
+  const narratives =
+    raw?.workforceNarrative && raw.workforceNarrative.trim().length > 0
+      ? [
+          {
+            label: 'Arbejdsstyrkens udvikling',
+            content: raw.workforceNarrative.trim()
+          },
+        ]
+      : undefined
+
   return {
     value,
     unit: s1.unit,
     assumptions,
     trace,
     warnings,
+    ...(metrics.length > 0 ? { metrics } : {}),
+    ...(narratives ? { narratives } : {}),
+    ...(tables.length > 0 ? { tables } : {}),
     ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
     ...(esrsTables ? { esrsTables } : {})
   }
@@ -188,6 +275,14 @@ function clampPercent(value: number | null | undefined): number | null {
     return null
   }
   return Math.max(0, Math.min(100, Number(value)))
+}
+
+function clampHours(value: number | null | undefined): number | null {
+  if (value == null || Number.isNaN(value)) {
+    return null
+  }
+  const normalised = Math.max(0, Math.min(80, Number(value)))
+  return Number(normalised.toFixed(1))
 }
 
 function normalisePercent(value: number | null): number {

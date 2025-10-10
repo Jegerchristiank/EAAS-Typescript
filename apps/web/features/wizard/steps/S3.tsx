@@ -65,6 +65,37 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
 
   const preview = useMemo<ModuleResult>(() => runS3({ S3: current } as ModuleInput), [current])
 
+  const rootErrors = useMemo(() => {
+    const errors: Partial<Record<NumericField, string>> = {}
+    if (current.communitiesIdentifiedCount != null && current.communitiesIdentifiedCount < 0) {
+      errors.communitiesIdentifiedCount = 'Angiv 0 eller flere lokalsamfund.'
+    }
+    const percentFields: Array<{ key: Extract<NumericField, `${string}Percent`>; label: string }> = [
+      { key: 'impactAssessmentsCoveragePercent', label: 'Konsekvensanalyser' },
+      { key: 'highRiskCommunitySharePercent', label: 'Højrisikoandel' },
+    ]
+    for (const { key, label } of percentFields) {
+      const value = current[key]
+      if (value != null && (value < 0 || value > 100)) {
+        errors[key] = `${label} skal være mellem 0 og 100%.`
+      }
+    }
+    if (current.grievancesOpenCount != null && current.grievancesOpenCount < 0) {
+      errors.grievancesOpenCount = 'Åbne klager kan ikke være negative.'
+    }
+    return errors
+  }, [current])
+
+  const impactErrors = useMemo(() => {
+    return impacts.map((impact) => {
+      const errors: { householdsAffected?: string } = {}
+      if (impact.householdsAffected != null && impact.householdsAffected < 0) {
+        errors.householdsAffected = 'Antal husholdninger skal være 0 eller højere.'
+      }
+      return errors
+    })
+  }, [impacts])
+
   const updateRoot = (partial: Partial<S3Input>) => {
     onChange('S3', { ...current, ...partial })
   }
@@ -175,7 +206,17 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="6"
+              data-invalid={rootErrors.communitiesIdentifiedCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.communitiesIdentifiedCount)}
+              aria-describedby={
+                rootErrors.communitiesIdentifiedCount ? 's3-communitiesIdentifiedCount-error' : undefined
+              }
             />
+            {rootErrors.communitiesIdentifiedCount && (
+              <p id="s3-communitiesIdentifiedCount-error" className="ds-error">
+                {rootErrors.communitiesIdentifiedCount}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Konsekvensanalyser dækket (%)</span>
@@ -187,7 +228,17 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="70"
+              data-invalid={rootErrors.impactAssessmentsCoveragePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.impactAssessmentsCoveragePercent)}
+              aria-describedby={
+                rootErrors.impactAssessmentsCoveragePercent ? 's3-impactAssessmentsCoveragePercent-error' : undefined
+              }
             />
+            {rootErrors.impactAssessmentsCoveragePercent && (
+              <p id="s3-impactAssessmentsCoveragePercent-error" className="ds-error">
+                {rootErrors.impactAssessmentsCoveragePercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Højrisiko-lokalsamfund (%)</span>
@@ -199,7 +250,17 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="25"
+              data-invalid={rootErrors.highRiskCommunitySharePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.highRiskCommunitySharePercent)}
+              aria-describedby={
+                rootErrors.highRiskCommunitySharePercent ? 's3-highRiskCommunitySharePercent-error' : undefined
+              }
             />
+            {rootErrors.highRiskCommunitySharePercent && (
+              <p id="s3-highRiskCommunitySharePercent-error" className="ds-error">
+                {rootErrors.highRiskCommunitySharePercent}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Åbne klager</span>
@@ -210,7 +271,15 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="1"
+              data-invalid={rootErrors.grievancesOpenCount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.grievancesOpenCount)}
+              aria-describedby={rootErrors.grievancesOpenCount ? 's3-grievancesOpenCount-error' : undefined}
             />
+            {rootErrors.grievancesOpenCount && (
+              <p id="s3-grievancesOpenCount-error" className="ds-error">
+                {rootErrors.grievancesOpenCount}
+              </p>
+            )}
           </label>
         </div>
       </section>
@@ -273,7 +342,17 @@ export function S3Step({ state, onChange }: WizardStepProps): JSX.Element {
                       className="ds-input"
                       min={0}
                       placeholder="35"
+                      data-invalid={impactErrors[index]?.householdsAffected ? 'true' : 'false'}
+                      aria-invalid={Boolean(impactErrors[index]?.householdsAffected)}
+                      aria-describedby={
+                        impactErrors[index]?.householdsAffected ? `s3-impact-${index}-households-error` : undefined
+                      }
                     />
+                    {impactErrors[index]?.householdsAffected && (
+                      <p id={`s3-impact-${index}-households-error`} className="ds-error">
+                        {impactErrors[index]?.householdsAffected}
+                      </p>
+                    )}
                   </label>
                   <label className="ds-field">
                     <span>Alvorlighed</span>

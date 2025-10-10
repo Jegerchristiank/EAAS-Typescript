@@ -14,13 +14,14 @@ const EMPTY_S1: S1Input = {
   reportingYear: null,
   totalHeadcount: null,
   dataCoveragePercent: null,
+  averageWeeklyHours: null,
   headcountBreakdown: [],
   workforceNarrative: null
 }
 
 type BreakdownRow = NonNullable<S1Input['headcountBreakdown']>[number]
 
-type NumericField = 'totalHeadcount' | 'dataCoveragePercent' | 'reportingYear'
+type NumericField = 'totalHeadcount' | 'dataCoveragePercent' | 'reportingYear' | 'averageWeeklyHours'
 
 type RowNumericField = 'headcount' | 'femalePercent' | 'collectiveAgreementCoveragePercent'
 
@@ -51,6 +52,42 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
   const rows = current.headcountBreakdown ?? []
 
   const preview = useMemo<ModuleResult>(() => runS1({ S1: current } as ModuleInput), [current])
+
+  const rootErrors = useMemo(() => {
+    const errors: Partial<Record<NumericField, string>> = {}
+    if (current.dataCoveragePercent != null && (current.dataCoveragePercent < 0 || current.dataCoveragePercent > 100)) {
+      errors.dataCoveragePercent = 'Datadækning skal være mellem 0 og 100%.'
+    }
+    if (current.reportingYear != null && (current.reportingYear < 1900 || current.reportingYear > 2100)) {
+      errors.reportingYear = 'Rapporteringsår skal være mellem 1900 og 2100.'
+    }
+    if (current.averageWeeklyHours != null && (current.averageWeeklyHours < 0 || current.averageWeeklyHours > 80)) {
+      errors.averageWeeklyHours = 'Ugentlige arbejdstimer skal være mellem 0 og 80.'
+    }
+    if (current.totalHeadcount != null && current.totalHeadcount < 0) {
+      errors.totalHeadcount = 'Headcount kan ikke være negativ.'
+    }
+    return errors
+  }, [current.averageWeeklyHours, current.dataCoveragePercent, current.reportingYear, current.totalHeadcount])
+
+  const breakdownErrors = useMemo(() => {
+    return rows.map((row) => {
+      const errors: Partial<Record<RowNumericField, string>> = {}
+      if (row.headcount != null && row.headcount < 0) {
+        errors.headcount = 'Headcount skal være 0 eller højere.'
+      }
+      if (row.femalePercent != null && (row.femalePercent < 0 || row.femalePercent > 100)) {
+        errors.femalePercent = 'Angiv en procent mellem 0 og 100.'
+      }
+      if (
+        row.collectiveAgreementCoveragePercent != null &&
+        (row.collectiveAgreementCoveragePercent < 0 || row.collectiveAgreementCoveragePercent > 100)
+      ) {
+        errors.collectiveAgreementCoveragePercent = 'Angiv en procent mellem 0 og 100.'
+      }
+      return errors
+    })
+  }, [rows])
 
   const updateRoot = (partial: Partial<S1Input>) => {
     onChange('S1', { ...current, ...partial })
@@ -109,6 +146,7 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
     hasRows ||
     current.totalHeadcount != null ||
     current.dataCoveragePercent != null ||
+    current.averageWeeklyHours != null ||
     (current.workforceNarrative ?? '').length > 0
 
   return (
@@ -133,7 +171,15 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={1900}
               max={2100}
               placeholder="2024"
+              data-invalid={rootErrors.reportingYear ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.reportingYear)}
+              aria-describedby={rootErrors.reportingYear ? 's1-reportingYear-error' : undefined}
             />
+            {rootErrors.reportingYear && (
+              <p id="s1-reportingYear-error" className="ds-error">
+                {rootErrors.reportingYear}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Total headcount</span>
@@ -144,7 +190,15 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
               className="ds-input"
               min={0}
               placeholder="520"
+              data-invalid={rootErrors.totalHeadcount ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.totalHeadcount)}
+              aria-describedby={rootErrors.totalHeadcount ? 's1-totalHeadcount-error' : undefined}
             />
+            {rootErrors.totalHeadcount && (
+              <p id="s1-totalHeadcount-error" className="ds-error">
+                {rootErrors.totalHeadcount}
+              </p>
+            )}
           </label>
           <label className="ds-field">
             <span>Datadækning (%)</span>
@@ -156,7 +210,36 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
               min={0}
               max={100}
               placeholder="90"
+              data-invalid={rootErrors.dataCoveragePercent ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.dataCoveragePercent)}
+              aria-describedby={rootErrors.dataCoveragePercent ? 's1-dataCoverage-error' : undefined}
             />
+            {rootErrors.dataCoveragePercent && (
+              <p id="s1-dataCoverage-error" className="ds-error">
+                {rootErrors.dataCoveragePercent}
+              </p>
+            )}
+          </label>
+          <label className="ds-field">
+            <span>Gns. ugentlige arbejdstimer (FTE)</span>
+            <input
+              type="number"
+              value={current.averageWeeklyHours ?? ''}
+              onChange={handleNumericChange('averageWeeklyHours')}
+              className="ds-input"
+              min={0}
+              max={80}
+              step="0.1"
+              placeholder="37"
+              data-invalid={rootErrors.averageWeeklyHours ? 'true' : 'false'}
+              aria-invalid={Boolean(rootErrors.averageWeeklyHours)}
+              aria-describedby={rootErrors.averageWeeklyHours ? 's1-averageWeeklyHours-error' : undefined}
+            />
+            {rootErrors.averageWeeklyHours && (
+              <p id="s1-averageWeeklyHours-error" className="ds-error">
+                {rootErrors.averageWeeklyHours}
+              </p>
+            )}
           </label>
         </div>
 
@@ -194,7 +277,17 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
                         className="ds-input"
                         min={0}
                         placeholder="150"
+                        data-invalid={breakdownErrors[index]?.headcount ? 'true' : 'false'}
+                        aria-invalid={Boolean(breakdownErrors[index]?.headcount)}
+                        aria-describedby={
+                          breakdownErrors[index]?.headcount ? `s1-row-${index}-headcount-error` : undefined
+                        }
                       />
+                      {breakdownErrors[index]?.headcount && (
+                        <p id={`s1-row-${index}-headcount-error`} className="ds-error">
+                          {breakdownErrors[index]?.headcount}
+                        </p>
+                      )}
                     </label>
                     <label className="ds-field">
                       <span>Andel kvinder (%)</span>
@@ -206,10 +299,20 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
                         min={0}
                         max={100}
                         placeholder="45"
+                        data-invalid={breakdownErrors[index]?.femalePercent ? 'true' : 'false'}
+                        aria-invalid={Boolean(breakdownErrors[index]?.femalePercent)}
+                        aria-describedby={
+                          breakdownErrors[index]?.femalePercent ? `s1-row-${index}-female-error` : undefined
+                        }
                       />
+                      {breakdownErrors[index]?.femalePercent && (
+                        <p id={`s1-row-${index}-female-error`} className="ds-error">
+                          {breakdownErrors[index]?.femalePercent}
+                        </p>
+                      )}
                     </label>
                     <label className="ds-field">
-                      <span>Kollektiv dækning (%)</span>
+                      <span>Dækning af kollektive aftaler (%)</span>
                       <input
                         type="number"
                         value={row.collectiveAgreementCoveragePercent ?? ''}
@@ -218,7 +321,21 @@ export function S1Step({ state, onChange }: WizardStepProps): JSX.Element {
                         min={0}
                         max={100}
                         placeholder="80"
+                        data-invalid={
+                          breakdownErrors[index]?.collectiveAgreementCoveragePercent ? 'true' : 'false'
+                        }
+                        aria-invalid={Boolean(breakdownErrors[index]?.collectiveAgreementCoveragePercent)}
+                        aria-describedby={
+                          breakdownErrors[index]?.collectiveAgreementCoveragePercent
+                            ? `s1-row-${index}-collective-error`
+                            : undefined
+                        }
                       />
+                      {breakdownErrors[index]?.collectiveAgreementCoveragePercent && (
+                        <p id={`s1-row-${index}-collective-error`} className="ds-error">
+                          {breakdownErrors[index]?.collectiveAgreementCoveragePercent}
+                        </p>
+                      )}
                     </label>
                   </div>
 

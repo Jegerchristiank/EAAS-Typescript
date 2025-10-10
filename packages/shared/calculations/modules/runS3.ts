@@ -5,7 +5,10 @@ import type {
   ModuleEsrsFact,
   ModuleEsrsTable,
   ModuleInput,
+  ModuleMetric,
+  ModuleNarrative,
   ModuleResult,
+  ModuleTable,
   S3Input
 } from '../../types'
 import { factors } from '../factors'
@@ -114,12 +117,68 @@ export function runS3(input: ModuleInput): ModuleResult {
           }
         ]
 
+  const metrics: ModuleMetric[] = []
+  if (communitiesIdentified != null) {
+    metrics.push({ label: 'Identificerede lokalsamfund', value: communitiesIdentified, unit: 'stk.' })
+  }
+  if (impactAssessmentPercent != null) {
+    metrics.push({ label: 'Konsekvensanalyser dækket', value: impactAssessmentPercent, unit: '%' })
+  }
+  if (highRiskSharePercent != null) {
+    metrics.push({ label: 'Højrisiko-lokalsamfund', value: highRiskSharePercent, unit: '%' })
+  }
+  if (grievancesOpen != null) {
+    metrics.push({ label: 'Åbne lokalsamfundsklager', value: grievancesOpen, unit: 'sager' })
+  }
+  if (impacts.length > 0) {
+    metrics.push({ label: 'Registrerede impacts', value: impacts.length, unit: 'sager' })
+    metrics.push({ label: 'Berørte husholdninger', value: householdsAffectedTotal, unit: 'husholdninger' })
+  }
+
+  const tables: ModuleTable[] = []
+  if (impacts.length > 0) {
+    tables.push({
+      id: 's3-community-impacts',
+      title: 'Hændelser i lokalsamfund',
+      summary: 'Oversigt over påvirkninger, berørte områder og status for afhjælpning.',
+      columns: [
+        { key: 'community', label: 'Lokalsamfund' },
+        { key: 'geography', label: 'Geografi' },
+        { key: 'impactType', label: 'Impact-type' },
+        { key: 'householdsAffected', label: 'Husholdninger', align: 'end', format: 'number' },
+        { key: 'severityLevel', label: 'Alvorlighed' },
+        { key: 'remediationStatus', label: 'Status' },
+        { key: 'description', label: 'Beskrivelse' }
+      ],
+      rows: impacts.map((impact) => ({
+        community: impact.community,
+        geography: impact.geography,
+        impactType: impact.impactType,
+        householdsAffected: impact.householdsAffected,
+        severityLevel: impact.severityLevel,
+        remediationStatus: impact.remediationStatus,
+        description: impact.description
+      }))
+    })
+  }
+
+  const narratives: ModuleNarrative[] = []
+  if (raw?.engagementNarrative && raw.engagementNarrative.trim().length > 0) {
+    narratives.push({ label: 'Engagement og samarbejde', content: raw.engagementNarrative.trim() })
+  }
+  if (raw?.remedyNarrative && raw.remedyNarrative.trim().length > 0) {
+    narratives.push({ label: 'Afhjælpning og kompensation', content: raw.remedyNarrative.trim() })
+  }
+
   return {
     value,
     unit: s3.unit,
     assumptions,
     trace,
     warnings,
+    ...(metrics.length > 0 ? { metrics } : {}),
+    ...(narratives.length > 0 ? { narratives } : {}),
+    ...(tables.length > 0 ? { tables } : {}),
     ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
     ...(esrsTables ? { esrsTables } : {})
   }

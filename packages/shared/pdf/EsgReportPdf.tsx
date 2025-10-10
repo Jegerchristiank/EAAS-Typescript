@@ -2,7 +2,7 @@
  * React-PDF dokument der strukturerer beregninger efter ESRS-sektioner.
  */
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
-import type { CalculatedModuleResult } from '../types'
+import type { CalculatedModuleResult, ModuleMetric, ModuleTable } from '../types'
 import { groupResultsByEsrs } from '../reporting/esrsLayout'
 
 const styles = StyleSheet.create({
@@ -68,6 +68,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     marginBottom: 2,
   },
+  metricList: {
+    marginBottom: 6,
+  },
   inline: {
     fontSize: 9,
     marginBottom: 2,
@@ -84,6 +87,33 @@ const styles = StyleSheet.create({
   gapAlert: {
     fontSize: 9,
     color: '#b23d2e',
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: '#d0d7d5',
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottom: '1 solid #d0d7d5',
+  },
+  tableRowLast: {
+    borderBottomWidth: 0,
+  },
+  tableHeaderRow: {
+    backgroundColor: '#eef5f1',
+  },
+  tableHeaderCell: {
+    flex: 1,
+    padding: 4,
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  tableCell: {
+    flex: 1,
+    padding: 4,
+    fontSize: 8,
   },
 })
 
@@ -118,6 +148,36 @@ const remediationLabels = {
   planned: 'Planlagt indsats',
   inPlace: 'Afhjælpning implementeret',
 } as const
+
+function formatMetric(metric: ModuleMetric): string {
+  const value = metric.value
+  const formatted =
+    value == null || (typeof value === 'number' && Number.isNaN(value))
+      ? '–'
+      : value
+  const unit = metric.unit ? ` ${metric.unit}` : ''
+  return `${formatted}${unit}`
+}
+
+function formatTableValue(value: string | number | null, format?: string): string {
+  if (value == null || (typeof value === 'number' && Number.isNaN(value))) {
+    return '–'
+  }
+  if (format === 'percent' && typeof value === 'number') {
+    return `${value}%`
+  }
+  return String(value)
+}
+
+function resolveTextAlign(align: ModuleTable['columns'][number]['align']): 'left' | 'center' | 'right' {
+  if (align === 'center') {
+    return 'center'
+  }
+  if (align === 'end') {
+    return 'right'
+  }
+  return 'left'
+}
 
 const riskLabels = {
   risk: 'Risiko',
@@ -164,6 +224,18 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
       <Text style={styles.moduleMetric}>
         Resultat: {String(result.value)} {result.unit}
       </Text>
+
+      {result.metrics && result.metrics.length > 0 && (
+        <View style={styles.metricList}>
+          <Text style={styles.label}>Nøgletal</Text>
+          {result.metrics.map((metric, index) => (
+            <View key={`${entry.moduleId}-metric-${index}`} style={{ marginBottom: 2 }}>
+              <Text style={styles.listItem}>• {metric.label}: {formatMetric(metric)}</Text>
+              {metric.context ? <Text style={styles.inline}>{metric.context}</Text> : null}
+            </View>
+          ))}
+        </View>
+      )}
 
       {result.intensities && result.intensities.length > 0 && (
         <View style={styles.list}>
@@ -315,6 +387,42 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
             <Text key={`${entry.moduleId}-note-${index}`} style={styles.listItem}>
               • {note.label}: {note.detail}
             </Text>
+          ))}
+        </View>
+      )}
+
+      {result.tables && result.tables.length > 0 && (
+        <View style={styles.metricList}>
+          {result.tables.map((table) => (
+            <View key={`${entry.moduleId}-${table.id}`} style={{ marginBottom: 6 }}>
+              <Text style={styles.label}>{table.title}</Text>
+              {table.summary ? <Text style={styles.inline}>{table.summary}</Text> : null}
+              <View style={styles.table}>
+                <View style={[styles.tableRow, styles.tableHeaderRow]}>
+                  {table.columns.map((column) => (
+                    <View key={column.key} style={styles.tableHeaderCell}>
+                      <Text style={{ fontSize: 8, fontWeight: 'bold', textAlign: resolveTextAlign(column.align ?? 'start') }}>
+                        {column.label}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                {table.rows.map((row, rowIndex) => (
+                  <View
+                    key={`${entry.moduleId}-${table.id}-row-${rowIndex}`}
+                    style={[styles.tableRow, ...(rowIndex === table.rows.length - 1 ? [styles.tableRowLast] : [])]}
+                  >
+                    {table.columns.map((column) => (
+                      <View key={`${entry.moduleId}-${table.id}-row-${rowIndex}-${column.key}`} style={styles.tableCell}>
+                        <Text style={{ fontSize: 8, textAlign: resolveTextAlign(column.align ?? 'start') }}>
+                          {formatTableValue(row[column.key] ?? null, column.format)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </View>
           ))}
         </View>
       )}
