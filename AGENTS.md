@@ -65,6 +65,7 @@ _Seneste læringer:_
 - 2025-03-10: Next.js dev-server skal startes med `pnpm --filter @org/web dev --hostname 0.0.0.0 --port 3000` – ekstra `--` før flagene tolkes som stiargument og fejler.
 - 2025-10-10: React-PDF `View`-stile kan ikke modtage `null` i array-sammensætning; brug conditionelle spreads eller dedikerede stilklasser til specialtilfælde som sidste række uden border for at undgå TypeScript-fejl.
 - 2025-03-20: TypeScript infererer `Set`-typer snævert i tests; instantiér med `<string>` når ESRS-qnames matches dynamisk, ellers fejler `pnpm -w run typecheck` i CI.
+- 2025-03-22: Når nye workspaces tilføjes (fx `apps/backend`), kør `pnpm install` inden lint/typecheck, ellers mangler de lokale `node_modules`-symlinks og ESLint finder ikke konfig-exporterne (`@org/eslint-config/base`).
 
 ## Sidst men ikke mindst
 - Dokumentér større ændringer i `CHANGELOG.md` og opdater `README`/`docs` ved behov.

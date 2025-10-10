@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
-import { isModuleRelevant } from '../../src/modules/wizard/profile'
+import { isModuleRelevant, type WizardProfile } from '../../src/modules/wizard/profile'
 import { wizardSteps, type WizardScope } from './steps'
 import { useWizardContext } from './useWizard'
 
@@ -104,8 +104,9 @@ export function ProfileSwitcher({
       return scopeOrder.map((scope) => ({ scope, isActive: false }))
     }
     const coverage = new Set<WizardScope>()
+    const profile = entry.profile as WizardProfile
     for (const step of wizardSteps) {
-      if (isModuleRelevant(entry.profile, step.id)) {
+      if (isModuleRelevant(profile, step.id)) {
         coverage.add(step.scope)
       }
     }

@@ -36,6 +36,25 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@20.19.17)(jsdom@24.1.3)
 
+  apps/backend:
+    dependencies:
+      '@org/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+    devDependencies:
+      '@org/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/config/eslint-config
+      '@org/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/config/tsconfig
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.17
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
+
   apps/web:
     dependencies:
       '@org/shared':
