@@ -98,6 +98,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottom: '1 solid #d0d7d5',
   },
+  tableRowLast: {
+    borderBottomWidth: 0,
+  },
   tableHeaderRow: {
     backgroundColor: '#eef5f1',
   },
@@ -407,7 +410,7 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
                 {table.rows.map((row, rowIndex) => (
                   <View
                     key={`${entry.moduleId}-${table.id}-row-${rowIndex}`}
-                    style={[styles.tableRow, rowIndex === table.rows.length - 1 ? { borderBottom: 'none' } : null]}
+                    style={[styles.tableRow, ...(rowIndex === table.rows.length - 1 ? [styles.tableRowLast] : [])]}
                   >
                     {table.columns.map((column) => (
                       <View key={`${entry.moduleId}-${table.id}-row-${rowIndex}-${column.key}`} style={styles.tableCell}>
