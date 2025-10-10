@@ -32,6 +32,35 @@ describe('buildCsrdReportPackage', () => {
       baseResult('C1', 3.2, 't CO2e'),
       baseResult('C5', 1.1, 't CO2e'),
       baseResult('D1', 75, 'governance score'),
+      baseResult('E1Targets', 2, 'mål', {
+        esrsFacts: [
+          {
+            conceptKey: 'E1TargetsPresent',
+            value: true,
+          },
+          {
+            conceptKey: 'E1TargetsNarrative',
+            value: 'Scope 1 reduktion – mål 45 t i 2027',
+          },
+        ],
+        esrsTables: [
+          {
+            conceptKey: 'E1TargetsTable',
+            rows: [
+              {
+                scope: 'scope1',
+                name: 'Scope 1 reduktion',
+                baselineYear: 2022,
+                baselineValueTonnes: 70,
+                targetYear: 2027,
+                targetValueTonnes: 45,
+                status: 'lagging',
+                owner: 'Operations',
+              },
+            ],
+          },
+        ],
+      }),
       baseResult('S1', 62, 'social score', {
         esrsFacts: [
           { conceptKey: 'S1TotalHeadcount', value: 125, unitId: 'pure', decimals: 0 },
@@ -74,6 +103,26 @@ describe('buildCsrdReportPackage', () => {
     expect(coverageFact?.decimals).toBe('1')
     const tableFact = pkg.facts.find((fact) => fact.concept.endsWith('S1HeadcountBreakdownTable'))
     expect(tableFact?.value).toContain('"segment":"HQ"')
+
+    const targetsFlagFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith(
+        'GHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunities',
+      ),
+    )
+    expect(targetsFlagFact?.value).toBe('true')
+    expect(targetsFlagFact?.contextRef).toBe('ctx_reporting_period')
+
+    const targetsNarrativeFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith(
+        'DisclosureOfHowGHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunitiesExplanatory',
+      ),
+    )
+    expect(targetsNarrativeFact?.value).toContain('Scope 1 reduktion')
+
+    const targetsTableFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith('TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'),
+    )
+    expect(targetsTableFact?.value).toContain('"scope":"scope1"')
 
     expect(pkg.contexts).toEqual(
       expect.arrayContaining([
@@ -126,6 +175,9 @@ describe('buildCsrdReportPackage', () => {
     expect(pkg.instance).toContain('<xbrli:identifier scheme="http://standards.iso.org/iso/17442">5493001KJTIIGC8Y1R12</xbrli:identifier>')
     expect(pkg.instance).toContain('<esrs:GrossScope1GreenhouseGasEmissions contextRef="ctx_reporting_period" unitRef="unit_tCO2e" decimals="3">19.75</esrs:GrossScope1GreenhouseGasEmissions>')
     expect(pkg.instance).toContain('<esrs:S1TotalEmployees contextRef="ctx_reporting_period_instant" unitRef="unit_pure" decimals="0">125</esrs:S1TotalEmployees>')
+    expect(pkg.instance).toContain(
+      '<esrs:GHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunities contextRef="ctx_reporting_period">true</esrs:GHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunities>',
+    )
   })
 })
 

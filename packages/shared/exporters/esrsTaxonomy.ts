@@ -222,6 +222,21 @@ export const esrsConceptDefinitions = {
     qname: 'esrs:DescriptionOfCriticalAssumptionsMadeToDetermineCarbonPriceAppliedExplanatory',
     periodType: 'duration',
   },
+  E1TargetsPresent: {
+    qname:
+      'esrs:GHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunities',
+    periodType: 'duration',
+  },
+  E1TargetsNarrative: {
+    qname:
+      'esrs:DisclosureOfHowGHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunitiesExplanatory',
+    periodType: 'duration',
+  },
+  E1TargetsTable: {
+    qname: 'esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable',
+    unitId: null,
+    periodType: 'duration',
+  },
   E1RiskPhysicalAssets: {
     qname: 'esrs:CarryingAmountOfAssetsAtMaterialPhysicalRisk',
     unitId: 'DKK',
