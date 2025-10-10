@@ -16,14 +16,22 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  loadWizardStorage,
+  createFallbackStorage,
+  createProfileEntry,
+  fetchWizardSnapshot,
   persistWizardStorage,
-  type PersistedWizardProfile,
-  type PersistedWizardStorage,
-  type WizardFieldHistory,
-  type WizardResponsibilityIndex,
-  type WizardFieldRevision,
+  type PersistMetadata,
 } from '../../lib/storage/localStorage'
+import type {
+  PersistedWizardProfile,
+  PersistedWizardStorage,
+  WizardAuditLogEntry,
+  WizardFieldHistory,
+  WizardFieldRevision,
+  WizardPermissions,
+  WizardResponsibilityIndex,
+  WizardUser,
+} from '@org/shared'
 import { wizardSteps } from './steps'
 import type { WizardProfileKey } from '../../src/modules/wizard/profile'
 import { createInitialWizardProfile, type WizardProfile } from '../../src/modules/wizard/profile'
@@ -32,7 +40,7 @@ export type WizardState = ModuleInput
 
 export type WizardProfileId = string
 
-export type WizardProfileEntry = PersistedWizardProfile
+export type WizardProfileEntry = PersistedWizardProfile & { profile: WizardProfile }
 
 export type WizardProfileMap = Record<WizardProfileId, WizardProfileEntry>
 
@@ -62,6 +70,10 @@ export type WizardHook = {
   activeProfileId: WizardProfileId
   auditTrail: WizardFieldHistory
   responsibilityIndex: WizardResponsibilityIndex
+  auditLog: WizardAuditLogEntry[]
+  permissions: WizardPermissions
+  currentUser: WizardUser
+  isReady: boolean
   goToStep: (index: number) => void
   updateField: (key: string, value: unknown) => void
   updateProfile: (key: WizardProfileKey, value: boolean | null) => void
@@ -76,6 +88,29 @@ const AUTOSAVE_DELAY = 800
 const DEFAULT_STEP_INDEX = wizardSteps.findIndex((step) => step.status === 'ready')
 const INITIAL_STEP = DEFAULT_STEP_INDEX === -1 ? 0 : DEFAULT_STEP_INDEX
 const HISTORY_LIMIT = 50
+
+type WizardSessionState = {
+  storage: PersistedWizardStorage
+  permissions: WizardPermissions
+  user: WizardUser
+  auditLog: WizardAuditLogEntry[]
+}
+
+function createInitialSession(): WizardSessionState {
+  return {
+    storage: createFallbackStorage(),
+    permissions: { canEdit: false, canPublish: false },
+    user: { id: 'anonymous', roles: [] },
+    auditLog: [],
+  }
+}
+
+function normaliseWizardProfile(profile: PersistedWizardProfile['profile']): WizardProfile {
+  return {
+    ...createInitialWizardProfile(),
+    ...(profile as Partial<WizardProfile>),
+  }
+}
 
 function generateProfileId(): WizardProfileId {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -163,255 +198,449 @@ function extractResponsibilities(value: unknown, basePath: string): WizardRespon
   return entries
 }
 
+
 export function useWizard(): WizardHook {
   const [currentStep, setCurrentStep] = useState(INITIAL_STEP)
-  const [storage, setStorage] = useState<PersistedWizardStorage>(() => loadWizardStorage())
-  const storageRef = useRef(storage)
+  const [session, setSession] = useState<WizardSessionState>(() => createInitialSession())
+  const [isReady, setIsReady] = useState(false)
+
+  const storageRef = useRef(session.storage)
+  const userRef = useRef(session.user)
+  const persistTimerRef = useRef<number | null>(null)
+  const lastMetadataRef = useRef<PersistMetadata | null>(null)
+  const hasPendingSyncRef = useRef(false)
 
   useEffect(() => {
-    storageRef.current = storage
-  }, [storage])
+    storageRef.current = session.storage
+  }, [session.storage])
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      persistWizardStorage(storageRef.current)
-    }, AUTOSAVE_DELAY)
+    userRef.current = session.user
+  }, [session.user])
+
+  const syncWithServer = useCallback(
+    async (metadata: PersistMetadata) => {
+      try {
+        const snapshot = await persistWizardStorage(storageRef.current, metadata)
+        setSession({
+          storage: snapshot.storage,
+          permissions: snapshot.permissions,
+          user: snapshot.user,
+          auditLog: snapshot.auditLog,
+        })
+        storageRef.current = snapshot.storage
+        userRef.current = snapshot.user
+        hasPendingSyncRef.current = false
+      } catch (error) {
+        console.error('Kunne ikke gemme wizard-data', error)
+        hasPendingSyncRef.current = false
+      }
+    },
+    [],
+  )
+
+  const queuePersist = useCallback(
+    (metadata: PersistMetadata) => {
+      if (!isReady) {
+        return
+      }
+      lastMetadataRef.current = metadata
+      hasPendingSyncRef.current = true
+      if (persistTimerRef.current !== null) {
+        window.clearTimeout(persistTimerRef.current)
+      }
+      persistTimerRef.current = window.setTimeout(() => {
+        persistTimerRef.current = null
+        const payload = lastMetadataRef.current ?? { userId: userRef.current.id, reason: 'autosave' }
+        lastMetadataRef.current = null
+        void syncWithServer(payload)
+      }, AUTOSAVE_DELAY)
+    },
+    [isReady, syncWithServer],
+  )
+
+  useEffect(() => {
+    let isCancelled = false
+    ;(async () => {
+      try {
+        const snapshot = await fetchWizardSnapshot()
+        if (isCancelled) {
+          return
+        }
+        setSession({
+          storage: snapshot.storage,
+          permissions: snapshot.permissions,
+          user: snapshot.user,
+          auditLog: snapshot.auditLog,
+        })
+        storageRef.current = snapshot.storage
+        userRef.current = snapshot.user
+      } catch (error) {
+        console.error('Kunne ikke hente wizard-data', error)
+      } finally {
+        if (!isCancelled) {
+          setIsReady(true)
+        }
+      }
+    })()
     return () => {
-      window.clearTimeout(timer)
+      isCancelled = true
     }
-  }, [storage])
+  }, [])
 
   useEffect(() => {
+    if (!isReady) {
+      return
+    }
     const handleBeforeUnload = () => {
-      persistWizardStorage(storageRef.current)
+      if (persistTimerRef.current !== null) {
+        window.clearTimeout(persistTimerRef.current)
+        persistTimerRef.current = null
+      }
+      if (!hasPendingSyncRef.current && !lastMetadataRef.current) {
+        return
+      }
+      const payload = lastMetadataRef.current ?? { userId: userRef.current.id, reason: 'before-unload' }
+      lastMetadataRef.current = null
+      hasPendingSyncRef.current = false
+      void syncWithServer(payload)
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
-  }, [])
+  }, [isReady, syncWithServer])
+
+  useEffect(() => {
+    return () => {
+      if (persistTimerRef.current !== null) {
+        window.clearTimeout(persistTimerRef.current)
+        persistTimerRef.current = null
+      }
+      if (!isReady) {
+        return
+      }
+      if (!hasPendingSyncRef.current && !lastMetadataRef.current) {
+        return
+      }
+      const payload = lastMetadataRef.current ?? { userId: userRef.current.id, reason: 'cleanup' }
+      lastMetadataRef.current = null
+      hasPendingSyncRef.current = false
+      void syncWithServer(payload)
+    }
+  }, [isReady, syncWithServer])
 
   const goToStep = useCallback((index: number) => {
     setCurrentStep(Math.max(0, Math.min(index, wizardSteps.length - 1)))
   }, [])
 
-  const updateField = useCallback((key: string, value: unknown) => {
-    setStorage((prev) => {
-      const active = prev.profiles[prev.activeProfileId]
-      if (!active) {
-        return prev
-      }
+  const updateField = useCallback(
+    (key: string, value: unknown) => {
+      let metadata: PersistMetadata | null = null
+      setSession((prev) => {
+        const active = prev.storage.profiles[prev.storage.activeProfileId]
+        if (!active) {
+          return prev
+        }
+        if (!prev.permissions.canEdit) {
+          console.warn('Brugeren har ikke rettigheder til at redigere data')
+          return prev
+        }
 
-      const now = Date.now()
-      const revision: WizardFieldRevision = {
-        id: `${key}-${now}`,
-        field: key,
-        timestamp: now,
-        summary: summariseValue(value),
-        updatedBy: 'local-user',
-      }
+        const now = Date.now()
+        const revision: WizardFieldRevision = {
+          id: `${key}-${now}`,
+          field: key,
+          timestamp: now,
+          summary: summariseValue(value),
+          updatedBy: prev.user.id,
+        }
 
-      const nextHistoryForField = [...(active.history[key] ?? []), revision].slice(-HISTORY_LIMIT)
-      const nextHistory: WizardFieldHistory = {
-        ...active.history,
-        [key]: nextHistoryForField,
-      }
+        const nextHistoryForField = [...(active.history[key] ?? []), revision].slice(-HISTORY_LIMIT)
+        const nextHistory: WizardFieldHistory = {
+          ...active.history,
+          [key]: nextHistoryForField,
+        }
 
-      const responsibilityEntries = extractResponsibilities(value, key)
-      const nextResponsibilities: WizardResponsibilityIndex = { ...active.responsibilities }
+        const responsibilityEntries = extractResponsibilities(value, key)
+        const nextResponsibilities: WizardResponsibilityIndex = { ...active.responsibilities }
 
-      if (responsibilityEntries.length > 0) {
-        nextResponsibilities[key] = responsibilityEntries
-      } else if (nextResponsibilities[key]) {
-        delete nextResponsibilities[key]
-      }
+        if (responsibilityEntries.length > 0) {
+          nextResponsibilities[key] = responsibilityEntries
+        } else if (nextResponsibilities[key]) {
+          delete nextResponsibilities[key]
+        }
 
-      const nextStorage: PersistedWizardStorage = {
-        ...prev,
-        profiles: {
-          ...prev.profiles,
-          [prev.activeProfileId]: {
-            ...active,
-            state: { ...active.state, [key]: value },
-            updatedAt: now,
-            history: nextHistory,
-            responsibilities: nextResponsibilities,
+        const nextProfile: PersistedWizardProfile = {
+          ...active,
+          state: { ...active.state, [key]: value },
+          updatedAt: now,
+          history: nextHistory,
+          responsibilities: nextResponsibilities,
+          version: (active.version ?? 1) + 1,
+        }
+
+        const nextStorage: PersistedWizardStorage = {
+          ...prev.storage,
+          profiles: {
+            ...prev.storage.profiles,
+            [prev.storage.activeProfileId]: nextProfile,
           },
-        },
+        }
+        storageRef.current = nextStorage
+        metadata = { userId: prev.user.id, reason: `field:${key}` }
+        return {
+          ...prev,
+          storage: nextStorage,
+        }
+      })
+      if (metadata) {
+        queuePersist(metadata)
       }
-      storageRef.current = nextStorage
-      return nextStorage
-    })
-  }, [])
+    },
+    [queuePersist],
+  )
 
-  const updateProfile = useCallback((key: WizardProfileKey, value: boolean | null) => {
-    setStorage((prev) => {
-      const active = prev.profiles[prev.activeProfileId]
-      if (!active) {
-        return prev
-      }
-      const nextStorage: PersistedWizardStorage = {
-        ...prev,
-        profiles: {
-          ...prev.profiles,
-          [prev.activeProfileId]: {
-            ...active,
-            profile: { ...active.profile, [key]: value },
-            updatedAt: Date.now(),
+  const updateProfile = useCallback(
+    (key: WizardProfileKey, value: boolean | null) => {
+      let metadata: PersistMetadata | null = null
+      setSession((prev) => {
+        const active = prev.storage.profiles[prev.storage.activeProfileId]
+        if (!active) {
+          return prev
+        }
+        if (!prev.permissions.canEdit) {
+          console.warn('Brugeren har ikke rettigheder til at redigere profilindstillinger')
+          return prev
+        }
+        const now = Date.now()
+        const nextProfile: PersistedWizardProfile = {
+          ...active,
+          profile: { ...active.profile, [key]: value },
+          updatedAt: now,
+          version: (active.version ?? 1) + 1,
+        }
+        const nextStorage: PersistedWizardStorage = {
+          ...prev.storage,
+          profiles: {
+            ...prev.storage.profiles,
+            [prev.storage.activeProfileId]: nextProfile,
           },
-        },
+        }
+        storageRef.current = nextStorage
+        metadata = { userId: prev.user.id, reason: `profile:${String(key)}` }
+        return {
+          ...prev,
+          storage: nextStorage,
+        }
+      })
+      if (metadata) {
+        queuePersist(metadata)
       }
-      storageRef.current = nextStorage
-      return nextStorage
-    })
-  }, [])
+    },
+    [queuePersist],
+  )
 
-  const createProfile = useCallback((name?: string) => {
-    setCurrentStep(0)
-    setStorage((prev) => {
-      const id = generateProfileId()
-      const profileName = name?.trim() || `Profil ${Object.keys(prev.profiles).length + 1}`
-      const now = Date.now()
-      const newProfile: PersistedWizardProfile = {
-        id,
-        name: profileName,
-        state: {},
-        profile: createInitialWizardProfile(),
-        createdAt: now,
-        updatedAt: now,
-        history: {},
-        responsibilities: {},
+  const createProfile = useCallback(
+    (name?: string) => {
+      setCurrentStep(0)
+      let metadata: PersistMetadata | null = null
+      setSession((prev) => {
+        if (!prev.permissions.canEdit) {
+          console.warn('Brugeren har ikke rettigheder til at oprette profiler')
+          return prev
+        }
+        const id = generateProfileId()
+        const profileName = name?.trim() || `Profil ${Object.keys(prev.storage.profiles).length + 1}`
+        const newProfile = createProfileEntry(id, profileName)
+        const nextStorage: PersistedWizardStorage = {
+          activeProfileId: id,
+          profiles: { ...prev.storage.profiles, [id]: newProfile },
+        }
+        storageRef.current = nextStorage
+        metadata = { userId: prev.user.id, reason: 'profile:create' }
+        return {
+          ...prev,
+          storage: nextStorage,
+        }
+      })
+      if (metadata) {
+        queuePersist(metadata)
       }
-
-      const nextStorage: PersistedWizardStorage = {
-        activeProfileId: id,
-        profiles: { ...prev.profiles, [id]: newProfile },
-      }
-      storageRef.current = nextStorage
-      return nextStorage
-    })
-  }, [])
+    },
+    [queuePersist],
+  )
 
   const switchProfile = useCallback((profileId: WizardProfileId) => {
-    setStorage((prev) => {
-      if (!prev.profiles[profileId] || prev.activeProfileId === profileId) {
+    setSession((prev) => {
+      if (!prev.storage.profiles[profileId] || prev.storage.activeProfileId === profileId) {
         return prev
       }
       const nextStorage: PersistedWizardStorage = {
-        ...prev,
+        ...prev.storage,
         activeProfileId: profileId,
       }
       storageRef.current = nextStorage
-      return nextStorage
-    })
-  }, [])
-
-  const renameProfile = useCallback((profileId: WizardProfileId, name: string) => {
-    setStorage((prev) => {
-      const target = prev.profiles[profileId]
-      if (!target) {
-        return prev
-      }
-      const trimmed = name.trim()
-      if (trimmed.length === 0 || trimmed === target.name) {
-        return prev
-      }
-      const nextStorage: PersistedWizardStorage = {
+      return {
         ...prev,
-        profiles: {
-          ...prev.profiles,
-          [profileId]: { ...target, name: trimmed, updatedAt: Date.now() },
-        },
+        storage: nextStorage,
       }
-      storageRef.current = nextStorage
-      return nextStorage
     })
   }, [])
 
-  const duplicateProfile = useCallback((profileId: WizardProfileId) => {
-    setStorage((prev) => {
-      const target = prev.profiles[profileId]
-      if (!target) {
-        return prev
-      }
-      const id = generateProfileId()
-      const now = Date.now()
-      const clone: PersistedWizardProfile = {
-        id,
-        name: `${target.name} (kopi)`,
-        state: cloneModuleInput(target.state),
-        profile: { ...target.profile },
-        createdAt: now,
-        updatedAt: now,
-        history: Object.entries(target.history).reduce<WizardFieldHistory>((acc, [field, revisions]) => {
-          acc[field] = revisions.map((revision) => ({ ...revision }))
-          return acc
-        }, {}),
-        responsibilities: Object.entries(target.responsibilities).reduce<WizardResponsibilityIndex>(
-          (acc, [field, entries]) => {
-            acc[field] = entries.map((entry) => ({ ...entry }))
-            return acc
+  const renameProfile = useCallback(
+    (profileId: WizardProfileId, name: string) => {
+      let metadata: PersistMetadata | null = null
+      setSession((prev) => {
+        const target = prev.storage.profiles[profileId]
+        if (!target) {
+          return prev
+        }
+        if (!prev.permissions.canEdit) {
+          console.warn('Brugeren har ikke rettigheder til at omdøbe profiler')
+          return prev
+        }
+        const trimmed = name.trim()
+        if (trimmed.length === 0 || trimmed === target.name) {
+          return prev
+        }
+        const nextProfile: PersistedWizardProfile = {
+          ...target,
+          name: trimmed,
+          updatedAt: Date.now(),
+          version: (target.version ?? 1) + 1,
+        }
+        const nextStorage: PersistedWizardStorage = {
+          ...prev.storage,
+          profiles: {
+            ...prev.storage.profiles,
+            [profileId]: nextProfile,
           },
-          {},
-        ),
+        }
+        storageRef.current = nextStorage
+        metadata = { userId: prev.user.id, reason: 'profile:rename' }
+        return {
+          ...prev,
+          storage: nextStorage,
+        }
+      })
+      if (metadata) {
+        queuePersist(metadata)
       }
-      const nextStorage: PersistedWizardStorage = {
-        activeProfileId: id,
-        profiles: { ...prev.profiles, [id]: clone },
-      }
-      storageRef.current = nextStorage
-      return nextStorage
-    })
-  }, [])
+    },
+    [queuePersist],
+  )
 
-  const deleteProfile = useCallback((profileId: WizardProfileId) => {
-    setStorage((prev) => {
-      if (!prev.profiles[profileId]) {
-        return prev
-      }
-
-      const nextProfiles = { ...prev.profiles }
-      delete nextProfiles[profileId]
-
-      if (Object.keys(nextProfiles).length === 0) {
+  const duplicateProfile = useCallback(
+    (profileId: WizardProfileId) => {
+      let metadata: PersistMetadata | null = null
+      setSession((prev) => {
+        const target = prev.storage.profiles[profileId]
+        if (!target) {
+          return prev
+        }
+        if (!prev.permissions.canEdit) {
+          console.warn('Brugeren har ikke rettigheder til at duplikere profiler')
+          return prev
+        }
         const id = generateProfileId()
         const now = Date.now()
-        nextProfiles[id] = {
+        const clone: PersistedWizardProfile = {
           id,
-          name: 'Profil 1',
-          state: {},
-          profile: createInitialWizardProfile(),
+          name: `${target.name} (kopi)`,
+          state: cloneModuleInput(target.state),
+          profile: normaliseWizardProfile(target.profile),
           createdAt: now,
           updatedAt: now,
-          history: {},
-          responsibilities: {},
+          history: Object.entries(target.history).reduce<WizardFieldHistory>((acc, [field, revisions]) => {
+            acc[field] = revisions.map((revision) => ({ ...revision, updatedBy: prev.user.id }))
+            return acc
+          }, {}),
+          responsibilities: Object.entries(target.responsibilities).reduce<WizardResponsibilityIndex>((acc, [field, entries]) => {
+            acc[field] = entries.map((entry) => ({ ...entry }))
+            return acc
+          }, {}),
+          version: 1,
         }
         const nextStorage: PersistedWizardStorage = {
           activeProfileId: id,
+          profiles: { ...prev.storage.profiles, [id]: clone },
+        }
+        storageRef.current = nextStorage
+        metadata = { userId: prev.user.id, reason: 'profile:duplicate' }
+        return {
+          ...prev,
+          storage: nextStorage,
+        }
+      })
+      if (metadata) {
+        queuePersist(metadata)
+      }
+    },
+    [queuePersist],
+  )
+
+  const deleteProfile = useCallback(
+    (profileId: WizardProfileId) => {
+      let metadata: PersistMetadata | null = null
+      setSession((prev) => {
+        if (!prev.permissions.canEdit) {
+          console.warn('Brugeren har ikke rettigheder til at slette profiler')
+          return prev
+        }
+        if (!prev.storage.profiles[profileId]) {
+          return prev
+        }
+
+        const nextProfiles = { ...prev.storage.profiles }
+        delete nextProfiles[profileId]
+
+        if (Object.keys(nextProfiles).length === 0) {
+          const id = generateProfileId()
+          const fallback = createProfileEntry(id, 'Profil 1')
+          const nextStorage: PersistedWizardStorage = {
+            activeProfileId: id,
+            profiles: { [id]: fallback },
+          }
+          storageRef.current = nextStorage
+          metadata = { userId: prev.user.id, reason: 'profile:reset' }
+          return {
+            ...prev,
+            storage: nextStorage,
+          }
+        }
+
+        const fallbackId = Object.keys(nextProfiles)[0] ?? prev.storage.activeProfileId
+        const nextActiveId = profileId === prev.storage.activeProfileId ? fallbackId : prev.storage.activeProfileId
+
+        const nextStorage: PersistedWizardStorage = {
+          activeProfileId: nextActiveId,
           profiles: nextProfiles,
         }
         storageRef.current = nextStorage
-        return nextStorage
+        metadata = { userId: prev.user.id, reason: 'profile:delete' }
+        return {
+          ...prev,
+          storage: nextStorage,
+        }
+      })
+      if (metadata) {
+        queuePersist(metadata)
       }
-
-      const fallbackId = Object.keys(nextProfiles)[0] ?? prev.activeProfileId
-      const nextActiveId = profileId === prev.activeProfileId ? fallbackId : prev.activeProfileId
-
-      const nextStorage: PersistedWizardStorage = {
-        activeProfileId: nextActiveId,
-        profiles: nextProfiles,
-      }
-      storageRef.current = nextStorage
-      return nextStorage
-    })
-  }, [])
-
-  const activeProfile = storage.profiles[storage.activeProfileId]
+    },
+    [queuePersist],
+  )
 
   const value = useMemo(() => {
-    const fallbackProfile: PersistedWizardProfile =
-      activeProfile ?? {
-        id: storage.activeProfileId,
+    const normalisedProfiles = Object.entries(session.storage.profiles).reduce<WizardProfileMap>((acc, [id, entry]) => {
+      acc[id] = { ...entry, profile: normaliseWizardProfile(entry.profile) }
+      return acc
+    }, {} as WizardProfileMap)
+
+    let fallbackProfile = normalisedProfiles[session.storage.activeProfileId]
+    if (!fallbackProfile) {
+      fallbackProfile = {
+        id: session.storage.activeProfileId,
         name: 'Profil 1',
         state: {},
         profile: createInitialWizardProfile(),
@@ -419,7 +648,10 @@ export function useWizard(): WizardHook {
         updatedAt: Date.now(),
         history: {},
         responsibilities: {},
+        version: 1,
       }
+      normalisedProfiles[session.storage.activeProfileId] = fallbackProfile
+    }
 
     const active: ActiveProfileState = {
       id: fallbackProfile.id,
@@ -430,7 +662,7 @@ export function useWizard(): WizardHook {
       responsibilities: fallbackProfile.responsibilities ?? {},
     }
 
-    const summaries: WizardProfileSummary[] = Object.values(storage.profiles).map((entry) => ({
+    const summaries: WizardProfileSummary[] = Object.values(normalisedProfiles).map((entry) => ({
       id: entry.id,
       name: entry.name,
       isActive: entry.id === fallbackProfile.id,
@@ -447,7 +679,7 @@ export function useWizard(): WizardHook {
       responsibilityIndex: active.responsibilities,
       updateProfile,
       activeProfile: active,
-      profiles: storage.profiles,
+      profiles: normalisedProfiles,
       profileSummaries: summaries,
       activeProfileId: active.id,
       createProfile,
@@ -455,27 +687,28 @@ export function useWizard(): WizardHook {
       renameProfile,
       duplicateProfile,
       deleteProfile,
+      auditLog: session.auditLog,
+      permissions: session.permissions,
+      currentUser: session.user,
+      isReady,
     }
   }, [
-    activeProfile,
     createProfile,
     currentStep,
     deleteProfile,
     duplicateProfile,
     goToStep,
     renameProfile,
-    storage.profiles,
-    storage.activeProfileId,
+    session.auditLog,
+    session.permissions,
+    session.storage.profiles,
+    session.storage.activeProfileId,
+    session.user,
     switchProfile,
     updateField,
     updateProfile,
+    isReady,
   ])
-
-  useEffect(() => {
-    return () => {
-      persistWizardStorage(storageRef.current)
-    }
-  }, [])
 
   return value
 }

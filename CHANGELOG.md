@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - E1 klimamål- og actionmodul med ESRS E1 intensiteter, målstatus, wizard-step, PDF og test-fixtures.
 - E1 kontekstmoduler for klimascenarier, interne CO₂-priser, risikogeografi og decarboniseringsdrivere med schema, beregninger,
   wizard-trin, ESRS-eksport og tests.
+- Server-baseret wizard-persistence med revisionslog, rollebaseret adgangskontrol, Vitest-dækning og runbook for drift/compliance.
 
 
 ### Changed

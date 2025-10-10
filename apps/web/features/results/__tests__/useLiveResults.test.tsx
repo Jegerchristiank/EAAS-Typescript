@@ -1,6 +1,8 @@
 import { act, render, waitFor } from '@testing-library/react'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createFallbackStorage } from '../../../lib/storage/localStorage'
+import type { PersistedWizardStorage, WizardPersistenceSnapshot } from '@org/shared'
 
 vi.mock('../../wizard/steps', () => ({
   wizardSteps: [
@@ -45,11 +47,43 @@ function TestHarness({
 }
 
 describe('useLiveResults', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
+beforeEach(() => {
+    const storage = createFallbackStorage()
+    const snapshot: WizardPersistenceSnapshot = {
+      storage,
+      auditLog: [],
+      permissions: { canEdit: true, canPublish: false },
+      user: { id: 'tester', roles: ['editor'] },
+    }
+
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+      if (!url.endsWith('/wizard/snapshot')) {
+        return new Response('Not Found', { status: 404 })
+      }
+
+      if (!init || !init.method || init.method.toUpperCase() === 'GET') {
+        return new Response(JSON.stringify(snapshot), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      const body = init.body
+      if (typeof body === 'string') {
+        const parsed = JSON.parse(body) as { storage: PersistedWizardStorage }
+        snapshot.storage = parsed.storage
+      }
+
+      return new Response(JSON.stringify(snapshot), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }))
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     vi.clearAllTimers()
   })
 
@@ -69,7 +103,7 @@ describe('useLiveResults', () => {
     )
 
     await waitFor(() => {
-      expect(wizardRef.current).not.toBeNull()
+      expect(wizardRef.current?.isReady).toBe(true)
     })
 
     const wizard = wizardRef.current!
