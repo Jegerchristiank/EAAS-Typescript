@@ -81,7 +81,9 @@ describe('buildXbrlInstance', () => {
     const csrdPackage = buildCsrdReportPackage(results, baseOptions)
     expect(csrdPackage.facts.length).toBeGreaterThanOrEqual(esrsEmissionConceptList.length)
 
-    const emissionConceptQnames = new Set(esrsEmissionConceptList.map(({ definition }) => definition.qname))
+    const emissionConceptQnames = new Set<string>(
+      esrsEmissionConceptList.map(({ definition }) => definition.qname),
+    )
 
     for (const fact of csrdPackage.facts) {
       const factNode = xbrl[fact.concept]
