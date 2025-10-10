@@ -66,6 +66,7 @@ _Seneste læringer:_
 - 2025-10-10: React-PDF `View`-stile kan ikke modtage `null` i array-sammensætning; brug conditionelle spreads eller dedikerede stilklasser til specialtilfælde som sidste række uden border for at undgå TypeScript-fejl.
 - 2025-03-20: TypeScript infererer `Set`-typer snævert i tests; instantiér med `<string>` når ESRS-qnames matches dynamisk, ellers fejler `pnpm -w run typecheck` i CI.
 - 2025-03-22: Når nye workspaces tilføjes (fx `apps/backend`), kør `pnpm install` inden lint/typecheck, ellers mangler de lokale `node_modules`-symlinks og ESLint finder ikke konfig-exporterne (`@org/eslint-config/base`).
+- 2025-03-24: Hvis CI-lint/typecheck fejler med "ESLint couldn't find an eslint.config" i et workspace, kør `pnpm install` for at rehydrere pnpm-symlinks før du genkører `pnpm -w run lint && pnpm -w run typecheck && pnpm -w run test`.
 
 ## Sidst men ikke mindst
 - Dokumentér større ændringer i `CHANGELOG.md` og opdater `README`/`docs` ved behov.

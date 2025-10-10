@@ -6,14 +6,10 @@ import { S1Step } from '../S1'
 import type { WizardStepProps } from '../StepTemplate'
 
 describe('S1Step', () => {
-  const renderWithState = (state: WizardStepProps['state'] = {}, onChange = vi.fn()) => {
+  const renderWithState = (state: Partial<WizardStepProps['state']> = {}, onChange = vi.fn()) => {
     const props: WizardStepProps = {
-      state,
-      onChange,
-      onNext: vi.fn(),
-      onBack: vi.fn(),
-      isActive: true,
-      isLast: false
+      state: state as WizardStepProps['state'],
+      onChange
     }
     render(<S1Step {...props} />)
     return onChange
@@ -22,12 +18,30 @@ describe('S1Step', () => {
   it('viser valideringsfejl for ansættelsesformer og status ved negative værdier', () => {
     renderWithState({
       S1: {
+        reportingYear: null,
+        totalHeadcount: null,
+        totalFte: null,
+        dataCoveragePercent: null,
         employmentContractBreakdown: [
           { contractType: 'permanentEmployees', headcount: -5, fte: -2, femalePercent: 150 }
         ],
         employmentStatusBreakdown: [{ status: 'fullTime', headcount: -3, fte: -1 }],
         fteCoveragePercent: 150,
-        trainingCoveragePercent: 140
+        averageWeeklyHours: null,
+        genderPayGapPercent: null,
+        genderPayGapPercentManagement: null,
+        genderPayGapPercentOperations: null,
+        trainingCoveragePercent: 140,
+        socialProtectionCoveragePercent: null,
+        healthCareCoveragePercent: null,
+        pensionPlanCoveragePercent: null,
+        absenteeismRatePercent: null,
+        lostTimeInjuryFrequencyRate: null,
+        workRelatedAccidentsCount: null,
+        workRelatedFatalitiesCount: null,
+        averageTrainingHoursPerEmployee: null,
+        hasCollectiveBargainingAgreements: null,
+        workforceNarrative: null
       }
     })
 
@@ -50,7 +64,8 @@ describe('S1Step', () => {
     const collectiveSelects = screen.getAllByRole('combobox', {
       name: /Kollektive overenskomster/
     }) as HTMLSelectElement[]
-    const collectiveSelect = collectiveSelects[collectiveSelects.length - 1]
+    expect(collectiveSelects.length).toBeGreaterThan(0)
+    const collectiveSelect = collectiveSelects[collectiveSelects.length - 1]!
     fireEvent.change(collectiveSelect, { target: { value: 'true' } })
 
     expect(onChange).toHaveBeenLastCalledWith(

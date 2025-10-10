@@ -387,9 +387,12 @@ describe('runS1', () => {
   it('giver datakvalitetsadvarsler når centrale S1-data mangler', () => {
     const input: ModuleInput = {
       S1: {
+        reportingYear: null,
         totalHeadcount: 100,
         totalFte: 60,
         dataCoveragePercent: 100,
+        fteCoveragePercent: null,
+        averageWeeklyHours: null,
         headcountBreakdown: [
           { segment: 'HQ', headcount: 100, femalePercent: 55, collectiveAgreementCoveragePercent: 40 }
         ],
@@ -398,13 +401,19 @@ describe('runS1', () => {
         ],
         employmentStatusBreakdown: [{ status: 'fullTime', headcount: 100, fte: 55 }],
         hasCollectiveBargainingAgreements: false,
+        genderPayGapPercent: null,
+        genderPayGapPercentManagement: null,
+        genderPayGapPercentOperations: null,
         absenteeismRatePercent: 10,
         lostTimeInjuryFrequencyRate: 3,
+        workRelatedAccidentsCount: null,
+        workRelatedFatalitiesCount: null,
         averageTrainingHoursPerEmployee: 2,
         trainingCoveragePercent: 40,
         socialProtectionCoveragePercent: 40,
         healthCareCoveragePercent: 30,
-        pensionPlanCoveragePercent: 35
+        pensionPlanCoveragePercent: 35,
+        workforceNarrative: null
       }
     }
 
