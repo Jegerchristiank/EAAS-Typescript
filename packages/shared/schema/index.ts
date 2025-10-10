@@ -597,6 +597,16 @@ export const d1InputSchema = z
   })
   .strict()
 
+export const s1EmploymentContractTypeOptions = [
+  'permanentEmployees',
+  'temporaryEmployees',
+  'nonEmployeeWorkers',
+  'apprentices',
+  'other'
+] as const
+
+export const s1EmploymentStatusOptions = ['fullTime', 'partTime', 'seasonal', 'other'] as const
+
 const s1HeadcountLineSchema = z
   .object({
     segment: z.string().max(120).nullable(),
@@ -606,13 +616,47 @@ const s1HeadcountLineSchema = z
   })
   .strict()
 
+const s1EmploymentContractLineSchema = z
+  .object({
+    contractType: z.enum(s1EmploymentContractTypeOptions),
+    headcount: z.number().min(0).nullable(),
+    fte: z.number().min(0).nullable(),
+    femalePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+const s1EmploymentStatusLineSchema = z
+  .object({
+    status: z.enum(s1EmploymentStatusOptions),
+    headcount: z.number().min(0).nullable(),
+    fte: z.number().min(0).nullable()
+  })
+  .strict()
+
 export const s1InputSchema = z
   .object({
     reportingYear: z.number().min(1900).max(2100).nullable(),
     totalHeadcount: z.number().min(0).nullable(),
+    totalFte: z.number().min(0).nullable(),
     dataCoveragePercent: z.number().min(0).max(100).nullable(),
+    fteCoveragePercent: z.number().min(0).max(100).nullable(),
     averageWeeklyHours: z.number().min(0).max(80).nullable(),
     headcountBreakdown: z.array(s1HeadcountLineSchema).max(20).optional(),
+    employmentContractBreakdown: z.array(s1EmploymentContractLineSchema).max(20).optional(),
+    employmentStatusBreakdown: z.array(s1EmploymentStatusLineSchema).max(20).optional(),
+    hasCollectiveBargainingAgreements: z.boolean().nullable(),
+    genderPayGapPercent: z.number().min(-100).max(100).nullable(),
+    genderPayGapPercentManagement: z.number().min(-100).max(100).nullable(),
+    genderPayGapPercentOperations: z.number().min(-100).max(100).nullable(),
+    absenteeismRatePercent: z.number().min(0).max(100).nullable(),
+    lostTimeInjuryFrequencyRate: z.number().min(0).nullable(),
+    workRelatedAccidentsCount: z.number().min(0).nullable(),
+    workRelatedFatalitiesCount: z.number().min(0).nullable(),
+    averageTrainingHoursPerEmployee: z.number().min(0).nullable(),
+    trainingCoveragePercent: z.number().min(0).max(100).nullable(),
+    socialProtectionCoveragePercent: z.number().min(0).max(100).nullable(),
+    healthCareCoveragePercent: z.number().min(0).max(100).nullable(),
+    pensionPlanCoveragePercent: z.number().min(0).max(100).nullable(),
     workforceNarrative: z.string().max(2000).nullable()
   })
   .strict()

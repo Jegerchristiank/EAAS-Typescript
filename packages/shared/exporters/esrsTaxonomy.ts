@@ -295,8 +295,18 @@ export const esrsConceptDefinitions = {
     unitId: 'pure',
     periodType: 'instant'
   },
+  S1TotalFte: {
+    qname: 'esrs:S1TotalFullTimeEquivalentEmployees',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
   S1DataCoveragePercent: {
     qname: 'esrs:S1DataCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1FteCoveragePercent: {
+    qname: 'esrs:S1FteDataCoveragePercent',
     unitId: 'percent',
     periodType: 'duration'
   },
@@ -310,8 +320,83 @@ export const esrsConceptDefinitions = {
     unitId: 'percent',
     periodType: 'duration'
   },
+  S1HasCollectiveAgreements: {
+    qname: 'esrs:S1CollectiveAgreementsInPlace',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S1GenderPayGapPercentTotal: {
+    qname: 'esrs:S1GenderPayGapOverallPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1GenderPayGapPercentManagement: {
+    qname: 'esrs:S1GenderPayGapManagementPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1GenderPayGapPercentOperations: {
+    qname: 'esrs:S1GenderPayGapOtherEmployeesPercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1AbsenteeismRatePercent: {
+    qname: 'esrs:S1AbsenteeismRatePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1LostTimeInjuryFrequencyRate: {
+    qname: 'esrs:S1LostTimeInjuryFrequencyRate',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S1WorkRelatedAccidentsCount: {
+    qname: 'esrs:S1WorkRelatedAccidentsCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S1WorkRelatedFatalitiesCount: {
+    qname: 'esrs:S1WorkRelatedFatalitiesCount',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S1AverageTrainingHoursPerEmployee: {
+    qname: 'esrs:S1AverageTrainingHoursPerEmployee',
+    unitId: 'hour',
+    periodType: 'duration'
+  },
+  S1TrainingCoveragePercent: {
+    qname: 'esrs:S1TrainingCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1SocialProtectionCoveragePercent: {
+    qname: 'esrs:S1SocialProtectionCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1HealthCareCoveragePercent: {
+    qname: 'esrs:S1HealthCareCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1PensionPlanCoveragePercent: {
+    qname: 'esrs:S1PensionPlanCoveragePercent',
+    unitId: 'percent',
+    periodType: 'duration'
+  },
   S1HeadcountBreakdownTable: {
     qname: 'esrs:S1HeadcountBreakdownTable',
+    unitId: null,
+    periodType: 'instant'
+  },
+  S1EmploymentContractBreakdownTable: {
+    qname: 'esrs:S1EmploymentContractBreakdownTable',
+    unitId: null,
+    periodType: 'instant'
+  },
+  S1EmploymentStatusBreakdownTable: {
+    qname: 'esrs:S1EmploymentStatusBreakdownTable',
     unitId: null,
     periodType: 'instant'
   },
