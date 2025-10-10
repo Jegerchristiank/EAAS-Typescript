@@ -359,12 +359,37 @@ export type ModuleDoubleMateriality = {
   }
 }
 
+export type ModuleMetric = {
+  label: string
+  value: string | number | null
+  unit?: string | null
+  context?: string | null
+}
+
+export type ModuleTableColumn = {
+  key: string
+  label: string
+  align?: 'start' | 'center' | 'end'
+  format?: 'string' | 'number' | 'percent'
+}
+
+export type ModuleTableRow = Record<string, string | number | null>
+
+export type ModuleTable = {
+  id: string
+  title: string
+  summary?: string | null
+  columns: ModuleTableColumn[]
+  rows: ModuleTableRow[]
+}
+
 export type ModuleResult = {
   value: number
   unit: string
   assumptions: string[]
   trace: string[]
   warnings: string[]
+  metrics?: ModuleMetric[]
   intensities?: ModuleIntensity[]
   trend?: ModuleTrend | null
   targetProgress?: ModuleTargetProgress | null
@@ -377,6 +402,7 @@ export type ModuleResult = {
   narratives?: ModuleNarrative[]
   responsibilities?: ModuleResponsibility[]
   notes?: ModuleNote[]
+  tables?: ModuleTable[]
   doubleMateriality?: ModuleDoubleMateriality | null
   esrsFacts?: ModuleEsrsFact[]
   esrsTables?: ModuleEsrsTable[]

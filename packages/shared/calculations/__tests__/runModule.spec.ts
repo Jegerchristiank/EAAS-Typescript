@@ -285,6 +285,7 @@ describe('runS1', () => {
         reportingYear: 2024,
         totalHeadcount: 520,
         dataCoveragePercent: 90,
+        averageWeeklyHours: 37,
         headcountBreakdown: [
           { segment: 'Danmark', headcount: 200, femalePercent: 48, collectiveAgreementCoveragePercent: 85 },
           { segment: 'Sverige', headcount: 120, femalePercent: 52, collectiveAgreementCoveragePercent: 80 },
@@ -319,6 +320,20 @@ describe('runS1', () => {
           ])
         })
       ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Total headcount', value: 520 }),
+        expect.objectContaining({ label: 'Gns. ugentlige arbejdstimer', value: 37 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's1-headcount-breakdown', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Arbejdsstyrkens udvikling' })])
     )
   })
 })
@@ -384,6 +399,24 @@ describe('runS2', () => {
         })
       ])
     )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Arbejdstagere i værdikæden', value: 2400 }),
+        expect.objectContaining({ label: 'Registrerede hændelser', value: 2 }),
+        expect.objectContaining({ label: 'Berørte arbejdstagere', value: 80 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's2-incident-list', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Social dialog og træning' }),
+        expect.objectContaining({ label: 'Afhjælpning og kompensation' })
+      ])
+    )
   })
 })
 
@@ -442,6 +475,24 @@ describe('runS3', () => {
             expect.objectContaining({ community: 'Fjordbyen', householdsAffected: 40 })
           ])
         })
+      ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Identificerede lokalsamfund', value: 5 }),
+        expect.objectContaining({ label: 'Registrerede impacts', value: 2 }),
+        expect.objectContaining({ label: 'Berørte husholdninger', value: 52 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's3-community-impacts', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Engagement og samarbejde' }),
+        expect.objectContaining({ label: 'Afhjælpning og kompensation' })
       ])
     )
   })
@@ -504,6 +555,24 @@ describe('runS4', () => {
             expect.objectContaining({ productOrService: 'SmartHome Hub', usersAffected: 120 })
           ])
         })
+      ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Risikovurderede produkter', value: 70 }),
+        expect.objectContaining({ label: 'Registrerede issues', value: 2 }),
+        expect.objectContaining({ label: 'Berørte brugere', value: 170 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's4-issues', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Indsatser for udsatte brugere' }),
+        expect.objectContaining({ label: 'Forbrugerengagement' })
       ])
     )
   })

@@ -5,7 +5,10 @@ import type {
   ModuleEsrsFact,
   ModuleEsrsTable,
   ModuleInput,
+  ModuleMetric,
+  ModuleNarrative,
   ModuleResult,
+  ModuleTable,
   S4Input
 } from '../../types'
 import { factors } from '../factors'
@@ -129,12 +132,77 @@ export function runS4(input: ModuleInput): ModuleResult {
           }
         ]
 
+  const metrics: ModuleMetric[] = []
+  if (productsAssessedPercent != null) {
+    metrics.push({ label: 'Risikovurderede produkter', value: productsAssessedPercent, unit: '%' })
+  }
+  if (complaintsResolvedPercent != null) {
+    metrics.push({ label: 'Klager løst inden SLA', value: complaintsResolvedPercent, unit: '%' })
+  }
+  if (grievanceMechanism != null) {
+    metrics.push({ label: 'Klagemekanisme etableret', value: grievanceMechanism ? 'Ja' : 'Nej' })
+  }
+  if (escalationDays != null) {
+    metrics.push({ label: 'Eskaleringsfrist', value: escalationDays, unit: 'dage' })
+  }
+  if (dataBreaches != null) {
+    metrics.push({ label: 'Datasikkerhedsbrud', value: dataBreaches, unit: 'sager' })
+  }
+  if (severeIncidents != null) {
+    metrics.push({ label: 'Alvorlige hændelser', value: severeIncidents, unit: 'sager' })
+  }
+  if (recalls != null) {
+    metrics.push({ label: 'Tilbagekaldelser', value: recalls, unit: 'sager' })
+  }
+  if (issues.length > 0) {
+    metrics.push({ label: 'Registrerede issues', value: issues.length, unit: 'sager' })
+    metrics.push({ label: 'Berørte brugere', value: usersAffectedTotal, unit: 'personer' })
+  }
+
+  const tables: ModuleTable[] = []
+  if (issues.length > 0) {
+    tables.push({
+      id: 's4-issues',
+      title: 'Hændelser for forbrugere og slutbrugere',
+      summary: 'Liste over produkt-/service-relaterede issues og status for afhjælpning.',
+      columns: [
+        { key: 'productOrService', label: 'Produkt/tjeneste' },
+        { key: 'market', label: 'Marked' },
+        { key: 'issueType', label: 'Issue-type' },
+        { key: 'usersAffected', label: 'Berørte', align: 'end', format: 'number' },
+        { key: 'severityLevel', label: 'Alvorlighed' },
+        { key: 'remediationStatus', label: 'Status' },
+        { key: 'description', label: 'Beskrivelse' }
+      ],
+      rows: issues.map((issue) => ({
+        productOrService: issue.productOrService,
+        market: issue.market,
+        issueType: issue.issueType,
+        usersAffected: issue.usersAffected,
+        severityLevel: issue.severityLevel,
+        remediationStatus: issue.remediationStatus,
+        description: issue.description
+      }))
+    })
+  }
+
+  const narratives: ModuleNarrative[] = []
+  if (raw?.vulnerableUsersNarrative && raw.vulnerableUsersNarrative.trim().length > 0) {
+    narratives.push({ label: 'Indsatser for udsatte brugere', content: raw.vulnerableUsersNarrative.trim() })
+  }
+  if (raw?.consumerEngagementNarrative && raw.consumerEngagementNarrative.trim().length > 0) {
+    narratives.push({ label: 'Forbrugerengagement', content: raw.consumerEngagementNarrative.trim() })
+  }
+
   return {
     value,
     unit: s4.unit,
     assumptions,
     trace,
     warnings,
+    ...(metrics.length > 0 ? { metrics } : {}),
+    ...(narratives.length > 0 ? { narratives } : {}),
+    ...(tables.length > 0 ? { tables } : {}),
     ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
     ...(esrsTables ? { esrsTables } : {})
   }

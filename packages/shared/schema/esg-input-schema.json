@@ -2236,6 +2236,15 @@
           "maximum": 100,
           "description": "Hvor stor en andel af arbejdsstyrken data dækker."
         },
+        "averageWeeklyHours": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 80,
+          "description": "Gennemsnitlige ugentlige arbejdstimer (FTE)."
+        },
         "headcountBreakdown": {
           "type": "array",
           "maxItems": 20,

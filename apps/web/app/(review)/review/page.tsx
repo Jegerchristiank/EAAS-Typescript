@@ -8,6 +8,8 @@ import {
   type CalculatedModuleResult,
   type ModuleInput,
   type EsrsMetricSection,
+  type ModuleMetric,
+  type ModuleTableColumn,
 } from '@org/shared'
 import Link from 'next/link'
 import { useMemo } from 'react'
@@ -451,6 +453,26 @@ function DoubleMaterialityCard({ entry }: { entry: CalculatedModuleResult | null
 
 function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
   const { result } = entry
+  const formatMetricValue = (metric: ModuleMetric) => {
+    const value = metric.value
+    const formatted =
+      value == null || (typeof value === 'number' && Number.isNaN(value))
+        ? '–'
+        : value
+    const unit = metric.unit ? ` ${metric.unit}` : ''
+    return `${formatted}${unit}`
+  }
+
+  const formatTableCell = (column: ModuleTableColumn, value: string | number | null) => {
+    if (value == null || (typeof value === 'number' && Number.isNaN(value))) {
+      return '–'
+    }
+    if (column.format === 'percent' && typeof value === 'number') {
+      return `${value}%`
+    }
+    return value
+  }
+
   return (
     <section className="ds-card">
       <header className="ds-stack-sm">
@@ -459,6 +481,19 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
           {result.value} {result.unit}
         </p>
       </header>
+      {result.metrics && result.metrics.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>Nøgletal</strong>
+          <ul className="ds-stack-xs">
+            {result.metrics.map((metric, index) => (
+              <li key={`${entry.moduleId}-metric-${index}`}>
+                <span className="ds-text-strong">{metric.label}</span>: {formatMetricValue(metric)}
+                {metric.context ? <span className="ds-text-subtle"> – {metric.context}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {result.intensities && result.intensities.length > 0 && (
         <div className="ds-stack-sm">
           <strong>E1-intensiteter</strong>
@@ -591,6 +626,40 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+      {result.tables && result.tables.length > 0 && (
+        <div className="ds-stack-sm ds-stack">
+          {result.tables.map((table) => (
+            <div key={`${entry.moduleId}-${table.id}`} className="ds-stack-sm">
+              <strong>{table.title}</strong>
+              {table.summary && <p className="ds-text-subtle">{table.summary}</p>}
+              <div className="ds-table-wrapper">
+                <table className="ds-table">
+                  <thead>
+                    <tr>
+                      {table.columns.map((column) => (
+                        <th key={column.key} data-align={column.align ?? 'start'}>
+                          {column.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {table.rows.map((row, rowIndex) => (
+                      <tr key={`${entry.moduleId}-${table.id}-row-${rowIndex}`}>
+                        {table.columns.map((column) => (
+                          <td key={`${entry.moduleId}-${table.id}-row-${rowIndex}-${column.key}`} data-align={column.align ?? 'start'}>
+                            {formatTableCell(column, row[column.key] ?? null)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       <details className="ds-summary">
