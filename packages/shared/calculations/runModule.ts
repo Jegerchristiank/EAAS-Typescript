@@ -42,6 +42,10 @@ import { runC13 } from './modules/runC13'
 import { runC14 } from './modules/runC14'
 import { runC15 } from './modules/runC15'
 import { runE1Targets } from './modules/runE1Targets'
+import { runE1Scenarios } from './modules/runE1Scenarios'
+import { runE1CarbonPrice } from './modules/runE1CarbonPrice'
+import { runE1RiskGeography } from './modules/runE1RiskGeography'
+import { runE1DecarbonisationDrivers } from './modules/runE1DecarbonisationDrivers'
 import { runE2Water } from './modules/runE2Water'
 import { runE3Pollution } from './modules/runE3Pollution'
 import { runE4Biodiversity } from './modules/runE4Biodiversity'
@@ -89,6 +93,10 @@ const moduleTitles: Record<ModuleId, string> = {
   C13: 'C13 – Investeringer og finansielle aktiviteter',
   C14: 'C14 – Behandling af solgte produkter',
   C15: 'C15 – Øvrige kategorioplysninger',
+  E1Scenarios: 'E1 – Klimascenarier',
+  E1CarbonPrice: 'E1 – Interne CO₂-priser',
+  E1RiskGeography: 'E1 – Risikogeografi',
+  E1DecarbonisationDrivers: 'E1 – Decarboniseringsdrivere',
   E1Targets: 'E1 – Klimamål og handlinger',
   E2Water: 'E2 – Vandforbrug og vandstress',
   E3Pollution: 'E3 – Emissioner til luft, vand og jord',
@@ -138,6 +146,10 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C13: runC13,
   C14: runC14,
   C15: runC15,
+  E1Scenarios: runE1Scenarios,
+  E1CarbonPrice: runE1CarbonPrice,
+  E1RiskGeography: runE1RiskGeography,
+  E1DecarbonisationDrivers: runE1DecarbonisationDrivers,
   E1Targets: runE1Targets,
   E2Water: runE2Water,
   E3Pollution: runE3Pollution,

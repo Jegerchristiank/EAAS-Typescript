@@ -61,6 +61,13 @@ const C12Step = createLazyStep(() => import('./C12'), 'C12Step')
 const C13Step = createLazyStep(() => import('./C13'), 'C13Step')
 const C14Step = createLazyStep(() => import('./C14'), 'C14Step')
 const C15Step = createLazyStep(() => import('./C15'), 'C15Step')
+const E1ScenariosStep = createLazyStep(() => import('./E1Scenarios'), 'E1ScenariosStep')
+const E1CarbonPriceStep = createLazyStep(() => import('./E1CarbonPrice'), 'E1CarbonPriceStep')
+const E1RiskGeographyStep = createLazyStep(() => import('./E1RiskGeography'), 'E1RiskGeographyStep')
+const E1DecarbonisationDriversStep = createLazyStep(
+  () => import('./E1DecarbonisationDrivers'),
+  'E1DecarbonisationDriversStep',
+)
 const E1TargetsStep = createLazyStep(() => import('./E1Targets'), 'E1TargetsStep')
 const E2WaterStep = createLazyStep(() => import('./E2Water'), 'E2WaterStep')
 const E3PollutionStep = createLazyStep(() => import('./E3Pollution'), 'E3PollutionStep')
@@ -121,6 +128,34 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C13', label: 'C13 – Investeringer og finansielle aktiviteter', component: C13Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C14', label: 'C14 – Behandling af solgte produkter', component: C14Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'ready' },
+  {
+    id: 'E1Scenarios',
+    label: 'E1 – Klimascenarier',
+    component: E1ScenariosStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
+    id: 'E1CarbonPrice',
+    label: 'E1 – Interne CO₂-priser',
+    component: E1CarbonPriceStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
+    id: 'E1RiskGeography',
+    label: 'E1 – Risikogeografi',
+    component: E1RiskGeographyStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
+    id: 'E1DecarbonisationDrivers',
+    label: 'E1 – Decarboniseringsdrivere',
+    component: E1DecarbonisationDriversStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
   {
     id: 'E1Targets',
     label: 'E1 – Klimamål og handlinger',

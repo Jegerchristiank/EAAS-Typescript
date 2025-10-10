@@ -7,6 +7,7 @@ Brug oversigten til hurtigt at finde både modulreferencer og runbooks for bereg
 | B1 – Scope 2 elforbrug         | (kommer i Scope 2-oversigten)           | [Runbook](../runbooks/module-b1.md)  |
 | C10 – Upstream leasede aktiver | [Scope 3 C10 reference](scope-3-c10.md) | [Runbook](../runbooks/module-c10.md) |
 | D1 – Metode & governance       | –                                       | [Runbook](../runbooks/module-d1.md)  |
+| E1 – Klimascenarier & transition | [E1 reference](environment-e1.md)       | –                                    |
 | S1 – Arbejdsstyrke & headcount | [Social moduler](social-s1-s4.md#s1-headcount) | [Runbook](../runbooks/module-s1.md) |
 | S2 – Værdikædearbejdere        | [Social moduler](social-s1-s4.md#s2-vaerdikaede) | [Runbook](../runbooks/module-s2.md) |
 | S3 – Lokalsamfund              | [Social moduler](social-s1-s4.md#s3-lokalsamfund) | [Runbook](../runbooks/module-s3.md) |

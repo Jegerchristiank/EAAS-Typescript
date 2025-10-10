@@ -38,6 +38,10 @@ import { runA1 } from '../modules/runA1'
 import { runD1 } from '../modules/runD1'
 import { runD2 } from '../modules/runD2'
 import { runE1Targets } from '../modules/runE1Targets'
+import { runE1Scenarios } from '../modules/runE1Scenarios'
+import { runE1CarbonPrice } from '../modules/runE1CarbonPrice'
+import { runE1RiskGeography } from '../modules/runE1RiskGeography'
+import { runE1DecarbonisationDrivers } from '../modules/runE1DecarbonisationDrivers'
 import { runE2Water } from '../modules/runE2Water'
 import { runE3Pollution } from '../modules/runE3Pollution'
 import { runE4Biodiversity } from '../modules/runE4Biodiversity'
@@ -52,6 +56,7 @@ import { runS3 } from '../modules/runS3'
 import { runS4 } from '../modules/runS4'
 import { runG1 } from '../modules/runG1'
 import { e1TargetsFixture } from './fixtures/e1Targets'
+import { e1NewModulesFixture } from './fixtures/e1NewModules'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -1872,6 +1877,91 @@ describe('runE1Targets', () => {
     expect(result.plannedActions?.length).toBe(2)
     expect(result.trace).toEqual(expect.arrayContaining(['targets.onTrack=1', 'targets.lagging=1']))
     expect(result.warnings).toEqual([])
+  })
+})
+
+describe('runE1Scenarios', () => {
+  it('normaliserer scenarier og udsender ESRS-facts', () => {
+    const result = runE1Scenarios(e1NewModulesFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.unit).toBe('scenarier')
+    expect(result.scenarios?.length).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Gennemsnitlig dækningsgrad', value: 62.5 }),
+      ]),
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1ScenariosDiverseRange', value: true }),
+        expect.objectContaining({ conceptKey: 'E1ScenariosNarrative' }),
+      ]),
+    )
+  })
+})
+
+describe('runE1CarbonPrice', () => {
+  it('beregner gennemsnitspris og dækning for CO₂-ordninger', () => {
+    const result = runE1CarbonPrice(e1NewModulesFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Gennemsnitlig CO₂-pris', value: 675 }),
+        expect.objectContaining({ label: 'Gennemsnitlig dækningsgrad', value: 47.5 }),
+      ]),
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1CarbonPriceAmount', value: 675 }),
+        expect.objectContaining({ conceptKey: 'E1CarbonPriceAlignment', value: true }),
+      ]),
+    )
+    expect(result.carbonPriceSchemes?.[0]).toMatchObject({ scheme: 'Investeringsscreening', scope: 'combined' })
+  })
+})
+
+describe('runE1RiskGeography', () => {
+  it('summerer aktiver og omsætning på tværs af risikokategorier', () => {
+    const result = runE1RiskGeography(e1NewModulesFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Aktiver eksponeret for fysisk risiko', value: 120000000 }),
+        expect.objectContaining({ label: 'Aktiver eksponeret for transitionrisiko', value: 80000000 }),
+      ]),
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1RiskPhysicalAssets', value: 120000000 }),
+        expect.objectContaining({ conceptKey: 'E1RiskTransitionRevenue', value: 65000000 }),
+      ]),
+    )
+  })
+})
+
+describe('runE1DecarbonisationDrivers', () => {
+  it('opsummerer reduktioner og investeringer', () => {
+    const result = runE1DecarbonisationDrivers(e1NewModulesFixture)
+
+    expect(result.value).toBe(4600)
+    expect(result.unit).toBe('tCO₂e')
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Antal drivere', value: 2 }),
+        expect.objectContaining({ label: 'Forventet reduktion', value: 4600 }),
+        expect.objectContaining({ label: 'Estimeret investering', value: 17500000 }),
+      ]),
+    )
+    expect(result.decarbonisationDrivers?.[0]).toMatchObject({ lever: 'energyEfficiency', name: 'LED og varmegenvinding' })
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1DecarbonisationLeverTypes', value: expect.stringContaining('energyEfficiency') }),
+      ]),
+    )
+    expect(result.esrsTables?.[0]?.conceptKey).toBe('E1DecarbonisationTable')
   })
 })
 

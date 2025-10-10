@@ -73,9 +73,20 @@ a {
   align-content: start;
 }
 
-.ds-stack {
+.ds-stack { 
   display: grid;
   gap: var(--space-4);
+}
+
+.ds-grid-two {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .ds-grid-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .ds-stack-xs {

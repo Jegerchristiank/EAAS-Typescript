@@ -37,6 +37,10 @@ import type {
   D2MaterialTopic,
   D1Input,
   E1ContextInput,
+  E1ScenariosInput,
+  E1CarbonPriceInput,
+  E1RiskGeographyInput,
+  E1DecarbonisationDriversInput,
   E1TargetsInput,
   E1TargetLine,
   E1TargetMilestone,
@@ -48,6 +52,9 @@ import type {
   E1TransitionStatus,
   E1FinancialEffectType,
   E1RemovalType,
+  E1ScenarioType,
+  E1RiskType,
+  E1DecarbonisationDriverType,
   E2WaterInput,
   E3PollutionInput,
   E4BiodiversityInput,
@@ -99,6 +106,10 @@ export const moduleIds = [
   'C13',
   'C14',
   'C15',
+  'E1Scenarios',
+  'E1CarbonPrice',
+  'E1RiskGeography',
+  'E1DecarbonisationDrivers',
   'E1Targets',
   'E2Water',
   'E3Pollution',
@@ -150,6 +161,10 @@ type ModuleInputBase = Partial<Record<ModuleId, unknown>> & {
   C13?: C13Input | null | undefined
   C14?: C14Input | null | undefined
   C15?: C15Input | null | undefined
+  E1Scenarios?: E1ScenariosInput | null | undefined
+  E1CarbonPrice?: E1CarbonPriceInput | null | undefined
+  E1RiskGeography?: E1RiskGeographyInput | null | undefined
+  E1DecarbonisationDrivers?: E1DecarbonisationDriversInput | null | undefined
   E1Targets?: E1TargetsInput | null | undefined
   E1Context?: E1ContextInput | null | undefined
   E2Water?: E2WaterInput | null | undefined
@@ -264,6 +279,45 @@ export type ModuleRemovalProject = {
   permanenceYears: number | null
   financedThroughCredits: boolean | null
   responsible: string | null
+}
+
+export type ModuleScenarioEntry = {
+  name: string | null
+  provider: string | null
+  scenarioType: E1ScenarioType | null
+  timeHorizon: string | null
+  coveragePercent: number | null
+  description: string | null
+}
+
+export type ModuleCarbonPriceScheme = {
+  scheme: string | null
+  scope: E1TargetScope | null
+  priceDkkPerTonne: number | null
+  coveragePercent: number | null
+  appliesToCapex: boolean | null
+  appliesToOpex: boolean | null
+  appliesToInvestmentDecisions: boolean | null
+  alignedWithFinancialStatements: boolean | null
+  description: string | null
+}
+
+export type ModuleRiskGeographyEntry = {
+  geography: string | null
+  riskType: E1RiskType | null
+  timeHorizon: string | null
+  assetsAtRiskDkk: number | null
+  revenueAtRiskDkk: number | null
+  exposureNarrative: string | null
+}
+
+export type ModuleDecarbonisationDriver = {
+  lever: E1DecarbonisationDriverType | null
+  name: string | null
+  description: string | null
+  expectedReductionTonnes: number | null
+  investmentNeedDkk: number | null
+  startYear: number | null
 }
 
 export type ModuleNarrative = {
@@ -399,6 +453,10 @@ export type ModuleResult = {
   transitionMeasures?: ModuleTransitionMeasure[]
   financialEffects?: ModuleFinancialEffect[]
   removalProjects?: ModuleRemovalProject[]
+  scenarios?: ModuleScenarioEntry[]
+  carbonPriceSchemes?: ModuleCarbonPriceScheme[]
+  riskGeographies?: ModuleRiskGeographyEntry[]
+  decarbonisationDrivers?: ModuleDecarbonisationDriver[]
   narratives?: ModuleNarrative[]
   responsibilities?: ModuleResponsibility[]
   notes?: ModuleNote[]
@@ -467,6 +525,13 @@ export type {
   E1TransitionStatus,
   E1FinancialEffectType,
   E1RemovalType,
+  E1ScenarioType,
+  E1RiskType,
+  E1DecarbonisationDriverType,
+  E1ScenariosInput,
+  E1CarbonPriceInput,
+  E1RiskGeographyInput,
+  E1DecarbonisationDriversInput,
   E2WaterInput,
   E3PollutionInput,
   E4BiodiversityInput,
