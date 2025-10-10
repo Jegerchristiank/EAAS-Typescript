@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { PersistedWizardProfile, PersistedWizardStorage } from '@org/shared'
+
 import { WizardPersistenceService, type WizardPersistenceRepository } from './wizardService'
+
 import type { WizardPersistenceDocument } from './fileRepository'
+import type { PersistedWizardProfile, PersistedWizardStorage } from '@org/shared/wizard/persistence'
 
 class InMemoryRepository implements WizardPersistenceRepository {
   private document: WizardPersistenceDocument
@@ -27,13 +29,19 @@ class InMemoryRepository implements WizardPersistenceRepository {
 
 describe('WizardPersistenceService', () => {
   it('gemmer nye profiler med versionsnummer og audit-log', () => {
-    const repository = new InMemoryRepository()
-    const service = new WizardPersistenceService(repository as unknown as any)
+    const repository: WizardPersistenceRepository = new InMemoryRepository()
+    const service = new WizardPersistenceService(repository)
 
     const profile: PersistedWizardProfile = {
       id: 'profile-1',
       name: 'Profil 1',
-      state: { B1: { electricityConsumptionKwh: 100 } },
+      state: {
+        B1: {
+          electricityConsumptionKwh: 100,
+          emissionFactorKgPerKwh: null,
+          renewableSharePercent: null,
+        },
+      },
       profile: { governance: true },
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -68,7 +76,7 @@ describe('WizardPersistenceService', () => {
     const result = service.save(storage, 'tester')
 
     expect(result.storage.profiles['profile-1']?.version).toBe(1)
-    expect(result.storage.profiles['profile-1']?.history.B1?.[0]?.updatedBy).toBe('tester')
+    expect(result.storage.profiles['profile-1']?.history['B1']?.[0]?.updatedBy).toBe('tester')
     expect(result.auditLog).toHaveLength(1)
     const entry = result.auditLog[0]!
     expect(entry.userId).toBe('tester')
@@ -81,7 +89,13 @@ describe('WizardPersistenceService', () => {
     const baseProfile: PersistedWizardProfile = {
       id: 'profile-1',
       name: 'Profil 1',
-      state: { B1: { electricityConsumptionKwh: 100 } },
+      state: {
+        B1: {
+          electricityConsumptionKwh: 100,
+          emissionFactorKgPerKwh: null,
+          renewableSharePercent: null,
+        },
+      },
       profile: { governance: true },
       createdAt,
       updatedAt: createdAt,
@@ -90,18 +104,24 @@ describe('WizardPersistenceService', () => {
       version: 1,
     }
 
-    const repository = new InMemoryRepository({
+    const repository: WizardPersistenceRepository = new InMemoryRepository({
       storage: {
         activeProfileId: 'profile-1',
         profiles: { 'profile-1': baseProfile },
       },
       auditLog: [],
     })
-    const service = new WizardPersistenceService(repository as unknown as any)
+    const service = new WizardPersistenceService(repository)
 
     const updatedProfile: PersistedWizardProfile = {
       ...baseProfile,
-      state: { B1: { electricityConsumptionKwh: 250 } },
+      state: {
+        B1: {
+          electricityConsumptionKwh: 250,
+          emissionFactorKgPerKwh: null,
+          renewableSharePercent: null,
+        },
+      },
       updatedAt: Date.now(),
       history: {
         B1: [
@@ -129,6 +149,6 @@ describe('WizardPersistenceService', () => {
     expect(entry.changes.some((change) => change.field === 'state.B1')).toBe(true)
     expect(entry.userId).toBe('auditor')
     expect(result.storage.profiles['profile-1']?.version).toBe(2)
-    expect(result.storage.profiles['profile-1']?.history.B1?.[0]?.updatedBy).toBe('auditor')
+    expect(result.storage.profiles['profile-1']?.history['B1']?.[0]?.updatedBy).toBe('auditor')
   })
 })

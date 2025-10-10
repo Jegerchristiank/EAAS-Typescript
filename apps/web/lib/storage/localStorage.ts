@@ -1,11 +1,12 @@
 'use client'
 
+import { createInitialWizardProfile } from '../../src/modules/wizard/profile'
+
 import type {
   PersistedWizardProfile,
   PersistedWizardStorage,
   WizardPersistenceSnapshot,
-} from '@org/shared'
-import { createInitialWizardProfile } from '../../src/modules/wizard/profile'
+} from '@org/shared/wizard/persistence'
 
 export type PersistMetadata = {
   userId: string

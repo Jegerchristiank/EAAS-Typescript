@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { PersistedWizardStorage, WizardPersistenceSnapshot } from '@org/shared'
+
 import {
   createFallbackStorage,
   fetchWizardSnapshot,
   persistWizardStorage,
   type PersistMetadata,
 } from '../localStorage'
+
+import type { PersistedWizardStorage, WizardPersistenceSnapshot } from '@org/shared/wizard/persistence'
 
 describe('wizard persistence client', () => {
   let snapshot: WizardPersistenceSnapshot

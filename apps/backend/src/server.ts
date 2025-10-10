@@ -1,9 +1,12 @@
-import { createServer, IncomingMessage, ServerResponse } from 'node:http'
-import { ensureDataFileExists, loadEnvironment } from './env'
+import { createServer } from 'node:http'
+
 import { TokenAuthenticator } from './auth/tokenAuth'
+import { ensureDataFileExists, loadEnvironment } from './env'
 import { FileRepository } from './persistence/fileRepository'
 import { WizardPersistenceService } from './persistence/wizardService'
-import type { PersistedWizardStorage, WizardPersistenceSnapshot } from '@org/shared'
+
+import type { PersistedWizardStorage, WizardPersistenceSnapshot } from '@org/shared/wizard/persistence'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 
 async function readJsonBody<T>(req: IncomingMessage): Promise<T | null> {
   const chunks: Buffer[] = []

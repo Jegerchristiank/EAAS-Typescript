@@ -1,7 +1,7 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { mkdirSync } from 'node:fs'
-import type { PersistedWizardStorage, WizardAuditLogEntry } from '@org/shared'
+
+import type { PersistedWizardStorage, WizardAuditLogEntry } from '@org/shared/wizard/persistence'
 
 export type WizardPersistenceDocument = {
   storage: PersistedWizardStorage

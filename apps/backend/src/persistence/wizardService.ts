@@ -1,11 +1,11 @@
+import type { WizardPersistenceDocument } from './fileRepository'
 import type {
   PersistedWizardProfile,
   PersistedWizardStorage,
   WizardAuditChange,
   WizardAuditLogEntry,
   WizardFieldHistory,
-} from '@org/shared'
-import type { WizardPersistenceDocument } from './fileRepository'
+} from '@org/shared/wizard/persistence'
 
 export interface WizardPersistenceRepository {
   read(): WizardPersistenceDocument
@@ -34,7 +34,7 @@ function computeStateChanges(previous: PersistedWizardProfile | undefined, next:
       {
         field: '__created__',
         previous: null,
-        next: next,
+        next,
       },
     ]
   }

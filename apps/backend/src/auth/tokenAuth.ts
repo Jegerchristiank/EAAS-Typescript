@@ -1,6 +1,6 @@
-import type { IncomingHttpHeaders } from 'node:http'
 import type { Environment } from '../env'
-import type { WizardPermissions, WizardUser } from '@org/shared'
+import type { WizardPermissions, WizardUser } from '@org/shared/wizard/persistence'
+import type { IncomingHttpHeaders } from 'node:http'
 
 export type AuthenticatedRequest = {
   user: WizardUser
