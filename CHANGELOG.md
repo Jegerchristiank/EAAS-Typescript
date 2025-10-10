@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B10-modul for virtuelle PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B11-modul for time-matchede certifikatporteføljer med schema, beregning, UI og tests.
 - Udvidede S1–S4 sociale moduler med ESRS-nøgletal, tabeller, UI-validering og rapport/PDF-understøttelse.
+- ESRS S1 udvidet med FTE, ansættelsesformer, løngab, arbejdsmiljø, træning og sociale ydelser på tværs af schema, beregning, UI, eksport og tests.
 - Fuldt A1-modul for Scope 1 stationær forbrænding med schema, beregning, UI og tests.
 - Fuldt A2-modul for Scope 1 mobile kilder med schema, beregning, UI og tests.
 - Fuldt A3-modul for Scope 1 procesemissioner med schema, beregning, UI og tests.

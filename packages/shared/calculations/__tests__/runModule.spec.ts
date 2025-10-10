@@ -295,7 +295,9 @@ describe('runS1', () => {
       S1: {
         reportingYear: 2024,
         totalHeadcount: 520,
+        totalFte: 483,
         dataCoveragePercent: 90,
+        fteCoveragePercent: 95,
         averageWeeklyHours: 37,
         headcountBreakdown: [
           { segment: 'Danmark', headcount: 200, femalePercent: 48, collectiveAgreementCoveragePercent: 85 },
@@ -303,6 +305,30 @@ describe('runS1', () => {
           { segment: 'Produktion', headcount: 150, femalePercent: 18, collectiveAgreementCoveragePercent: 70 },
           { segment: 'HQ', headcount: 50, femalePercent: 60, collectiveAgreementCoveragePercent: 90 }
         ],
+        employmentContractBreakdown: [
+          { contractType: 'permanentEmployees', headcount: 420, fte: 400, femalePercent: 45 },
+          { contractType: 'temporaryEmployees', headcount: 70, fte: 60, femalePercent: 55 },
+          { contractType: 'nonEmployeeWorkers', headcount: 20, fte: 15, femalePercent: 40 },
+          { contractType: 'apprentices', headcount: 10, fte: 8, femalePercent: 35 }
+        ],
+        employmentStatusBreakdown: [
+          { status: 'fullTime', headcount: 430, fte: 410 },
+          { status: 'partTime', headcount: 70, fte: 60 },
+          { status: 'seasonal', headcount: 20, fte: 13 }
+        ],
+        hasCollectiveBargainingAgreements: true,
+        genderPayGapPercent: 4,
+        genderPayGapPercentManagement: 7,
+        genderPayGapPercentOperations: -1,
+        absenteeismRatePercent: 4,
+        lostTimeInjuryFrequencyRate: 1.2,
+        workRelatedAccidentsCount: 2,
+        workRelatedFatalitiesCount: 0,
+        averageTrainingHoursPerEmployee: 10,
+        trainingCoveragePercent: 85,
+        socialProtectionCoveragePercent: 90,
+        healthCareCoveragePercent: 80,
+        pensionPlanCoveragePercent: 88,
         workforceNarrative: 'Stabil bemanding med fokus på kollektiv repræsentation.'
       }
     }
@@ -316,10 +342,16 @@ describe('runS1', () => {
     expect(result.warnings).toContain(
       'Segmentet "Produktion" har en kønsfordeling på 18% kvinder – markér indsats i S2 for at adressere ubalancer.'
     )
+    expect(result.warnings).toContain('Registrerede arbejdsulykker: 2. Dokumentér forebyggelse.')
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'S1TotalHeadcount', value: 520 }),
-        expect.objectContaining({ conceptKey: 'S1DataCoveragePercent', value: 90 })
+        expect.objectContaining({ conceptKey: 'S1TotalFte', value: 483 }),
+        expect.objectContaining({ conceptKey: 'S1DataCoveragePercent', value: 90 }),
+        expect.objectContaining({ conceptKey: 'S1FteCoveragePercent', value: 95 }),
+        expect.objectContaining({ conceptKey: 'S1GenderPayGapPercentTotal', value: 4 }),
+        expect.objectContaining({ conceptKey: 'S1AbsenteeismRatePercent', value: 4 }),
+        expect.objectContaining({ conceptKey: 'S1AverageTrainingHoursPerEmployee', value: 10 })
       ])
     )
     expect(result.esrsTables).toEqual(
@@ -329,13 +361,17 @@ describe('runS1', () => {
           rows: expect.arrayContaining([
             expect.objectContaining({ segment: 'Danmark', headcount: 200 })
           ])
-        })
+        }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentContractBreakdownTable' }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentStatusBreakdownTable' })
       ])
     )
     expect(result.metrics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: 'Total headcount', value: 520 }),
-        expect.objectContaining({ label: 'Gns. ugentlige arbejdstimer', value: 37 })
+        expect.objectContaining({ label: 'Total FTE', value: 483 }),
+        expect.objectContaining({ label: 'Gns. ugentlige arbejdstimer', value: 37 }),
+        expect.objectContaining({ label: 'Træningstimer pr. medarbejder', value: 10 })
       ])
     )
     expect(result.tables).toEqual(
@@ -345,6 +381,65 @@ describe('runS1', () => {
     )
     expect(result.narratives).toEqual(
       expect.arrayContaining([expect.objectContaining({ label: 'Arbejdsstyrkens udvikling' })])
+    )
+  })
+
+  it('giver datakvalitetsadvarsler når centrale S1-data mangler', () => {
+    const input: ModuleInput = {
+      S1: {
+        reportingYear: null,
+        totalHeadcount: 100,
+        totalFte: 60,
+        dataCoveragePercent: 100,
+        fteCoveragePercent: null,
+        averageWeeklyHours: null,
+        headcountBreakdown: [
+          { segment: 'HQ', headcount: 100, femalePercent: 55, collectiveAgreementCoveragePercent: 40 }
+        ],
+        employmentContractBreakdown: [
+          { contractType: 'permanentEmployees', headcount: 80, fte: 50, femalePercent: 50 }
+        ],
+        employmentStatusBreakdown: [{ status: 'fullTime', headcount: 100, fte: 55 }],
+        hasCollectiveBargainingAgreements: false,
+        genderPayGapPercent: null,
+        genderPayGapPercentManagement: null,
+        genderPayGapPercentOperations: null,
+        absenteeismRatePercent: 10,
+        lostTimeInjuryFrequencyRate: 3,
+        workRelatedAccidentsCount: null,
+        workRelatedFatalitiesCount: null,
+        averageTrainingHoursPerEmployee: 2,
+        trainingCoveragePercent: 40,
+        socialProtectionCoveragePercent: 40,
+        healthCareCoveragePercent: 30,
+        pensionPlanCoveragePercent: 35,
+        workforceNarrative: null
+      }
+    }
+
+    const result = runS1(input)
+
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Datadækning for FTE er ikke angivet. Feltet dokumenterer ESRS S1-6 krav om fuldt overblik.',
+        'Faglig repræsentation/dækningsgrad er kun 40% – vurder behov for kollektive aftaler og arbejdsmiljøudvalg.',
+        'Der er angivet at ingen kollektive overenskomster dækker medarbejderne – forvent opfølgning i handlingsplaner.',
+        'Løngab (samlet) er ikke angivet. ESRS S1 kræver kønsopdelt aflønning.',
+        'Løngab for ledelse er ikke angivet.',
+        'Løngab for øvrige medarbejdere er ikke angivet.',
+        'Fraværsraten er 10% – undersøg årsager og forbedringstiltag.',
+        'LTIFR er 3 – styrk sikkerhedstræning og rapportering.',
+        'Angiv antal arbejdsrelaterede ulykker for at opfylde ESRS S1-8.',
+        'Angiv antal arbejdsrelaterede dødsfald (0 hvis ingen).',
+        'Træningstimer pr. medarbejder er 2 – vurder behov for flere efteruddannelsesinitiativer.',
+        'Kun 40% af medarbejderne modtog træning – udvid programmerne.',
+        'Social beskyttelse dækker kun 40% – vurder forbedringer af ydelserne.',
+        'Sundhedsordninger dækker 30% – vurder forbedringer.',
+        'Pensionsordninger dækker 35% – dokumentér plan for udvidelse.',
+        'Ansættelsesformernes headcount (80) stemmer ikke overens med total headcount (100). Kontrollér opgørelsen.',
+        'Ansættelsesformernes FTE (50.00) stemmer ikke overens med total FTE (60). Juster fordeling eller total.',
+        'Statusfordelingens FTE (55.00) matcher ikke total FTE (60).'
+      ])
     )
   })
 })

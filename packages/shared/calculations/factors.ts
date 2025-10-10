@@ -382,7 +382,15 @@ export const factors = {
     labourRightsWeight: 0.1,
     minSegmentsForFullScore: 4,
     coverageWarningThresholdPercent: 70,
-    labourRightsWarningThresholdPercent: 60
+    labourRightsWarningThresholdPercent: 60,
+    fteCoverageWarningThresholdPercent: 75,
+    genderPayGapWarningPercent: 5,
+    absenteeismWarningThresholdPercent: 5,
+    lostTimeInjuryWarningThreshold: 2,
+    trainingHoursMinimum: 8,
+    socialProtectionWarningThresholdPercent: 75,
+    trainingCoverageWarningThresholdPercent: 70,
+    benefitCoverageWarningThresholdPercent: 60
   },
   s2: {
     unit: 'social score',

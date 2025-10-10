@@ -2227,6 +2227,14 @@
           "minimum": 0,
           "description": "Samlet antal medarbejdere (headcount)."
         },
+        "totalFte": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Samlet antal fuldtidsekvivalenter (FTE)."
+        },
         "dataCoveragePercent": {
           "type": [
             "number",
@@ -2235,6 +2243,15 @@
           "minimum": 0,
           "maximum": 100,
           "description": "Hvor stor en andel af arbejdsstyrken data dækker."
+        },
+        "fteCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Datadækning for FTE-opgørelsen (0-100%)."
         },
         "averageWeeklyHours": {
           "type": [
@@ -2291,6 +2308,209 @@
             "required": [],
             "additionalProperties": false
           }
+        },
+        "employmentContractBreakdown": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Fordeling på ansættelsesformer (fast, tidsbegrænset, eksterne m.fl.)",
+          "items": {
+            "type": "object",
+            "title": "S1EmploymentContractLine",
+            "properties": {
+              "contractType": {
+                "type": "string",
+                "enum": [
+                  "permanentEmployees",
+                  "temporaryEmployees",
+                  "nonEmployeeWorkers",
+                  "apprentices",
+                  "other"
+                ],
+                "description": "Ansættelsesform."
+              },
+              "headcount": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Headcount i ansættelsesformen."
+              },
+              "fte": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "FTE for ansættelsesformen."
+              },
+              "femalePercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Andel kvinder i ansættelsesformen (%)."
+              }
+            },
+            "required": [
+              "contractType"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "employmentStatusBreakdown": {
+          "type": "array",
+          "maxItems": 20,
+          "description": "Fordeling på beskæftigelsesgrad (fuld tid, deltid m.m.)",
+          "items": {
+            "type": "object",
+            "title": "S1EmploymentStatusLine",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "fullTime",
+                  "partTime",
+                  "seasonal",
+                  "other"
+                ],
+                "description": "Beskæftigelsesstatus."
+              },
+              "headcount": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Headcount i statusgruppen."
+              },
+              "fte": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "FTE i statusgruppen."
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hasCollectiveBargainingAgreements": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Angiv om kollektive overenskomster dækker ansatte."
+        },
+        "genderPayGapPercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -100,
+          "maximum": 100,
+          "description": "Løngab mellem køn (samlet) i %."
+        },
+        "genderPayGapPercentManagement": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -100,
+          "maximum": 100,
+          "description": "Løngab mellem køn i ledelseslag i %."
+        },
+        "genderPayGapPercentOperations": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -100,
+          "maximum": 100,
+          "description": "Løngab mellem køn for øvrige medarbejdere i %."
+        },
+        "absenteeismRatePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Fraværsrate i %."
+        },
+        "lostTimeInjuryFrequencyRate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "LTIFR (arbejdsulykker med fravær pr. 1 mio. arbejdstimer)."
+        },
+        "workRelatedAccidentsCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal arbejdsrelaterede ulykker."
+        },
+        "workRelatedFatalitiesCount": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Antal arbejdsrelaterede dødsfald."
+        },
+        "averageTrainingHoursPerEmployee": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Gennemsnitlige træningstimer pr. medarbejder."
+        },
+        "trainingCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Andel af medarbejdere der har modtaget træning (%)."
+        },
+        "socialProtectionCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dækning af social beskyttelse (sygedagpenge, barsel m.m.) i %."
+        },
+        "healthCareCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dækning af sundhedsordninger i %."
+        },
+        "pensionPlanCoveragePercent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Dækning af pensionsordninger i %."
         },
         "workforceNarrative": {
           "type": [
