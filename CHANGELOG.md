@@ -49,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt C14-modul for Scope 3 behandling af solgte produkter med schema, beregning, UI og tests.
 - Fuldt C15-modul for Scope 3 screening af øvrige kategorier med schema, beregning, UI og tests.
 - E1 klimamål- og actionmodul med ESRS E1 intensiteter, målstatus, wizard-step, PDF og test-fixtures.
+- E1 kontekstmoduler for klimascenarier, interne CO₂-priser, risikogeografi og decarboniseringsdrivere med schema, beregninger,
+  wizard-trin, ESRS-eksport og tests.
 
 
 ### Changed

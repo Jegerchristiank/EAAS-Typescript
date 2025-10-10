@@ -30,6 +30,17 @@ export const e1ActionStatusOptions = ['planned', 'inProgress', 'delayed', 'compl
 export const e1TransitionStatusOptions = ['planned', 'inProgress', 'lagging', 'completed', 'notStarted'] as const
 export const e1FinancialEffectTypeOptions = ['capex', 'opex', 'revenues', 'costs', 'impairments', 'other'] as const
 export const e1RemovalTypeOptions = ['inHouse', 'valueChain', 'carbonCredits', 'other'] as const
+export const e1ScenarioTypeOptions = ['netZero15', 'wellBelow2', 'currentPolicies', 'stressTest', 'custom'] as const
+export const e1RiskTypeOptions = ['transition', 'acutePhysical', 'chronicPhysical'] as const
+export const e1DecarbonisationDriverOptions = [
+  'energyEfficiency',
+  'renewableEnergy',
+  'processInnovation',
+  'fuelSwitching',
+  'carbonCapture',
+  'valueChainEngagement',
+  'other'
+] as const
 export const remediationStatusOptions = ['notStarted', 'inProgress', 'completed'] as const
 export const s2IssueTypeOptions = [
   'healthAndSafety',
@@ -759,6 +770,53 @@ const e1TransitionPlanMeasureSchema = z
   })
   .strict()
 
+const e1ScenarioSchema = z
+  .object({
+    name: z.string().max(160).nullable(),
+    provider: z.string().max(160).nullable(),
+    scenarioType: z.enum(e1ScenarioTypeOptions).nullable(),
+    timeHorizon: z.enum(d1TimeHorizonOptions).nullable(),
+    coveragePercent: z.number().min(0).max(100).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1InternalCarbonPriceSchema = z
+  .object({
+    scheme: z.string().max(160).nullable(),
+    scope: z.enum(e1TargetScopeOptions).nullable(),
+    priceDkkPerTonne: z.number().min(0).nullable(),
+    coveragePercent: z.number().min(0).max(100).nullable(),
+    appliesToCapex: z.boolean().nullable(),
+    appliesToOpex: z.boolean().nullable(),
+    appliesToInvestmentDecisions: z.boolean().nullable(),
+    alignedWithFinancialStatements: z.boolean().nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1RiskGeographySchema = z
+  .object({
+    geography: z.string().max(160).nullable(),
+    riskType: z.enum(e1RiskTypeOptions).nullable(),
+    timeHorizon: z.enum(d1TimeHorizonOptions).nullable(),
+    assetsAtRiskDkk: z.number().min(0).nullable(),
+    revenueAtRiskDkk: z.number().min(0).nullable(),
+    exposureNarrative: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1DecarbonisationDriverSchema = z
+  .object({
+    lever: z.enum(e1DecarbonisationDriverOptions).nullable(),
+    name: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    expectedReductionTonnes: z.number().min(0).nullable(),
+    investmentNeedDkk: z.number().min(0).nullable(),
+    startYear: z.number().min(2000).max(2100).nullable(),
+  })
+  .strict()
+
 export const e1ContextInputSchema = z
   .object({
     netRevenueDkk: z.number().min(0).nullable(),
@@ -775,6 +833,34 @@ export const e1ContextInputSchema = z
     ghgRemovalProjects: z.array(e1RemovalProjectSchema).max(12).optional(),
     financialEffects: z.array(e1FinancialEffectSchema).max(12).optional(),
     transitionPlanMeasures: z.array(e1TransitionPlanMeasureSchema).max(12).optional(),
+  })
+  .strict()
+
+export const e1ScenariosInputSchema = z
+  .object({
+    scenarios: z.array(e1ScenarioSchema).max(12).optional(),
+    scenarioNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+export const e1CarbonPriceInputSchema = z
+  .object({
+    carbonPrices: z.array(e1InternalCarbonPriceSchema).max(12).optional(),
+    methodologyNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+export const e1RiskGeographyInputSchema = z
+  .object({
+    riskRegions: z.array(e1RiskGeographySchema).max(20).optional(),
+    assessmentNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+export const e1DecarbonisationDriversInputSchema = z
+  .object({
+    drivers: z.array(e1DecarbonisationDriverSchema).max(20).optional(),
+    summaryNarrative: z.string().max(2000).nullable(),
   })
   .strict()
 
@@ -1062,8 +1148,15 @@ export type E1ActionStatus = (typeof e1ActionStatusOptions)[number]
 export type E1TransitionStatus = (typeof e1TransitionStatusOptions)[number]
 export type E1FinancialEffectType = (typeof e1FinancialEffectTypeOptions)[number]
 export type E1RemovalType = (typeof e1RemovalTypeOptions)[number]
+export type E1ScenarioType = (typeof e1ScenarioTypeOptions)[number]
+export type E1RiskType = (typeof e1RiskTypeOptions)[number]
+export type E1DecarbonisationDriverType = (typeof e1DecarbonisationDriverOptions)[number]
 export type MrProgressStatus = (typeof mrProgressStatusOptions)[number]
 export type E1ContextInput = z.infer<typeof e1ContextInputSchema>
+export type E1ScenariosInput = z.infer<typeof e1ScenariosInputSchema>
+export type E1CarbonPriceInput = z.infer<typeof e1CarbonPriceInputSchema>
+export type E1RiskGeographyInput = z.infer<typeof e1RiskGeographyInputSchema>
+export type E1DecarbonisationDriversInput = z.infer<typeof e1DecarbonisationDriversInputSchema>
 export type E1TargetMilestone = z.infer<typeof e1TargetMilestoneSchema>
 export type E1TargetLine = z.infer<typeof e1TargetLineSchema>
 export type E1ActionLine = z.infer<typeof e1ActionLineSchema>
@@ -1114,6 +1207,10 @@ export const esgInputSchema = z
     C14: c14InputSchema.optional(),
     C15: c15InputSchema.optional(),
     E1Context: e1ContextInputSchema.optional(),
+    E1Scenarios: e1ScenariosInputSchema.optional(),
+    E1CarbonPrice: e1CarbonPriceInputSchema.optional(),
+    E1RiskGeography: e1RiskGeographyInputSchema.optional(),
+    E1DecarbonisationDrivers: e1DecarbonisationDriversInputSchema.optional(),
     E1Targets: e1TargetsInputSchema.optional(),
     E2Water: e2WaterInputSchema.optional(),
     E3Pollution: e3PollutionInputSchema.optional(),

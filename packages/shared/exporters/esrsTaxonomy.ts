@@ -199,6 +199,67 @@ export const esrsConceptDefinitions = {
     unitId: 'percent',
     periodType: 'duration'
   },
+  E1ScenariosDiverseRange: {
+    qname:
+      'esrs:DiverseRangeOfClimateScenariosHaveBeenConsideredToDetectRelevantEnvironmentalSocietalTechnologyMarketAndPolicyrelatedDevelopmentsAndDetermineDecarbonisationLevers',
+    periodType: 'duration',
+  },
+  E1ScenariosNarrative: {
+    qname:
+      'esrs:DisclosureOfHowDiverseRangeOfClimateScenariosHaveBeenConsideredToDetectRelevantEnvironmentalSocietalTechnologyMarketAndPolicyrelatedDevelopmentsAndDetermineDecarbonisationLeversExplanatory',
+    periodType: 'duration',
+  },
+  E1CarbonPriceAmount: {
+    qname: 'esrs:CarbonPriceAppliedForEachMetricTonneOfGreenhouseGasEmission',
+    unitId: 'DKK',
+    periodType: 'duration',
+  },
+  E1CarbonPriceAlignment: {
+    qname: 'esrs:CarbonPriceUsedInInternalCarbonPricingSchemeIsConsistentWithCarbonPriceUsedInFinancialStatements',
+    periodType: 'duration',
+  },
+  E1CarbonPriceNarrative: {
+    qname: 'esrs:DescriptionOfCriticalAssumptionsMadeToDetermineCarbonPriceAppliedExplanatory',
+    periodType: 'duration',
+  },
+  E1RiskPhysicalAssets: {
+    qname: 'esrs:CarryingAmountOfAssetsAtMaterialPhysicalRisk',
+    unitId: 'DKK',
+    periodType: 'instant',
+  },
+  E1RiskPhysicalRevenue: {
+    qname: 'esrs:NetRevenueAtMaterialPhysicalRisk',
+    unitId: 'DKK',
+    periodType: 'duration',
+  },
+  E1RiskTransitionAssets: {
+    qname: 'esrs:CarryingAmountOfAssetsAtMaterialTransitionRisk',
+    unitId: 'DKK',
+    periodType: 'instant',
+  },
+  E1RiskTransitionRevenue: {
+    qname: 'esrs:NetRevenueAtMaterialTransitionRisk',
+    unitId: 'DKK',
+    periodType: 'duration',
+  },
+  E1RiskNarrative: {
+    qname: 'esrs:DisclosureOfLocationOfSignificantAssetsAtMaterialPhysicalRiskExplanatory',
+    periodType: 'duration',
+  },
+  E1DecarbonisationLeverTypes: {
+    qname: 'esrs:DecarbonisationLeverTypes',
+    periodType: 'duration',
+  },
+  E1DecarbonisationNarrative: {
+    qname:
+      'esrs:DescriptionOfExpectedDecarbonisationLeversAndTheirOverallQuantitativeContributionsToAchieveGHGEmissionReductionTargetExplanatory',
+    periodType: 'duration',
+  },
+  E1DecarbonisationTable: {
+    qname:
+      'esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsByDecarbonisationLeversTable',
+    periodType: 'duration',
+  },
   E5CircularityTargetPercent: {
     qname: 'esrs:E5CircularityTargetPercent',
     unitId: 'percent',
