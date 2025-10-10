@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the validation workflow with a single matrix job that disables telemetry, installs with a frozen lockfile, and blocks on lint, typecheck, test and build failures.
 - Refreshed the baseline quality report to reflect the current green installation, lint, typecheck, test and build status, while documenting outstanding bundle-size and coverage risks.
 - Removed the repository-level `.npmrc`; publishing now generates scoped auth config in CI to avoid local token requirements.
+- Omkalfatrede D2-materialitetsmodulet til ESRS’ severity × likelihood matrix med finansielle effekter, tidslinjer og strukturerede rapporteringstabeller i UI, PDF og eksport.
 
 ### Fixed
 - Resolved merge artefacts across shared calculation, schema, PDF and tooling modules so TypeScript and ESLint parse cleanly.

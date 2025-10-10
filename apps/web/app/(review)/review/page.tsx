@@ -26,6 +26,63 @@ import { wizardSteps } from '../../../features/wizard/steps'
 import { WizardProvider, useWizardContext } from '../../../features/wizard/useWizard'
 import { isModuleRelevant, type WizardProfile } from '../../../src/modules/wizard/profile'
 
+const impactTypeLabels = {
+  actual: 'Faktisk påvirkning',
+  potential: 'Potentiel påvirkning'
+} as const
+
+const severityLabels = {
+  minor: 'Begrænset alvor',
+  moderate: 'Middel alvor',
+  major: 'Væsentlig alvor',
+  severe: 'Kritisk alvor'
+} as const
+
+const likelihoodLabels = {
+  rare: 'Sjælden',
+  unlikely: 'Usandsynlig',
+  possible: 'Mulig',
+  likely: 'Sandsynlig',
+  veryLikely: 'Meget sandsynlig'
+} as const
+
+const valueChainLabels = {
+  ownOperations: 'Egne aktiviteter',
+  upstream: 'Upstream',
+  downstream: 'Downstream'
+} as const
+
+const remediationLabels = {
+  none: 'Ingen afhjælpning',
+  planned: 'Planlagt indsats',
+  inPlace: 'Afhjælpning implementeret'
+} as const
+
+const riskLabels = {
+  risk: 'Risiko',
+  opportunity: 'Mulighed',
+  both: 'Risiko & mulighed'
+} as const
+
+const timelineLabels = {
+  shortTerm: '0-12 mdr.',
+  mediumTerm: '1-3 år',
+  longTerm: '3+ år',
+  ongoing: 'Løbende'
+} as const
+
+const gapStatusLabels = {
+  aligned: 'Ingen gap',
+  partial: 'Delvist afdækket',
+  missing: 'Gap mangler'
+} as const
+
+const priorityBandLabels = {
+  priority: 'Høj prioritet',
+  attention: 'Observation',
+  monitor: 'Monitorering'
+} as const
+
 export default function ReviewPage(): JSX.Element {
   return (
     <WizardProvider>
@@ -245,6 +302,13 @@ function MetricSections({ sections }: { sections: EsrsMetricSection[] }): JSX.El
   )
 }
 
+function formatLabel(value: string | null | undefined, labels: Record<string, string>): string {
+  if (!value) {
+    return 'Ukendt'
+  }
+  return labels[value] ?? value
+}
+
 function DoubleMaterialityCard({ entry }: { entry: CalculatedModuleResult | null }): JSX.Element {
   if (!entry || !entry.result.doubleMateriality) {
     return (
@@ -257,42 +321,130 @@ function DoubleMaterialityCard({ entry }: { entry: CalculatedModuleResult | null
     )
   }
 
-  const summary = entry.result.doubleMateriality
+  const materiality = entry.result.doubleMateriality
+  const { overview, prioritisationCriteria, tables, dueDiligence } = materiality
+  const gapAlerts = tables.gapAlerts
+  const topTopics = tables.topics
+  const impactMatrix = tables.impactMatrix
 
   return (
     <section className="ds-card ds-stack">
       <div className="ds-stack-sm">
         <h2 className="ds-heading-sm">Dobbelt væsentlighed</h2>
-        <p className="ds-text-subtle">{summary.summary}</p>
+        <p className="ds-text-subtle">
+          Prioritets-score {overview.averageScore.toFixed(1)} · Prioriterede emner {overview.prioritisedTopics}/
+          {overview.totalTopics} · Gap-advarsler {overview.gapAlerts}
+        </p>
       </div>
-      {summary.gapAlerts.length > 0 && (
+
+      <div className="ds-stack-sm">
+        <strong>Overblik</strong>
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.25rem' }}>
+          <li>Emner i alt: {overview.totalTopics}</li>
+          <li>Prioriterede emner: {overview.prioritisedTopics}</li>
+          <li>Observationer: {overview.attentionTopics}</li>
+          <li>Gap-advarsler: {overview.gapAlerts}</li>
+        </ul>
+      </div>
+
+      {prioritisationCriteria.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>Prioriteringskriterier</strong>
+          <ul style={{ listStyle: 'disc inside', margin: 0, paddingLeft: '1.25rem', display: 'grid', gap: '0.25rem' }}>
+            {prioritisationCriteria.map((criterion, index) => (
+              <li key={`${entry.moduleId}-criterion-${index}`}>
+                <span style={{ fontWeight: 600 }}>{criterion.title}:</span> {criterion.description}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {topTopics.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>Topemner</strong>
+          <ul style={{ listStyle: 'disc inside', margin: 0, paddingLeft: '1.25rem', display: 'grid', gap: '0.5rem' }}>
+            {topTopics.map((topic) => (
+              <li key={`${entry.moduleId}-topic-${topic.name}`} style={{ display: 'grid', gap: '0.25rem' }}>
+                <span style={{ fontWeight: 600 }}>
+                  {topic.name} · {priorityBandLabels[topic.priorityBand]} ({topic.combinedScore.toFixed(1)})
+                </span>
+                <small className="ds-text-subtle">
+                  Impactmatrix: {formatLabel(topic.impactType, impactTypeLabels as Record<string, string>)} ·{' '}
+                  {formatLabel(topic.severity, severityLabels as Record<string, string>)} ·{' '}
+                  {formatLabel(topic.likelihood, likelihoodLabels as Record<string, string>)}
+                </small>
+                <small className="ds-text-subtle">
+                  Impactscore {topic.impactScore.toFixed(1)} · Finansiel score{' '}
+                  {topic.financialScore != null ? topic.financialScore.toFixed(1) : 'n/a'} · Tidslinje-score{' '}
+                  {topic.timelineScore != null ? topic.timelineScore.toFixed(1) : 'n/a'}
+                </small>
+                <small className="ds-text-subtle">
+                  Tidslinje {formatLabel(topic.timeline, timelineLabels as Record<string, string>)} · Værdikæde{' '}
+                  {formatLabel(topic.valueChainSegment, valueChainLabels as Record<string, string>)} · Afhjælpning{' '}
+                  {formatLabel(topic.remediationStatus, remediationLabels as Record<string, string>)} · Risiko{' '}
+                  {formatLabel(topic.riskType, riskLabels as Record<string, string>)} · CSRD-gap{' '}
+                  {formatLabel(topic.csrdGapStatus, gapStatusLabels as Record<string, string>)}
+                </small>
+                {topic.description && <small className="ds-text-subtle">Note: {topic.description}</small>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {impactMatrix.length > 0 && (
+        <div className="ds-stack-sm">
+          <strong>Impact-matrix</strong>
+          <ul style={{ listStyle: 'disc inside', margin: 0, paddingLeft: '1.25rem', display: 'grid', gap: '0.25rem' }}>
+            {impactMatrix.map((row, index) => (
+              <li key={`${entry.moduleId}-matrix-${index}`}>
+                {formatLabel(row.severity, severityLabels as Record<string, string>)} ×{' '}
+                {formatLabel(row.likelihood, likelihoodLabels as Record<string, string>)}: {row.topics}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {(dueDiligence.impactTypes.length > 0 ||
+        dueDiligence.valueChain.length > 0 ||
+        dueDiligence.remediation.length > 0) && (
+        <div className="ds-stack-sm">
+          <strong>Due diligence reference</strong>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.25rem' }}>
+            {dueDiligence.impactTypes.length > 0 && (
+              <li>
+                Påvirkningstyper:{' '}
+                {dueDiligence.impactTypes.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+              </li>
+            )}
+            {dueDiligence.valueChain.length > 0 && (
+              <li>
+                Værdikædeled:{' '}
+                {dueDiligence.valueChain.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+              </li>
+            )}
+            {dueDiligence.remediation.length > 0 && (
+              <li>
+                Afhjælpning:{' '}
+                {dueDiligence.remediation.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {gapAlerts.length > 0 && (
         <div className="ds-stack-sm">
           <strong>Gap-advarsler</strong>
           <ul>
-            {summary.gapAlerts.map((topic) => (
+            {gapAlerts.map((topic) => (
               <li key={`${entry.moduleId}-gap-${topic}`}>CSRD-gap mangler for {topic}</li>
             ))}
           </ul>
         </div>
       )}
-      <div className="ds-stack-sm">
-        <strong>Prioriterede emner</strong>
-        <ul className="ds-stack-sm">
-          {summary.topics.map((topic) => (
-            <li key={`${entry.moduleId}-topic-${topic.name}`} className="ds-stack-sm">
-              <span className="ds-text-strong">{topic.name}</span>
-              <small className="ds-text-subtle">
-                Impact: {topic.impactScore.toFixed(1)} · Finansiel: {topic.financialScore.toFixed(1)} · Kombineret:{' '}
-                {topic.combinedScore.toFixed(2)}
-              </small>
-              <small className="ds-text-subtle">
-                Risiko: {topic.riskType ?? 'ukendt'} · Tidslinje: {topic.timeline ?? 'ukendt'} · Ansvarlig:{' '}
-                {topic.responsible ?? 'n/a'} · CSRD-gap: {topic.csrdGapStatus ?? 'ukendt'}
-              </small>
-            </li>
-          ))}
-        </ul>
-      </div>
     </section>
   )
 }

@@ -302,19 +302,61 @@ export type ModuleEsrsTable = {
 
 export type ModuleDoubleMaterialityTopic = {
   name: string
-  impactScore: number
-  financialScore: number
-  combinedScore: number
+  description: string | null
   riskType: string | null
+  impactType: string | null
+  severity: string
+  likelihood: string
+  impactScore: number
+  financialScore: number | null
+  timelineScore: number | null
+  combinedScore: number
   timeline: string | null
+  valueChainSegment: string | null
   responsible: string | null
   csrdGapStatus: string | null
+  remediationStatus: string | null
+  priorityBand: 'priority' | 'attention' | 'monitor'
+}
+
+export type ModuleDoubleMaterialityImpactMatrixRow = {
+  severity: string
+  likelihood: string
+  topics: number
+}
+
+export type ModuleDoubleMaterialityDueDiligenceEntry = {
+  key: string
+  label: string
+  topics: number
+}
+
+export type ModuleDoubleMaterialityPrioritisationCriterion = {
+  title: string
+  description: string
+}
+
+export type ModuleDoubleMaterialityOverview = {
+  totalTopics: number
+  prioritisedTopics: number
+  attentionTopics: number
+  gapAlerts: number
+  averageScore: number
 }
 
 export type ModuleDoubleMateriality = {
-  summary: string
-  topics: ModuleDoubleMaterialityTopic[]
-  gapAlerts: string[]
+  overview: ModuleDoubleMaterialityOverview
+  prioritisationCriteria: ModuleDoubleMaterialityPrioritisationCriterion[]
+  tables: {
+    topics: ModuleDoubleMaterialityTopic[]
+    gapAlerts: string[]
+    impactMatrix: ModuleDoubleMaterialityImpactMatrixRow[]
+  }
+  dueDiligence: {
+    impactTypes: ModuleDoubleMaterialityDueDiligenceEntry[]
+    valueChain: ModuleDoubleMaterialityDueDiligenceEntry[]
+    remediation: ModuleDoubleMaterialityDueDiligenceEntry[]
+  }
 }
 
 export type ModuleResult = {

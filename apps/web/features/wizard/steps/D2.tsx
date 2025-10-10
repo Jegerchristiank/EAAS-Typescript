@@ -9,6 +9,11 @@ import {
   materialityRiskOptions,
   materialityTimelineOptions,
   materialityGapStatusOptions,
+  materialityImpactTypeOptions,
+  materialitySeverityOptions,
+  materialityLikelihoodOptions,
+  materialityValueChainStageOptions,
+  materialityRemediationStatusOptions,
   runD2,
   type D2Input,
   type ModuleInput,
@@ -34,6 +39,11 @@ const riskOptions = materialityRiskOptions.map((value) => ({
     value === 'risk' ? 'Risiko' : value === 'opportunity' ? 'Mulighed' : 'Risiko & mulighed'
 }))
 
+const riskLabels = Object.fromEntries(riskOptions.map((option) => [option.value, option.label])) as Record<
+  NonNullable<MaterialityRow['riskType']>,
+  string
+>
+
 const timelineOptions = materialityTimelineOptions.map((value) => ({
   value,
   label:
@@ -46,6 +56,10 @@ const timelineOptions = materialityTimelineOptions.map((value) => ({
       : 'Løbende'
 }))
 
+const timelineLabels = Object.fromEntries(
+  timelineOptions.map((option) => [option.value, option.label])
+) as Record<NonNullable<MaterialityRow['timeline']>, string>
+
 const gapStatusOptions = materialityGapStatusOptions.map((value) => ({
   value,
   label:
@@ -56,16 +70,94 @@ const gapStatusOptions = materialityGapStatusOptions.map((value) => ({
       : 'Gap mangler'
 }))
 
+const gapStatusLabels = Object.fromEntries(
+  gapStatusOptions.map((option) => [option.value, option.label])
+) as Record<NonNullable<MaterialityRow['csrdGapStatus']>, string>
+
+const impactTypeOptions = materialityImpactTypeOptions.map((value) => ({
+  value,
+  label: value === 'actual' ? 'Faktisk påvirkning' : 'Potentiel påvirkning'
+}))
+
+const severityOptions = materialitySeverityOptions.map((value) => ({
+  value,
+  label:
+    value === 'minor'
+      ? 'Begrænset alvor'
+      : value === 'moderate'
+      ? 'Middel alvor'
+      : value === 'major'
+      ? 'Væsentlig alvor'
+      : 'Kritisk alvor'
+}))
+
+const likelihoodOptions = materialityLikelihoodOptions.map((value) => ({
+  value,
+  label:
+    value === 'rare'
+      ? 'Sjælden'
+      : value === 'unlikely'
+      ? 'Usandsynlig'
+      : value === 'possible'
+      ? 'Mulig'
+      : value === 'likely'
+      ? 'Sandsynlig'
+      : 'Meget sandsynlig'
+}))
+
+const valueChainOptions = materialityValueChainStageOptions.map((value) => ({
+  value,
+  label:
+    value === 'ownOperations'
+      ? 'Egne aktiviteter'
+      : value === 'upstream'
+      ? 'Upstream'
+      : 'Downstream'
+}))
+
+const remediationOptions = materialityRemediationStatusOptions.map((value) => ({
+  value,
+  label:
+    value === 'none' ? 'Ingen afhjælpning' : value === 'planned' ? 'Planlagt indsats' : 'Afhjælpning implementeret'
+}))
+
+const impactTypeLabels = Object.fromEntries(impactTypeOptions.map((option) => [option.value, option.label])) as Record<
+  NonNullable<MaterialityRow['impactType']>,
+  string
+>
+
+const severityLabels = Object.fromEntries(severityOptions.map((option) => [option.value, option.label])) as Record<
+  NonNullable<MaterialityRow['severity']>,
+  string
+>
+
+const likelihoodLabels = Object.fromEntries(
+  likelihoodOptions.map((option) => [option.value, option.label])
+) as Record<NonNullable<MaterialityRow['likelihood']>, string>
+
+const valueChainLabels = Object.fromEntries(
+  valueChainOptions.map((option) => [option.value, option.label])
+) as Record<NonNullable<MaterialityRow['valueChainSegment']>, string>
+
+const remediationLabels = Object.fromEntries(
+  remediationOptions.map((option) => [option.value, option.label])
+) as Record<NonNullable<MaterialityRow['remediationStatus']>, string>
+
 function createDefaultTopic(): MaterialityRow {
   return {
     title: '',
     description: null,
     riskType: 'risk',
+    impactType: 'actual',
+    severity: 'major',
+    likelihood: 'likely',
     impactScore: null,
     financialScore: null,
     timeline: 'shortTerm',
+    valueChainSegment: 'ownOperations',
     responsible: null,
-    csrdGapStatus: 'partial'
+    csrdGapStatus: 'partial',
+    remediationStatus: 'none'
   }
 }
 
@@ -74,6 +166,7 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
   const topics = current.materialTopics ?? []
 
   const preview = useMemo<ModuleResult>(() => runD2({ D2: current } as ModuleInput), [current])
+  const materialitySummary = preview.doubleMateriality ?? null
 
   const updateTopics = (next: MaterialityRow[]) => {
     onChange('D2', { materialTopics: next })
@@ -176,7 +269,101 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
     updateTopics(next as MaterialityRow[])
   }
 
+  const handleImpactTypeChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value =
+      event.target.value === '' ? null : (event.target.value as MaterialityRow['impactType'])
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            impactType: value
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
+  const handleSeverityChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value =
+      event.target.value === '' ? null : (event.target.value as MaterialityRow['severity'])
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            severity: value
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
+  const handleLikelihoodChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value =
+      event.target.value === '' ? null : (event.target.value as MaterialityRow['likelihood'])
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            likelihood: value
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
+  const handleValueChainChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value =
+      event.target.value === '' ? null : (event.target.value as MaterialityRow['valueChainSegment'])
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            valueChainSegment: value
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
+  const handleRemediationChange = (index: number) => (event: ChangeEvent<HTMLSelectElement>) => {
+    const value =
+      event.target.value === '' ? null : (event.target.value as MaterialityRow['remediationStatus'])
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            remediationStatus: value
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
   const hasTopics = topics.length > 0
+
+  const formatImpactType = (value: string | null) =>
+    value ? impactTypeLabels[value as keyof typeof impactTypeLabels] ?? value : 'Ukendt'
+  const formatSeverity = (value: string | null) =>
+    value ? severityLabels[value as keyof typeof severityLabels] ?? value : 'Ukendt'
+  const formatLikelihood = (value: string | null) =>
+    value ? likelihoodLabels[value as keyof typeof likelihoodLabels] ?? value : 'Ukendt'
+  const formatValueChain = (value: string | null) =>
+    value ? valueChainLabels[value as keyof typeof valueChainLabels] ?? value : 'Ukendt'
+  const formatRemediation = (value: string | null) =>
+    value ? remediationLabels[value as keyof typeof remediationLabels] ?? value : 'Ukendt'
+  const formatRisk = (value: string | null) =>
+    value ? riskLabels[value as keyof typeof riskLabels] ?? value : 'Ukendt'
+  const formatTimeline = (value: string | null) =>
+    value ? timelineLabels[value as keyof typeof timelineLabels] ?? value : 'Ukendt'
+  const formatGap = (value: string | null) =>
+    value ? gapStatusLabels[value as keyof typeof gapStatusLabels] ?? value : 'Ukendt'
+  const formatPriorityBand = (band: string) =>
+    band === 'priority' ? 'Høj prioritet' : band === 'attention' ? 'Observation' : 'Monitorering'
 
   return (
     <form style={{ display: 'grid', gap: '1.5rem', maxWidth: '68rem' }}>
@@ -214,11 +401,15 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
               const titleValue = topic.title
               const descriptionValue = topic.description ?? ''
               const responsibleValue = topic.responsible ?? ''
-              const impactValue = topic.impactScore ?? ''
               const financialValue = topic.financialScore ?? ''
               const riskValue = topic.riskType ?? ''
               const timelineValue = topic.timeline ?? ''
               const gapValue = topic.csrdGapStatus ?? ''
+              const impactTypeValue = topic.impactType ?? ''
+              const severityValue = topic.severity ?? ''
+              const likelihoodValue = topic.likelihood ?? ''
+              const valueChainValue = topic.valueChainSegment ?? ''
+              const remediationValue = topic.remediationStatus ?? ''
 
               return (
                 <article
@@ -286,7 +477,93 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
                       </span>
                     </label>
 
-                    <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))' }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gap: '0.75rem',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))'
+                      }}
+                    >
+                      <label style={{ display: 'grid', gap: '0.4rem' }}>
+                        <span style={{ fontWeight: 600 }}>Påvirkningstype</span>
+                        <select
+                          value={impactTypeValue}
+                          onChange={handleImpactTypeChange(index)}
+                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
+                        >
+                          <option value="">Vælg...</option>
+                          {impactTypeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label style={{ display: 'grid', gap: '0.4rem' }}>
+                        <span style={{ fontWeight: 600 }}>Alvor/omfang</span>
+                        <select
+                          value={severityValue}
+                          onChange={handleSeverityChange(index)}
+                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
+                        >
+                          <option value="">Vælg...</option>
+                          {severityOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label style={{ display: 'grid', gap: '0.4rem' }}>
+                        <span style={{ fontWeight: 600 }}>Sandsynlighed</span>
+                        <select
+                          value={likelihoodValue}
+                          onChange={handleLikelihoodChange(index)}
+                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
+                        >
+                          <option value="">Vælg...</option>
+                          {likelihoodOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label style={{ display: 'grid', gap: '0.4rem' }}>
+                        <span style={{ fontWeight: 600 }}>Værdikædeled</span>
+                        <select
+                          value={valueChainValue}
+                          onChange={handleValueChainChange(index)}
+                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
+                        >
+                          <option value="">Vælg...</option>
+                          {valueChainOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label style={{ display: 'grid', gap: '0.4rem' }}>
+                        <span style={{ fontWeight: 600 }}>Eksisterende afhjælpning</span>
+                        <select
+                          value={remediationValue}
+                          onChange={handleRemediationChange(index)}
+                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
+                        >
+                          <option value="">Vælg...</option>
+                          {remediationOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
                       <label style={{ display: 'grid', gap: '0.4rem' }}>
                         <span style={{ fontWeight: 600 }}>Risiko eller mulighed</span>
                         <select
@@ -301,21 +578,6 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
                             </option>
                           ))}
                         </select>
-                      </label>
-
-                      <label style={{ display: 'grid', gap: '0.4rem' }}>
-                        <span style={{ fontWeight: 600 }}>Impact-score (0-5)</span>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          min={0}
-                          max={SCORE_MAX}
-                          step={0.1}
-                          value={impactValue}
-                          onChange={handleNumericFieldChange(index, 'impactScore')}
-                          placeholder="0-5"
-                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
-                        />
                       </label>
 
                       <label style={{ display: 'grid', gap: '0.4rem' }}>
@@ -402,6 +664,130 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
         <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600 }}>
           {preview.value} {preview.unit}
         </p>
+        {materialitySummary ? (
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <div>
+              <strong>Overblik</strong>
+              <ul>
+                <li>Emner i alt: {materialitySummary.overview.totalTopics}</li>
+                <li>Prioriterede emner: {materialitySummary.overview.prioritisedTopics}</li>
+                <li>Observationer: {materialitySummary.overview.attentionTopics}</li>
+                <li>Gap-advarsler: {materialitySummary.overview.gapAlerts}</li>
+                <li>Gennemsnitlig score: {materialitySummary.overview.averageScore.toFixed(1)}</li>
+              </ul>
+            </div>
+
+            {materialitySummary.prioritisationCriteria.length > 0 && (
+              <div>
+                <strong>Prioriteringskriterier</strong>
+                <ul>
+                  {materialitySummary.prioritisationCriteria.map((criterion, index) => (
+                    <li key={`criterion-${index}`}>
+                      <span style={{ fontWeight: 600 }}>{criterion.title}:</span> {criterion.description}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {materialitySummary.tables.topics.length > 0 && (
+              <div>
+                <strong>Topemner</strong>
+                <ul style={{ display: 'grid', gap: '0.5rem', paddingLeft: '1.2rem' }}>
+                  {materialitySummary.tables.topics.map((topic, index) => (
+                    <li
+                      key={`topic-${index}`}
+                      style={{ display: 'grid', gap: '0.25rem', listStyle: 'disc outside' }}
+                    >
+                      <span style={{ fontWeight: 600 }}>
+                        {topic.name} · {formatPriorityBand(topic.priorityBand)} ({topic.combinedScore.toFixed(1)})
+                      </span>
+                      <small style={{ color: '#3c4c45' }}>
+                        Impactmatrix: {formatImpactType(topic.impactType)} · {formatSeverity(topic.severity)} ·{' '}
+                        {formatLikelihood(topic.likelihood)}
+                      </small>
+                      <small style={{ color: '#3c4c45' }}>
+                        Impactscore: {topic.impactScore.toFixed(1)} · Finansiel score:{' '}
+                        {topic.financialScore != null ? topic.financialScore.toFixed(1) : 'n/a'} · Tidslinje-score:{' '}
+                        {topic.timelineScore != null ? topic.timelineScore.toFixed(1) : 'n/a'}
+                      </small>
+                      <small style={{ color: '#3c4c45' }}>
+                        Tidslinje: {formatTimeline(topic.timeline)} · Værdikæde: {formatValueChain(topic.valueChainSegment)} ·{' '}
+                        Afhjælpning: {formatRemediation(topic.remediationStatus)} · Risiko: {formatRisk(topic.riskType)} · CSRD-gap:{' '}
+                        {formatGap(topic.csrdGapStatus)}
+                      </small>
+                      {topic.description && (
+                        <small style={{ color: '#3c4c45' }}>Note: {topic.description}</small>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {materialitySummary.tables.impactMatrix.length > 0 && (
+              <div>
+                <strong>Impact-matrix</strong>
+                <ul>
+                  {materialitySummary.tables.impactMatrix.map((row, index) => (
+                    <li key={`matrix-${index}`}>
+                      {formatSeverity(row.severity)} × {formatLikelihood(row.likelihood)}: {row.topics}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {(materialitySummary.dueDiligence.impactTypes.length > 0 ||
+              materialitySummary.dueDiligence.valueChain.length > 0 ||
+              materialitySummary.dueDiligence.remediation.length > 0) && (
+              <div>
+                <strong>Due diligence reference</strong>
+                <div style={{ display: 'grid', gap: '0.4rem' }}>
+                  {materialitySummary.dueDiligence.impactTypes.length > 0 && (
+                    <span>
+                      Påvirkningstyper:{' '}
+                      {materialitySummary.dueDiligence.impactTypes
+                        .map((entry) => `${entry.label}: ${entry.topics}`)
+                        .join(', ')}
+                    </span>
+                  )}
+                  {materialitySummary.dueDiligence.valueChain.length > 0 && (
+                    <span>
+                      Værdikædeled:{' '}
+                      {materialitySummary.dueDiligence.valueChain
+                        .map((entry) => `${entry.label}: ${entry.topics}`)
+                        .join(', ')}
+                    </span>
+                  )}
+                  {materialitySummary.dueDiligence.remediation.length > 0 && (
+                    <span>
+                      Afhjælpning:{' '}
+                      {materialitySummary.dueDiligence.remediation
+                        .map((entry) => `${entry.label}: ${entry.topics}`)
+                        .join(', ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {materialitySummary.tables.gapAlerts.length > 0 && (
+              <div>
+                <strong>Gap-advarsler</strong>
+                <ul>
+                  {materialitySummary.tables.gapAlerts.map((topic, index) => (
+                    <li key={`gap-${index}`}>Manglende CSRD-gap for {topic}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p style={{ margin: 0, color: '#5f6c66' }}>
+            Tilføj væsentlige emner for at udløse prioriteringsoversigten og due diligence-referencer.
+          </p>
+        )}
         <div>
           <strong>Antagelser</strong>
           <ul>
