@@ -3,7 +3,13 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "declaration": true,
-    "noEmit": false
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist",
+    "paths": {
+      "@org/shared": ["../../packages/shared/dist/index.d.ts"],
+      "@org/shared/*": ["../../packages/shared/dist/*"]
+    }
   },
   "exclude": ["**/*.test.ts", "tests"]
 }
