@@ -36,6 +36,9 @@ type NormalisedTopic = {
   combinedScore: number
   missingFinancial: boolean
   missingTimeline: boolean
+  financialOverrideApproved: boolean
+  financialOverrideJustification: string | null
+  eligibleForPrioritisation: boolean
   priorityBand: 'priority' | 'attention' | 'monitor'
 }
 
@@ -103,6 +106,12 @@ export function runD2(input: ModuleInput): ModuleResult {
   const maxLikelihoodWeight = Math.max(...Object.values(likelihoodWeights))
   const maxMatrixScore = maxSeverityWeight * maxLikelihoodWeight
   const maxTimelineWeight = Math.max(...Object.values(timelineWeights))
+  const missingFinancialPenalty = d2.missingFinancialPenalty ?? 0.6
+  const financialOverrideMinLength = d2.financialOverrideJustificationMinLength ?? 20
+
+  assumptions.push(
+    `Manglende finansielle scorer reducerer kombinationsscoren med faktor ${missingFinancialPenalty}, medmindre en begrundet undtagelse er bekræftet.`
+  )
 
   const normalisedTopics: NormalisedTopic[] = []
   const matrixCounts = new Map<string, number>()
@@ -161,6 +170,37 @@ export function runD2(input: ModuleInput): ModuleResult {
     const financialScore = financialDimension != null ? round(financialDimension * 100, 1) : null
     const missingFinancial = financialDimension == null
 
+    const rawFinancialOverride =
+      typeof topic?.financialExceptionJustification === 'string'
+        ? topic.financialExceptionJustification.trim()
+        : null
+    const hasFinancialOverrideToggle = topic?.financialExceptionApproved === true
+    const hasFinancialOverrideJustification =
+      rawFinancialOverride != null && rawFinancialOverride.length >= financialOverrideMinLength
+    const hasFinancialOverride = hasFinancialOverrideToggle && hasFinancialOverrideJustification
+
+    if (missingFinancial) {
+      warnings.push(
+        `Finansiel score mangler for "${name}". Udfyld 0-5 eller registrér en begrundet undtagelse for at fastholde prioriteten.`
+      )
+    }
+
+    if (hasFinancialOverrideToggle && !hasFinancialOverrideJustification) {
+      warnings.push(
+        `Undtagelse for manglende finansiel score på "${name}" kræver en begrundelse på mindst ${financialOverrideMinLength} tegn.`
+      )
+    }
+
+    if (!hasFinancialOverrideToggle && rawFinancialOverride && rawFinancialOverride.length > 0) {
+      warnings.push(
+        `Begrundelse er angivet for finansiel undtagelse på "${name}", men afkrydsning mangler. Bekræft undtagelsen eller udfyld en score.`
+      )
+    }
+
+    if (missingFinancial && hasFinancialOverride) {
+      warnings.push(`Finansiel undtagelse er bekræftet for "${name}". Scoren markeres som dokumenteret uden tal.`)
+    }
+
     const timelineKey = topic?.timeline ?? null
     const timelineWeight = timelineKey ? timelineWeights[timelineKey as keyof typeof timelineWeights] : null
     const timelineDimension = timelineWeight != null ? timelineWeight / maxTimelineWeight : null
@@ -168,9 +208,13 @@ export function runD2(input: ModuleInput): ModuleResult {
     const missingTimeline = timelineDimension == null
 
     const activeDimensions = 1 + (financialDimension != null ? 1 : 0) + (timelineDimension != null ? 1 : 0)
-    const combinedDimension =
+    const combinedBase =
       (impactDimension + (financialDimension ?? 0) + (timelineDimension ?? 0)) / activeDimensions
-    const combinedScore = round(combinedDimension * 100, 1)
+    const penalisedCombined =
+      missingFinancial && !hasFinancialOverride ? combinedBase * missingFinancialPenalty : combinedBase
+    const combinedScore = round(penalisedCombined * 100, 1)
+
+    const eligibleForPrioritisation = !missingFinancial || hasFinancialOverride
 
     const description = typeof topic?.description === 'string' ? topic.description.trim() : null
     const cleanedDescription = description && description.length > 0 ? description : null
@@ -178,12 +222,16 @@ export function runD2(input: ModuleInput): ModuleResult {
     const valueChainKey = topic?.valueChainSegment ?? null
     const valueChainForCount = valueChainKey ?? 'unknown'
 
-    const priorityBand: NormalisedTopic['priorityBand'] =
+    const computedPriorityBand: NormalisedTopic['priorityBand'] =
       combinedScore >= d2.priorityThreshold
         ? 'priority'
         : combinedScore >= d2.attentionThreshold
         ? 'attention'
         : 'monitor'
+
+    const priorityBand: NormalisedTopic['priorityBand'] = eligibleForPrioritisation
+      ? computedPriorityBand
+      : 'monitor'
 
     normalisedTopics.push({
       index,
@@ -204,6 +252,9 @@ export function runD2(input: ModuleInput): ModuleResult {
       combinedScore,
       missingFinancial,
       missingTimeline,
+      financialOverrideApproved: hasFinancialOverride,
+      financialOverrideJustification: hasFinancialOverride ? rawFinancialOverride : null,
+      eligibleForPrioritisation,
       priorityBand
     })
 
@@ -215,12 +266,20 @@ export function runD2(input: ModuleInput): ModuleResult {
 
     const financialTrace = financialScore != null ? financialScore.toFixed(1) : 'null'
     const timelineTrace = timelineScore != null ? timelineScore.toFixed(1) : 'null'
+    const overrideTrace = hasFinancialOverride
+      ? 'approved'
+      : hasFinancialOverrideToggle
+      ? 'pending'
+      : 'none'
+
     trace.push(
       `topic[${index}]=${encodeTrace(name)}|severity=${severityKey}|likelihood=${likelihoodKey}|impact=${impactScore.toFixed(
         1
       )}|financial=${financialTrace}|timelineScore=${timelineTrace}|combined=${combinedScore.toFixed(1)}|riskType=${
         topic?.riskType ?? 'null'
-      }|timeline=${timelineKey ?? 'null'}|gap=${topic?.csrdGapStatus ?? 'null'}`
+      }|timeline=${timelineKey ?? 'null'}|gap=${topic?.csrdGapStatus ?? 'null'}|financialOverride=${overrideTrace}|eligible=${
+        eligibleForPrioritisation ? 'yes' : 'no'
+      }`
     )
   })
 
@@ -241,11 +300,14 @@ export function runD2(input: ModuleInput): ModuleResult {
   const value = Number(round(averageScore, d2.resultPrecision).toFixed(d2.resultPrecision))
 
   const prioritisedTopics = normalisedTopics
-    .filter((topic) => topic.combinedScore >= d2.priorityThreshold)
+    .filter((topic) => topic.eligibleForPrioritisation && topic.combinedScore >= d2.priorityThreshold)
     .sort((a, b) => b.combinedScore - a.combinedScore)
   const attentionTopics = normalisedTopics
     .filter(
-      (topic) => topic.combinedScore >= d2.attentionThreshold && topic.combinedScore < d2.priorityThreshold
+      (topic) =>
+        topic.eligibleForPrioritisation &&
+        topic.combinedScore >= d2.attentionThreshold &&
+        topic.combinedScore < d2.priorityThreshold
     )
     .sort((a, b) => b.combinedScore - a.combinedScore)
 
@@ -380,6 +442,9 @@ export function runD2(input: ModuleInput): ModuleResult {
         csrdGapStatus: topic.csrdGapStatus ?? null,
         missingFinancial: topic.missingFinancial,
         missingTimeline: topic.missingTimeline,
+        financialOverrideApproved: topic.financialOverrideApproved,
+        financialOverrideJustification: topic.financialOverrideJustification,
+        eligibleForPrioritisation: topic.eligibleForPrioritisation,
         priorityBand: topic.priorityBand
       }))
     })
@@ -409,6 +474,7 @@ export function runD2(input: ModuleInput): ModuleResult {
     responsible: topic.responsible ?? null,
     csrdGapStatus: topic.csrdGapStatus ?? null,
     remediationStatus: topic.remediationStatus,
+    eligibleForPrioritisation: topic.eligibleForPrioritisation,
     priorityBand: topic.priorityBand
   }))
 
