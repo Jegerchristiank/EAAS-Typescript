@@ -344,6 +344,8 @@ export const factors = {
     gapWarningStatuses: ['missing'] as ReadonlyArray<'aligned' | 'partial' | 'missing'>,
     timelineWarningForPriority: true,
     responsibleWarningForPriority: true,
+    missingFinancialPenalty: 0.6,
+    financialOverrideJustificationMinLength: 20,
     severityWeights: {
       minor: 1,
       moderate: 3,

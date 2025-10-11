@@ -46,6 +46,7 @@ Denne runbook beskriver, hvordan governance-modulet (D1) anvendes til at dokumen
 - `packages/shared/calculations/modules/runD1.ts` indeholder den fulde logik og spores i `runModule.spec.ts` med tre tests (neutral, delvis og fuld score).
 - Schemaet i `packages/shared/schema` og UI-komponenten i `apps/web/features/wizard/steps/D1.tsx` sikrer konsistent validering.
 - Vitest, lint, typecheck og build skal være grønne før release.
+- Krydstjek D2-input: Finansielle undtagelser i D2 skal understøttes af governance- eller procesbeskrivelser i D1 for at fremstå troværdige ved revision.
 
 ## CSRD/XBRL-eksport
 

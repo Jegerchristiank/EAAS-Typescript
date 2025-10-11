@@ -63,6 +63,12 @@ import {
   createMRApprovedFixture,
   createMRRejectedFixture
 } from './fixtures/esrs2Governance'
+import {
+  d2TopicMissingFinancial,
+  d2TopicMissingFinancialWithOverride,
+  d2TopicWithFinancial,
+  d2TopicWithLowerFinancial
+} from './fixtures/d2Topics'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -749,73 +755,29 @@ describe('runD2', () => {
     const input: ModuleInput = {
       D2: {
         materialTopics: [
-          {
-            title: 'Klimarisiko i forsyningskæden',
-            description: 'Leverandører i højrisikoområder',
-            riskType: 'risk',
-            impactType: 'actual',
-            severity: 'severe',
-            likelihood: 'likely',
-            valueChainSegment: 'upstream',
-            remediationStatus: 'planned',
-            impactScore: null,
-            financialScore: 4,
-            timeline: 'shortTerm',
-            responsible: 'CFO',
-            csrdGapStatus: 'missing'
-          },
-          {
-            title: 'Cirkulære services',
-            description: 'Nye take-back modeller',
-            riskType: 'opportunity',
-            impactType: 'potential',
-            severity: 'major',
-            likelihood: 'possible',
-            valueChainSegment: 'downstream',
-            remediationStatus: 'none',
-            impactScore: null,
-            financialScore: 2,
-            timeline: 'longTerm',
-            responsible: null,
-            csrdGapStatus: 'partial'
-          },
-          {
-            title: 'Datastyring',
-            description: 'Mangler moden data governance',
-            riskType: 'risk',
-            impactType: 'actual',
-            severity: null,
-            likelihood: null,
-            valueChainSegment: 'ownOperations',
-            remediationStatus: 'inPlace',
-            impactScore: null,
-            financialScore: null,
-            timeline: null,
-            responsible: null,
-            csrdGapStatus: 'missing'
-          }
+          { ...d2TopicWithFinancial },
+          { ...d2TopicWithLowerFinancial },
+          { ...d2TopicMissingFinancial }
         ]
       }
     }
 
     const result = runD2(input)
 
-    expect(result.value).toBeCloseTo(67.2, 1)
+    expect(result.value).toBeCloseTo(58.1, 1)
     expect(result.unit).toBe(factors.d2.unit)
     expect(result.assumptions.some((entry) => entry.includes('Top prioriterede emner'))).toBe(true)
     expect(result.trace).toContain('inputTopics=3')
-    expect(result.trace).toContain('validTopics=2')
+    expect(result.trace).toContain('validTopics=3')
     expect(result.trace.some((entry) => entry.includes('averageCompositeScore'))).toBe(true)
     expect(result.warnings.some((warning) => warning.includes('Prioriteret emne: Klimarisiko'))).toBe(true)
     expect(result.warnings.some((warning) => warning.includes('CSRD-gap mangler for Klimarisiko'))).toBe(true)
     expect(
-      result.warnings.some((warning) =>
-        warning.includes('"Datastyring" mangler registreret alvor/omfang')
-      )
+      result.warnings.some((warning) => warning.includes('Finansiel score mangler for "Datastyring"'))
     ).toBe(true)
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ conceptKey: 'D2ValidTopicsCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'D2ValidTopicsCount', value: 3 }),
         expect.objectContaining({ conceptKey: 'D2PrioritisedTopicsCount', value: 1 })
       ])
     )
@@ -830,6 +792,12 @@ describe('runD2', () => {
               severity: 'severe',
               likelihood: 'likely',
               priorityBand: 'priority'
+            }),
+            expect.objectContaining({
+              name: 'Datastyring',
+              missingFinancial: true,
+              eligibleForPrioritisation: false,
+              priorityBand: 'monitor'
             })
           ])
         })
@@ -839,10 +807,10 @@ describe('runD2', () => {
     expect(result.doubleMateriality).toEqual(
       expect.objectContaining({
         overview: expect.objectContaining({
-          totalTopics: 2,
+          totalTopics: 3,
           prioritisedTopics: 1,
           attentionTopics: 1,
-          gapAlerts: 1,
+          gapAlerts: 2,
           averageScore: expect.any(Number)
         }),
         tables: expect.objectContaining({
@@ -860,6 +828,35 @@ describe('runD2', () => {
           ])
         })
       })
+    )
+  })
+
+  it('tillader prioritering når finansiel undtagelse er begrundet og bekræftet', () => {
+    const input: ModuleInput = {
+      D2: {
+        materialTopics: [{ ...d2TopicMissingFinancialWithOverride }]
+      }
+    }
+
+    const result = runD2(input)
+
+    expect(result.value).toBeCloseTo(100, 1)
+    expect(result.trace.some((entry) => entry.includes('financialOverride=approved'))).toBe(true)
+    expect(
+      result.warnings.some((warning) =>
+        warning.includes('Finansiel undtagelse er bekræftet for "Lovpligtig compliance"')
+      )
+    ).toBe(true)
+    expect(result.doubleMateriality?.overview?.prioritisedTopics).toBe(1)
+    expect(result.esrsTables?.[0]?.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Lovpligtig compliance',
+          missingFinancial: true,
+          financialOverrideApproved: true,
+          eligibleForPrioritisation: true
+        })
+      ])
     )
   })
 
