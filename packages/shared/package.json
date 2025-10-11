@@ -19,6 +19,11 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "wizard/persistence": ["dist/wizard/persistence.d.ts"]
+    }
+  },
   "files": ["dist"],
   "scripts": {
     "build": "tsc --project tsconfig.build.json",

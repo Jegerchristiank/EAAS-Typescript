@@ -1,4 +1,4 @@
-import type { ModuleInput } from '../../types'
+import type { ModuleInput } from '../types'
 
 export type WizardFieldRevision = {
   id: string

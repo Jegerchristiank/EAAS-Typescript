@@ -18,13 +18,14 @@ function cloneHistory(history: WizardFieldHistory | undefined, userId: string): 
   }
 
   return Object.fromEntries(
-    Object.entries(history).map(([field, revisions]) => [
-      field,
-      (revisions ?? []).map((revision) => ({
+    Object.entries(history).map(([field, revisions]): [string, WizardFieldHistory[string]] => {
+      const normalisedRevisions = (revisions ?? []).map((revision) => ({
         ...revision,
         updatedBy: revision.updatedBy ?? userId,
-      })),
-    ]),
+      }))
+
+      return [field, normalisedRevisions]
+    }),
   )
 }
 
@@ -98,11 +99,16 @@ export class WizardPersistenceService {
 
   save(nextStorage: PersistedWizardStorage, userId: string): WizardPersistenceDocument {
     const document = this.repository.read()
-    const previousProfiles = document.storage.profiles ?? {}
+    const previousProfiles: Record<string, PersistedWizardProfile> = document.storage.profiles
     const nextProfiles: Record<string, PersistedWizardProfile> = {}
     const auditEntries: WizardAuditLogEntry[] = []
 
-    for (const [profileId, profile] of Object.entries(nextStorage.profiles ?? {})) {
+    const nextProfileEntries = Object.entries(nextStorage.profiles) as [
+      string,
+      PersistedWizardProfile,
+    ][]
+
+    for (const [profileId, profile] of nextProfileEntries) {
       const previous = previousProfiles[profileId]
       const changes = computeStateChanges(previous, profile)
       const hasChanges = changes.length > 0
@@ -128,7 +134,10 @@ export class WizardPersistenceService {
       }
     }
 
-    for (const [profileId, previous] of Object.entries(previousProfiles)) {
+    for (const [profileId, previous] of Object.entries(previousProfiles) as [
+      string,
+      PersistedWizardProfile,
+    ][]) {
       if (!nextProfiles[profileId]) {
         const version = (previous.version ?? 0) + 1
         auditEntries.push({
