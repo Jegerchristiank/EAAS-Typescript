@@ -847,8 +847,8 @@ describe('runD2', () => {
         warning.includes('Finansiel undtagelse er bekræftet for "Lovpligtig compliance"')
       )
     ).toBe(true)
-    expect(result.doubleMateriality?.overview.prioritisedTopics).toBe(1)
-    expect(result.esrsTables?.[0].rows).toEqual(
+    expect(result.doubleMateriality?.overview?.prioritisedTopics).toBe(1)
+    expect(result.esrsTables?.[0]?.rows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           name: 'Lovpligtig compliance',

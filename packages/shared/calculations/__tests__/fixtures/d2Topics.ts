@@ -1,4 +1,4 @@
-import type { D2Input } from '@org/shared'
+import type { D2Input } from '../../../types'
 
 type MaterialityTopic = NonNullable<D2Input['materialTopics']>[number]
 
