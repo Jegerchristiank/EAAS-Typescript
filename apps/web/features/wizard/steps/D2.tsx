@@ -32,6 +32,8 @@ const SCORE_MAX = 5
 const TITLE_LIMIT = 120
 const DESCRIPTION_LIMIT = 500
 const RESPONSIBLE_LIMIT = 120
+const FINANCIAL_EXCEPTION_JUSTIFICATION_LIMIT = 500
+const FINANCIAL_EXCEPTION_MIN_LENGTH = 20
 
 const riskOptions = materialityRiskOptions.map((value) => ({
   value,
@@ -153,6 +155,8 @@ function createDefaultTopic(): MaterialityRow {
     likelihood: 'likely',
     impactScore: null,
     financialScore: null,
+    financialExceptionApproved: false,
+    financialExceptionJustification: null,
     timeline: 'shortTerm',
     valueChainSegment: 'ownOperations',
     responsible: null,
@@ -262,6 +266,42 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
         ? {
             ...topic,
             csrdGapStatus: value
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
+  const handleFinancialExceptionToggle = (index: number) => (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const checked = event.target.checked
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            financialExceptionApproved: checked,
+            financialExceptionJustification: checked
+              ? topic.financialExceptionJustification ?? ''
+              : null
+          }
+        : topic
+    )
+
+    updateTopics(next as MaterialityRow[])
+  }
+
+  const handleFinancialExceptionJustificationChange = (index: number) => (
+    event: ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const raw = event.target.value.slice(0, FINANCIAL_EXCEPTION_JUSTIFICATION_LIMIT)
+    const nextValue = raw.trim().length === 0 ? null : raw
+    const next = topics.map((topic, rowIndex) =>
+      rowIndex === index
+        ? {
+            ...topic,
+            financialExceptionJustification: nextValue
           }
         : topic
     )
@@ -591,9 +631,67 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
                           value={financialValue}
                           onChange={handleNumericFieldChange(index, 'financialScore')}
                           placeholder="0-5"
-                          style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
-                        />
-                      </label>
+                      style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5d0' }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'grid', gap: '0.5rem' }}>
+                    <span style={{ fontWeight: 600 }}>Begrundet undtagelse</span>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(topic.financialExceptionApproved)}
+                        onChange={handleFinancialExceptionToggle(index)}
+                        aria-label="Bekræft undtagelse for manglende finansiel score"
+                      />
+                      <span style={{ color: '#374741' }}>
+                        Finansiel vurdering kan ikke beregnes (kræver begrundelse på mindst {FINANCIAL_EXCEPTION_MIN_LENGTH} tegn)
+                      </span>
+                    </div>
+                    {topic.financialExceptionApproved && (
+                      <textarea
+                        value={topic.financialExceptionJustification ?? ''}
+                        onChange={handleFinancialExceptionJustificationChange(index)}
+                        placeholder="Beskriv hvorfor finansiel score ikke kan udfyldes"
+                        rows={3}
+                        style={{
+                          padding: '0.6rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #cbd5d0',
+                          resize: 'vertical'
+                        }}
+                      />
+                    )}
+                    {topic.financialExceptionApproved &&
+                      (topic.financialExceptionJustification ?? '').trim().length === 0 && (
+                        <p style={{ margin: 0, color: '#b54708' }}>
+                          Tilføj en begrundelse, så undtagelsen kan dokumenteres i beregningen.
+                        </p>
+                      )}
+                    {topic.financialExceptionApproved &&
+                      (topic.financialExceptionJustification ?? '').trim().length > 0 &&
+                      (topic.financialExceptionJustification ?? '').trim().length <
+                        FINANCIAL_EXCEPTION_MIN_LENGTH && (
+                        <p style={{ margin: 0, color: '#b54708' }}>
+                          Begrundelsen skal være på mindst {FINANCIAL_EXCEPTION_MIN_LENGTH} tegn for at undtagelsen accepteres i
+                          beregningen.
+                        </p>
+                      )}
+                  </label>
+
+                  {topic.financialScore == null && !topic.financialExceptionApproved && (
+                    <p
+                      style={{
+                        margin: 0,
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        backgroundColor: '#fff4e5',
+                        color: '#9a3412'
+                      }}
+                    >
+                      Udfyld en finansiel score eller bekræft en begrundet undtagelse for at kunne prioritere emnet.
+                    </p>
+                  )}
 
                       <label style={{ display: 'grid', gap: '0.4rem' }}>
                         <span style={{ fontWeight: 600 }}>Tidslinje</span>
@@ -797,11 +895,21 @@ export function D2Step({ state, onChange }: WizardStepProps): JSX.Element {
           </ul>
         </div>
         {preview.warnings.length > 0 && (
-          <div>
+          <div
+            style={{
+              marginTop: '1.5rem',
+              backgroundColor: '#fff4e5',
+              border: '1px solid #f97316',
+              borderRadius: '0.75rem',
+              padding: '1rem 1.25rem'
+            }}
+          >
             <strong>Forslag til opfølgning</strong>
             <ul>
               {preview.warnings.map((warning, index) => (
-                <li key={`warning-${index}`}>{warning}</li>
+                <li key={`warning-${index}`} style={{ color: '#9a3412' }}>
+                  {warning}
+                </li>
               ))}
             </ul>
           </div>

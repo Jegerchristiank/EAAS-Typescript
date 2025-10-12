@@ -13,6 +13,9 @@ import {
 import { PreWizardQuestionnaire } from '../../src/modules/wizard/PreWizardQuestionnaire'
 import { WizardOverview } from '../../src/modules/wizard/WizardOverview'
 import {
+  ALL_PROFILE_KEYS,
+  countAnsweredQuestions,
+  countPositiveAnswers,
   findFirstRelevantStepIndex,
   isModuleRelevant,
   isProfileComplete,
@@ -32,6 +35,16 @@ type RelevantModuleGroup = {
     label: string
     isActive: boolean
     isRecommended: boolean
+  }[]
+}
+
+type ModuleFeedbackGroup = {
+  scope: WizardScope
+  modules: {
+    id: string
+    label: string
+    relevant: boolean
+    isFirstRelevant: boolean
   }[]
 }
 
@@ -96,6 +109,42 @@ function WizardShellContent(): JSX.Element {
   const activeStepperStep: StepIdentifier = isProfileOpen
     ? 'profile'
     : currentStepMeta?.scope ?? 'profile'
+
+  const totalQuestions = ALL_PROFILE_KEYS.length
+  const positiveAnswers = useMemo(() => countPositiveAnswers(profile), [profile])
+  const answeredQuestions = useMemo(() => countAnsweredQuestions(profile), [profile])
+  const progressPercent = totalQuestions === 0 ? 0 : Math.round((positiveAnswers / totalQuestions) * 100)
+  const firstRelevantStepIndex = useMemo(
+    () => findFirstRelevantStepIndex(wizardSteps, profile),
+    [profile]
+  )
+  const recommendedProfileStep = useMemo(() => {
+    const candidate = wizardSteps[firstRelevantStepIndex]
+    if (!candidate) {
+      return null
+    }
+    return isModuleRelevant(profile, candidate.id) ? candidate : null
+  }, [firstRelevantStepIndex, profile])
+  const moduleFeedback: ModuleFeedbackGroup[] = useMemo(() => {
+    const firstRelevantStep = wizardSteps[firstRelevantStepIndex]?.id
+    return scopeOrder
+      .map((scope) => ({
+        scope,
+        modules: wizardSteps
+          .filter((step) => step.scope === scope)
+          .map((step) => ({
+            id: step.id,
+            label: step.label,
+            relevant: isModuleRelevant(profile, step.id),
+            isFirstRelevant: step.id === firstRelevantStep,
+          })),
+      }))
+      .filter((group) => group.modules.length > 0)
+  }, [firstRelevantStepIndex, profile])
+  const hasRelevantModules = useMemo(
+    () => moduleFeedback.some((group) => group.modules.some((module) => module.relevant)),
+    [moduleFeedback]
+  )
 
   const relevantModuleGroups = useMemo(
     () => buildRelevantModuleGroups(profile, activeModuleId, recommendedStepId),
@@ -234,6 +283,63 @@ function WizardShellContent(): JSX.Element {
                 <p className="ds-text-subtle">Ingen moduler markeret som relevante endnu.</p>
               )}
             </div>
+          </section>
+
+          <section className="ds-card ds-stack ds-sidebar__section" aria-label="Status for profilspørgeskemaet">
+            <div className="ds-stack-sm">
+              <h3 className="ds-heading-xs">Status</h3>
+              <p className="ds-text-muted">
+                {positiveAnswers} ud af {totalQuestions} aktiviteter markeret som relevante.
+              </p>
+            </div>
+            <div
+              className="ds-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progressPercent}
+              aria-valuetext={`${positiveAnswers} relevante ud af ${totalQuestions}`}
+            >
+              <span className="ds-progress__bar" style={{ width: `${progressPercent}%` }} />
+            </div>
+            <p className="ds-text-subtle">
+              {answeredQuestions} / {totalQuestions} spørgsmål er besvaret.
+            </p>
+          </section>
+
+          <section className="ds-card ds-stack ds-sidebar__section" aria-label="Modulfeedback">
+            <div className="ds-stack-sm">
+              <h3 className="ds-heading-xs">Modulfeedback</h3>
+              {recommendedProfileStep ? (
+                <p className="ds-text-muted">
+                  Start beregningerne med <strong>{recommendedProfileStep.label}</strong>.
+                </p>
+              ) : (
+                <p className="ds-text-muted">Besvar flere spørgsmål for at få anbefalede moduler.</p>
+              )}
+            </div>
+
+            {moduleFeedback.map((group) => (
+              <section key={group.scope} className="ds-stack-xs">
+                <p className="ds-text-subtle">{group.scope}</p>
+                <div className="ds-pill-group">
+                  {group.modules.map((module) => (
+                    <span
+                      key={module.id}
+                      className="ds-pill"
+                      data-active={module.isFirstRelevant ? 'true' : undefined}
+                      data-relevant={module.relevant ? 'true' : 'false'}
+                    >
+                      {module.label}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            {!hasRelevantModules && (
+              <p className="ds-text-subtle">Ingen moduler markeret som relevante endnu.</p>
+            )}
           </section>
 
           <ProfileSwitcher

@@ -515,6 +515,8 @@ const d2MaterialTopicSchema = z
     likelihood: z.enum(materialityLikelihoodOptions).nullable(),
     impactScore: z.number().min(0).max(5).nullable(),
     financialScore: z.number().min(0).max(5).nullable(),
+    financialExceptionApproved: z.boolean().nullable(),
+    financialExceptionJustification: z.string().max(500).nullable(),
     timeline: z.enum(materialityTimelineOptions).nullable(),
     valueChainSegment: z.enum(materialityValueChainStageOptions).nullable(),
     responsible: z.string().max(120).nullable(),

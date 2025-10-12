@@ -6,6 +6,24 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./wizard/persistence": {
+      "types": "./dist/wizard/persistence.d.ts",
+      "import": "./dist/wizard/persistence.js",
+      "default": "./dist/wizard/persistence.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "wizard/persistence": ["dist/wizard/persistence.d.ts"]
+    }
+  },
   "files": ["dist"],
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
