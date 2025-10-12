@@ -51,4 +51,5 @@ Denne runbook beskriver hvordan vi udgiver pakker til GitHub Packages uden at l�
 - XBRL-filen følger nu ESRS/EFRAG-taksonomien med `link:schemaRef`, kontekster og enheder. Hvert modulresultat mapper til et `esrs:*`-begreb, og instansen valideres via `buildXbrlInstance.test.ts`.
 - `Send til myndighed` poster payloaden til `NEXT_PUBLIC_REPORT_API_ENDPOINT`. Sørg for at sætte miljøvariablen i hostingmiljøet, hvis rapporter skal videresendes automatisk.
 - Udfyld `reportingPeriod` og `entityIdentifier`, når rapporter downloades eller indsendes, så XBRL-filen indeholder korrekt periode og identifikation.
+- Socialmodulerne (S1-S4) og G1 udsender nu ekstra ESRS-fakta for arbejdstid, kontraktstatus, værdikædedialog, lokalsamfunds- og forbruger-narrativer samt governance-politikker.
 - Audit trail og ansvarssporing gemmes per felt i wizard. Brug JSON-outputtet i "Se rå data" eller CSRD-pakken, når compliance-teamet efterspørger historik.

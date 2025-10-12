@@ -64,7 +64,10 @@ describe('buildCsrdReportPackage', () => {
       baseResult('S1', 62, 'social score', {
         esrsFacts: [
           { conceptKey: 'S1TotalHeadcount', value: 125, unitId: 'pure', decimals: 0 },
-          { conceptKey: 'S1DataCoveragePercent', value: 90, unitId: 'percent', decimals: 1 }
+          { conceptKey: 'S1DataCoveragePercent', value: 90, unitId: 'percent', decimals: 1 },
+          { conceptKey: 'S1AverageWeeklyHours', value: 37, unitId: 'hour', decimals: 1 },
+          { conceptKey: 'S1SegmentHeadcountTotal', value: 125, unitId: 'pure', decimals: 0 },
+          { conceptKey: 'S1SegmentFemaleHeadcountEstimate', value: 50.3, unitId: 'pure', decimals: 1 }
         ],
         esrsTables: [
           {
@@ -103,6 +106,14 @@ describe('buildCsrdReportPackage', () => {
     expect(coverageFact?.decimals).toBe('1')
     const tableFact = pkg.facts.find((fact) => fact.concept.endsWith('S1HeadcountBreakdownTable'))
     expect(tableFact?.value).toContain('"segment":"HQ"')
+
+    const weeklyHoursFact = pkg.facts.find((fact) => fact.concept.endsWith('S1AverageWeeklyWorkingTimeHours'))
+    expect(weeklyHoursFact?.unitRef).toBe('unit_hour')
+    expect(weeklyHoursFact?.contextRef).toBe('ctx_reporting_period')
+
+    const segmentTotalFact = pkg.facts.find((fact) => fact.concept.endsWith('S1SegmentHeadcountTotal'))
+    expect(segmentTotalFact?.contextRef).toBe('ctx_reporting_period_instant')
+    expect(segmentTotalFact?.value).toBe('125')
 
     const targetsFlagFact = pkg.facts.find((fact) =>
       fact.concept.endsWith(
@@ -165,6 +176,10 @@ describe('buildCsrdReportPackage', () => {
         {
           id: 'unit_pure',
           measures: ['xbrli:pure']
+        },
+        {
+          id: 'unit_hour',
+          measures: ['utr:hour']
         }
       ])
     )

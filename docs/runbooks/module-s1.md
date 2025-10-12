@@ -6,9 +6,11 @@ headcount, segmentering, datadækning og faglig repræsentation vægtes.
 ## Inputfelter
 
 - **Rapporteringsår** – valgfrit årstal (bruges kun til dokumentation).
-- **Total headcount** – samlet antal medarbejdere.
+- **Total headcount** og **total FTE** – samlet antal medarbejdere og fuldtidsekvivalenter.
+- **Gns. ugentlige arbejdstimer** – anvendes til ESRS datapunkt om arbejdstid.
 - **Datadækning (%)** – hvor stor en andel af arbejdsstyrken der er dækket af data.
 - **Segmenteret headcount** – liste over segmenter med headcount, kønsfordeling og dækning af kollektive aftaler.
+- **Ansættelsesformer/FTE** og **beskæftigelsesstatus** – bruges til at bygge totals for kontrakt- og statusopdelte headcounts.
 - **Narrativ kontekst** – kort tekst om udvikling og dialog med medarbejderrepræsentanter.
 
 ## Beregningsoverblik
@@ -27,5 +29,5 @@ headcount, segmentering, datadækning og faglig repræsentation vægtes.
 
 ## CSRD/XBRL-eksport
 
-- `S1TotalHeadcount`, `S1DataCoveragePercent` og gennemsnitlig fagforeningsdækning eksporteres som numeriske ESRS S1-fakta.
-- Segmentfordelingen serialiseres som JSON under `S1HeadcountBreakdownTable`, så XBRL-instansen afspejler alle segmentrækker.
+- `S1TotalHeadcount`, `S1TotalFte`, `S1AverageWeeklyHours` samt kontrakt/status-totals eksporteres som ESRS S1-fakta.
+- Segmentfordeling og ansættelseslister serialiseres som JSON under `S1HeadcountBreakdownTable`, `S1EmploymentContractBreakdownTable` og `S1EmploymentStatusBreakdownTable`.

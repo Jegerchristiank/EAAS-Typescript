@@ -300,6 +300,16 @@ export const esrsConceptDefinitions = {
     unitId: 'pure',
     periodType: 'duration'
   },
+  S1SegmentHeadcountTotal: {
+    qname: 'esrs:S1SegmentHeadcountTotal',
+    unitId: 'pure',
+    periodType: 'instant'
+  },
+  S1SegmentFemaleHeadcountEstimate: {
+    qname: 'esrs:S1SegmentFemaleHeadcountEstimate',
+    unitId: 'pure',
+    periodType: 'instant'
+  },
   S1DataCoveragePercent: {
     qname: 'esrs:S1DataCoveragePercent',
     unitId: 'percent',
@@ -308,6 +318,26 @@ export const esrsConceptDefinitions = {
   S1FteCoveragePercent: {
     qname: 'esrs:S1FteDataCoveragePercent',
     unitId: 'percent',
+    periodType: 'duration'
+  },
+  S1EmploymentContractHeadcountTotal: {
+    qname: 'esrs:S1EmploymentContractHeadcountTotal',
+    unitId: 'pure',
+    periodType: 'instant'
+  },
+  S1EmploymentContractFteTotal: {
+    qname: 'esrs:S1EmploymentContractFteTotal',
+    unitId: 'pure',
+    periodType: 'duration'
+  },
+  S1EmploymentStatusHeadcountTotal: {
+    qname: 'esrs:S1EmploymentStatusHeadcountTotal',
+    unitId: 'pure',
+    periodType: 'instant'
+  },
+  S1EmploymentStatusFteTotal: {
+    qname: 'esrs:S1EmploymentStatusFteTotal',
+    unitId: 'pure',
     periodType: 'duration'
   },
   S1CollectiveAgreementCoveragePercent: {
@@ -362,6 +392,11 @@ export const esrsConceptDefinitions = {
   },
   S1AverageTrainingHoursPerEmployee: {
     qname: 'esrs:S1AverageTrainingHoursPerEmployee',
+    unitId: 'hour',
+    periodType: 'duration'
+  },
+  S1AverageWeeklyHours: {
+    qname: 'esrs:S1AverageWeeklyWorkingTimeHours',
     unitId: 'hour',
     periodType: 'duration'
   },
@@ -455,6 +490,16 @@ export const esrsConceptDefinitions = {
     unitId: 'pure',
     periodType: 'duration'
   },
+  S2SocialDialogueNarrative: {
+    qname: 'esrs:S2SocialDialogueNarrative',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S2RemediationNarrative: {
+    qname: 'esrs:S2RemediationNarrative',
+    unitId: null,
+    periodType: 'duration'
+  },
   S2IncidentsTable: {
     qname: 'esrs:S2IncidentsTable',
     unitId: null,
@@ -488,6 +533,16 @@ export const esrsConceptDefinitions = {
   S3HouseholdsAffectedTotal: {
     qname: 'esrs:S3HouseholdsAffectedTotal',
     unitId: 'pure',
+    periodType: 'duration'
+  },
+  S3EngagementNarrative: {
+    qname: 'esrs:S3EngagementNarrative',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S3RemedyNarrative: {
+    qname: 'esrs:S3RemedyNarrative',
+    unitId: null,
     periodType: 'duration'
   },
   S3CommunityImpactsTable: {
@@ -540,6 +595,16 @@ export const esrsConceptDefinitions = {
     unitId: 'pure',
     periodType: 'duration'
   },
+  S4VulnerableUsersNarrative: {
+    qname: 'esrs:S4VulnerableUsersNarrative',
+    unitId: null,
+    periodType: 'duration'
+  },
+  S4ConsumerEngagementNarrative: {
+    qname: 'esrs:S4ConsumerEngagementNarrative',
+    unitId: null,
+    periodType: 'duration'
+  },
   S4ConsumerIssuesTable: {
     qname: 'esrs:S4ConsumerIssuesTable',
     unitId: null,
@@ -572,6 +637,11 @@ export const esrsConceptDefinitions = {
   },
   G1BoardOversight: {
     qname: 'esrs:G1BoardOversight',
+    unitId: null,
+    periodType: 'duration'
+  },
+  G1GovernanceNarrative: {
+    qname: 'esrs:G1GovernanceNarrative',
     unitId: null,
     periodType: 'duration'
   },

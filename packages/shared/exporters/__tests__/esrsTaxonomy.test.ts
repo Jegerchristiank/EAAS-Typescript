@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { esrsEmissionConceptList } from '../esrsTaxonomy'
+import { esrsEmissionConceptList, getEsrsConceptDefinition, type EsrsConceptKey } from '../esrsTaxonomy'
 
 function loadFile(path: string): string {
   return readFileSync(new URL(path, import.meta.url), 'utf-8')
@@ -27,6 +27,27 @@ describe('ESRS taksonomi reference', () => {
 
       if (typeof definition.unitId === 'string') {
         expect(unitIds.has(definition.unitId)).toBe(true)
+      }
+    }
+  })
+
+  it('mappe ekstra sociale og governance datapunkter', () => {
+    const expectations: Array<{ key: EsrsConceptKey; periodType: string; unitId: string | null }> = [
+      { key: 'S1AverageWeeklyHours', periodType: 'duration', unitId: 'hour' },
+      { key: 'S1SegmentHeadcountTotal', periodType: 'instant', unitId: 'pure' },
+      { key: 'S2SocialDialogueNarrative', periodType: 'duration', unitId: null },
+      { key: 'S3RemedyNarrative', periodType: 'duration', unitId: null },
+      { key: 'S4ConsumerEngagementNarrative', periodType: 'duration', unitId: null },
+      { key: 'G1GovernanceNarrative', periodType: 'duration', unitId: null }
+    ]
+
+    for (const { key, periodType, unitId } of expectations) {
+      const definition = getEsrsConceptDefinition(key)
+      expect(definition.periodType).toBe(periodType)
+      if (unitId === null) {
+        expect(definition.unitId ?? null).toBeNull()
+      } else {
+        expect(definition.unitId).toBe(unitId)
       }
     }
   })

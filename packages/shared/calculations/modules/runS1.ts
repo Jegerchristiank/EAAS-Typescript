@@ -389,6 +389,27 @@ export function runS1(input: ModuleInput): ModuleResult {
   pushNumericFact('S1HealthCareCoveragePercent', healthCareCoveragePercent, 'percent', 1)
   pushNumericFact('S1PensionPlanCoveragePercent', pensionPlanCoveragePercent, 'percent', 1)
 
+  if (averageWeeklyHours != null) {
+    pushNumericFact('S1AverageWeeklyHours', averageWeeklyHours, 'hour', 1)
+  }
+
+  if (breakdown.length > 0 && totalSegmentHeadcount > 0) {
+    pushNumericFact('S1SegmentHeadcountTotal', totalSegmentHeadcount, 'pure', 0)
+    if (totalFemaleHeadcount > 0) {
+      pushNumericFact('S1SegmentFemaleHeadcountEstimate', Number(totalFemaleHeadcount.toFixed(1)), 'pure', 1)
+    }
+  }
+
+  if (employmentContracts.length > 0 && totalContractHeadcount > 0) {
+    pushNumericFact('S1EmploymentContractHeadcountTotal', totalContractHeadcount, 'pure', 0)
+    pushNumericFact('S1EmploymentContractFteTotal', Number(totalContractFte.toFixed(2)), 'pure', 2)
+  }
+
+  if (employmentStatuses.length > 0 && totalStatusHeadcount > 0) {
+    pushNumericFact('S1EmploymentStatusHeadcountTotal', totalStatusHeadcount, 'pure', 0)
+    pushNumericFact('S1EmploymentStatusFteTotal', Number(totalStatusFte.toFixed(2)), 'pure', 2)
+  }
+
   const esrsTablesInternal: ModuleEsrsTable[] = []
   if (breakdown.length > 0) {
     esrsTablesInternal.push({
