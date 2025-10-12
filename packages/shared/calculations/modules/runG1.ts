@@ -120,7 +120,9 @@ export function runG1(input: ModuleInput): ModuleResult {
     )
   })
 
-  if (raw?.governanceNarrative == null || raw.governanceNarrative.trim().length < 40) {
+  const governanceNarrative = raw?.governanceNarrative?.trim() ?? ''
+
+  if (governanceNarrative.length < 40) {
     warnings.push('Tilføj narrativ om governance-strukturen for at dokumentere roller, incitamenter og tilsyn.')
   }
 
@@ -140,6 +142,10 @@ export function runG1(input: ModuleInput): ModuleResult {
 
   if (raw?.boardOversight != null) {
     esrsFacts.push({ conceptKey: 'G1BoardOversight', value: raw.boardOversight, unitId: null })
+  }
+
+  if (governanceNarrative) {
+    esrsFacts.push({ conceptKey: 'G1GovernanceNarrative', value: governanceNarrative })
   }
 
   const esrsTables: ModuleEsrsTable[] = []

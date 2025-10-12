@@ -26,4 +26,5 @@ Modulet dækker ESRS S4 datapunkter om produkter og slutbrugere: risikovurdering
 ## CSRD/XBRL-eksport
 
 - Risikovurderinger, klageindikatorer og datasikkerhedsbrud eksporteres som ESRS S4-fakta (`S4ProductsAssessedPercent`, `S4DataBreachesCount` osv.).
+- Narrativer om udsatte brugere og forbrugerengagement eksporteres som `S4VulnerableUsersNarrative` og `S4ConsumerEngagementNarrative`.
 - Hændelseslisten serialiseres til `S4ConsumerIssuesTable`, så produkt, marked, alvorlighed og status er tilgængelig i XBRL.

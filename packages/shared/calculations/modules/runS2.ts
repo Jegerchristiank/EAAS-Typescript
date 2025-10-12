@@ -115,6 +115,16 @@ export function runS2(input: ModuleInput): ModuleResult {
     .reduce((sum, workers) => sum + workers, 0)
   pushNumericFact('S2WorkersAffectedTotal', totalWorkersAffected, 'pure', 0)
 
+  const socialDialogueNarrative = raw?.socialDialogueNarrative?.trim() ?? ''
+  if (socialDialogueNarrative) {
+    esrsFacts.push({ conceptKey: 'S2SocialDialogueNarrative', value: socialDialogueNarrative })
+  }
+
+  const remediationNarrative = raw?.remediationNarrative?.trim() ?? ''
+  if (remediationNarrative) {
+    esrsFacts.push({ conceptKey: 'S2RemediationNarrative', value: remediationNarrative })
+  }
+
   const esrsTables: ModuleEsrsTable[] | undefined =
     incidents.length === 0
       ? undefined
@@ -191,16 +201,16 @@ export function runS2(input: ModuleInput): ModuleResult {
   }
 
   const narratives: ModuleNarrative[] = []
-  if (raw?.socialDialogueNarrative && raw.socialDialogueNarrative.trim().length > 0) {
+  if (socialDialogueNarrative) {
     narratives.push({
       label: 'Social dialog og træning',
-      content: raw.socialDialogueNarrative.trim()
+      content: socialDialogueNarrative
     })
   }
-  if (raw?.remediationNarrative && raw.remediationNarrative.trim().length > 0) {
+  if (remediationNarrative) {
     narratives.push({
       label: 'Afhjælpning og kompensation',
-      content: raw.remediationNarrative.trim()
+      content: remediationNarrative
     })
   }
 

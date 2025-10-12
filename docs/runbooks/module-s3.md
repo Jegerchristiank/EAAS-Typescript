@@ -27,4 +27,5 @@ Modulet dækker ESRS S3 datapunkter om berørte lokalsamfund: konsekvensanalyser
 ## CSRD/XBRL-eksport
 
 - ESRS S3-fakta som `S3CommunitiesIdentifiedCount` og `S3ImpactAssessmentsCoveragePercent` dannes ud fra inputfelterne.
+- Narrativer om engagement og afhjælpning eksporteres til `S3EngagementNarrative` og `S3RemedyNarrative`.
 - Community-tabellen serialiseres til `S3CommunityImpactsTable`, så hver registreret hændelse genfindes i XBRL.

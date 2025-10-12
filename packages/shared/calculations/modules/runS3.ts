@@ -99,6 +99,16 @@ export function runS3(input: ModuleInput): ModuleResult {
     .reduce((sum, households) => sum + households, 0)
   pushNumericFact('S3HouseholdsAffectedTotal', householdsAffectedTotal, 'pure', 0)
 
+  const engagementNarrative = raw?.engagementNarrative?.trim() ?? ''
+  if (engagementNarrative) {
+    esrsFacts.push({ conceptKey: 'S3EngagementNarrative', value: engagementNarrative })
+  }
+
+  const remedyNarrative = raw?.remedyNarrative?.trim() ?? ''
+  if (remedyNarrative) {
+    esrsFacts.push({ conceptKey: 'S3RemedyNarrative', value: remedyNarrative })
+  }
+
   const esrsTables: ModuleEsrsTable[] | undefined =
     impacts.length === 0
       ? undefined
@@ -163,11 +173,11 @@ export function runS3(input: ModuleInput): ModuleResult {
   }
 
   const narratives: ModuleNarrative[] = []
-  if (raw?.engagementNarrative && raw.engagementNarrative.trim().length > 0) {
-    narratives.push({ label: 'Engagement og samarbejde', content: raw.engagementNarrative.trim() })
+  if (engagementNarrative) {
+    narratives.push({ label: 'Engagement og samarbejde', content: engagementNarrative })
   }
-  if (raw?.remedyNarrative && raw.remedyNarrative.trim().length > 0) {
-    narratives.push({ label: 'Afhjælpning og kompensation', content: raw.remedyNarrative.trim() })
+  if (remedyNarrative) {
+    narratives.push({ label: 'Afhjælpning og kompensation', content: remedyNarrative })
   }
 
   return {

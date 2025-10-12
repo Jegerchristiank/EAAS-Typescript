@@ -27,4 +27,5 @@ Modulet samler ESRS S2 datapunkter om leverandørarbejdere: dækningsgrad af ris
 ## CSRD/XBRL-eksport
 
 - Centrale nøgletal eksporteres til ESRS S2-fakta (`S2ValueChainWorkersCount`, `S2LivingWageCoveragePercent` osv.).
+- Narrativer om dialog og afhjælpning eksporteres som `S2SocialDialogueNarrative` og `S2RemediationNarrative`.
 - Hændelseslisten serialiseres som `S2IncidentsTable`, så hver leverandørlinje bevares i XBRL-instansen.

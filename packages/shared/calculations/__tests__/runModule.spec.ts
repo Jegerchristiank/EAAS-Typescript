@@ -357,7 +357,14 @@ describe('runS1', () => {
         expect.objectContaining({ conceptKey: 'S1FteCoveragePercent', value: 95 }),
         expect.objectContaining({ conceptKey: 'S1GenderPayGapPercentTotal', value: 4 }),
         expect.objectContaining({ conceptKey: 'S1AbsenteeismRatePercent', value: 4 }),
-        expect.objectContaining({ conceptKey: 'S1AverageTrainingHoursPerEmployee', value: 10 })
+        expect.objectContaining({ conceptKey: 'S1AverageTrainingHoursPerEmployee', value: 10 }),
+        expect.objectContaining({ conceptKey: 'S1AverageWeeklyHours', value: 37 }),
+        expect.objectContaining({ conceptKey: 'S1SegmentHeadcountTotal', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1SegmentFemaleHeadcountEstimate', value: 215.4 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentContractHeadcountTotal', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentContractFteTotal', value: 483 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentStatusHeadcountTotal', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentStatusFteTotal', value: 483 })
       ])
     )
     expect(result.esrsTables).toEqual(
@@ -498,7 +505,9 @@ describe('runS2', () => {
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'S2ValueChainWorkersCount', value: 2400 }),
-        expect.objectContaining({ conceptKey: 'S2IncidentsCount', value: 2 })
+        expect.objectContaining({ conceptKey: 'S2IncidentsCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'S2SocialDialogueNarrative', value: expect.stringContaining('dialog') }),
+        expect.objectContaining({ conceptKey: 'S2RemediationNarrative', value: expect.stringContaining('Kompensation') })
       ])
     )
     expect(result.esrsTables).toEqual(
@@ -576,7 +585,9 @@ describe('runS3', () => {
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'S3CommunitiesIdentifiedCount', value: 5 }),
         expect.objectContaining({ conceptKey: 'S3ImpactsCount', value: 2 }),
-        expect.objectContaining({ conceptKey: 'S3HouseholdsAffectedTotal', value: 52 })
+        expect.objectContaining({ conceptKey: 'S3HouseholdsAffectedTotal', value: 52 }),
+        expect.objectContaining({ conceptKey: 'S3EngagementNarrative', value: expect.stringContaining('FPIC') }),
+        expect.objectContaining({ conceptKey: 'S3RemedyNarrative', value: expect.stringContaining('Kompensationsfonde') })
       ])
     )
     expect(result.esrsTables).toEqual(
@@ -656,7 +667,12 @@ describe('runS4', () => {
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'S4ProductsAssessedPercent', value: 70 }),
-        expect.objectContaining({ conceptKey: 'S4IssuesCount', value: 2 })
+        expect.objectContaining({ conceptKey: 'S4IssuesCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'S4VulnerableUsersNarrative', value: expect.stringContaining('supportlinje') }),
+        expect.objectContaining({
+          conceptKey: 'S4ConsumerEngagementNarrative',
+          value: expect.stringContaining('forbrugerorganisationer')
+        })
       ])
     )
     expect(result.esrsTables).toEqual(
@@ -732,7 +748,11 @@ describe('runG1', () => {
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'G1PolicyCount', value: 2 }),
-        expect.objectContaining({ conceptKey: 'G1BoardOversight', value: true })
+        expect.objectContaining({ conceptKey: 'G1BoardOversight', value: true }),
+        expect.objectContaining({
+          conceptKey: 'G1GovernanceNarrative',
+          value: expect.stringContaining('Bestyrelsen vurderer ESG-risici')
+        })
       ])
     )
     expect(result.esrsTables).toEqual(

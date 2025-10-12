@@ -114,6 +114,16 @@ export function runS4(input: ModuleInput): ModuleResult {
     .reduce((sum, users) => sum + users, 0)
   pushNumericFact('S4UsersAffectedTotal', usersAffectedTotal, 'pure', 0)
 
+  const vulnerableUsersNarrative = raw?.vulnerableUsersNarrative?.trim() ?? ''
+  if (vulnerableUsersNarrative) {
+    esrsFacts.push({ conceptKey: 'S4VulnerableUsersNarrative', value: vulnerableUsersNarrative })
+  }
+
+  const consumerEngagementNarrative = raw?.consumerEngagementNarrative?.trim() ?? ''
+  if (consumerEngagementNarrative) {
+    esrsFacts.push({ conceptKey: 'S4ConsumerEngagementNarrative', value: consumerEngagementNarrative })
+  }
+
   const esrsTables: ModuleEsrsTable[] | undefined =
     issues.length === 0
       ? undefined
@@ -187,11 +197,11 @@ export function runS4(input: ModuleInput): ModuleResult {
   }
 
   const narratives: ModuleNarrative[] = []
-  if (raw?.vulnerableUsersNarrative && raw.vulnerableUsersNarrative.trim().length > 0) {
-    narratives.push({ label: 'Indsatser for udsatte brugere', content: raw.vulnerableUsersNarrative.trim() })
+  if (vulnerableUsersNarrative) {
+    narratives.push({ label: 'Indsatser for udsatte brugere', content: vulnerableUsersNarrative })
   }
-  if (raw?.consumerEngagementNarrative && raw.consumerEngagementNarrative.trim().length > 0) {
-    narratives.push({ label: 'Forbrugerengagement', content: raw.consumerEngagementNarrative.trim() })
+  if (consumerEngagementNarrative) {
+    narratives.push({ label: 'Forbrugerengagement', content: consumerEngagementNarrative })
   }
 
   return {

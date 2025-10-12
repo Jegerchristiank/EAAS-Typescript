@@ -25,4 +25,5 @@ Modulet vurderer governance-setup via politikker, targets og bestyrelsestilsyn. 
 ## CSRD/XBRL-eksport
 
 - Optællinger og gennemsnit eksponeres som ESRS G1-fakta (`G1PolicyCount`, `G1PolicyAverageScore` osv.).
+- `G1GovernanceNarrative` gengiver tekstfeltet om roller og incitamenter som del af ESRS-rapporteringen.
 - Politikker og targets serialiseres som tabeller (`G1PoliciesTable`, `G1TargetsTable`), så hver række kan efterprøves i XBRL.
