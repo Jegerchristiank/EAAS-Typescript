@@ -275,6 +275,86 @@ export const esrsConceptDefinitions = {
       'esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsByDecarbonisationLeversTable',
     periodType: 'duration',
   },
+  E1IntensityScope1NetRevenue: {
+    qname: 'esrs:Scope1GreenhouseGasEmissionsIntensityPerNetRevenue',
+    unitId: 'tCO2ePerDKKMillion',
+    periodType: 'duration'
+  },
+  E1IntensityScope1Production: {
+    qname: 'esrs:Scope1GreenhouseGasEmissionsIntensityPerUnitOfPhysicalOutput',
+    unitId: 'tCO2ePerUnit',
+    periodType: 'duration'
+  },
+  E1IntensityScope1Energy: {
+    qname: 'esrs:Scope1GreenhouseGasEmissionsIntensityPerEnergyConsumption',
+    unitId: 'tCO2ePerKWh',
+    periodType: 'duration'
+  },
+  E1IntensityScope1Employees: {
+    qname: 'esrs:Scope1GreenhouseGasEmissionsIntensityPerFullTimeEquivalent',
+    unitId: 'tCO2ePerFTE',
+    periodType: 'duration'
+  },
+  E1IntensityScope2LocationNetRevenue: {
+    qname: 'esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerNetRevenue',
+    unitId: 'tCO2ePerDKKMillion',
+    periodType: 'duration'
+  },
+  E1IntensityScope2LocationProduction: {
+    qname: 'esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerUnitOfPhysicalOutput',
+    unitId: 'tCO2ePerUnit',
+    periodType: 'duration'
+  },
+  E1IntensityScope2LocationEnergy: {
+    qname: 'esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerEnergyConsumption',
+    unitId: 'tCO2ePerKWh',
+    periodType: 'duration'
+  },
+  E1IntensityScope2LocationEmployees: {
+    qname: 'esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerFullTimeEquivalent',
+    unitId: 'tCO2ePerFTE',
+    periodType: 'duration'
+  },
+  E1IntensityScope2MarketNetRevenue: {
+    qname: 'esrs:MarketBasedScope2GreenhouseGasEmissionsIntensityPerNetRevenue',
+    unitId: 'tCO2ePerDKKMillion',
+    periodType: 'duration'
+  },
+  E1IntensityScope2MarketProduction: {
+    qname: 'esrs:MarketBasedScope2GreenhouseGasEmissionsIntensityPerUnitOfPhysicalOutput',
+    unitId: 'tCO2ePerUnit',
+    periodType: 'duration'
+  },
+  E1IntensityScope2MarketEnergy: {
+    qname: 'esrs:MarketBasedScope2GreenhouseGasEmissionsIntensityPerEnergyConsumption',
+    unitId: 'tCO2ePerKWh',
+    periodType: 'duration'
+  },
+  E1IntensityScope2MarketEmployees: {
+    qname: 'esrs:MarketBasedScope2GreenhouseGasEmissionsIntensityPerFullTimeEquivalent',
+    unitId: 'tCO2ePerFTE',
+    periodType: 'duration'
+  },
+  E1IntensityScope3NetRevenue: {
+    qname: 'esrs:Scope3GreenhouseGasEmissionsIntensityPerNetRevenue',
+    unitId: 'tCO2ePerDKKMillion',
+    periodType: 'duration'
+  },
+  E1IntensityScope3Production: {
+    qname: 'esrs:Scope3GreenhouseGasEmissionsIntensityPerUnitOfPhysicalOutput',
+    unitId: 'tCO2ePerUnit',
+    periodType: 'duration'
+  },
+  E1IntensityScope3Energy: {
+    qname: 'esrs:Scope3GreenhouseGasEmissionsIntensityPerEnergyConsumption',
+    unitId: 'tCO2ePerKWh',
+    periodType: 'duration'
+  },
+  E1IntensityScope3Employees: {
+    qname: 'esrs:Scope3GreenhouseGasEmissionsIntensityPerFullTimeEquivalent',
+    unitId: 'tCO2ePerFTE',
+    periodType: 'duration'
+  },
   E5CircularityTargetPercent: {
     qname: 'esrs:E5CircularityTargetPercent',
     unitId: 'percent',

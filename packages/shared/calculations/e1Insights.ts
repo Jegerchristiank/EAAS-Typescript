@@ -3,6 +3,7 @@
  */
 import {
   type ModuleEnergyMixEntry,
+  type ModuleEsrsFact,
   type ModuleIntensity,
   type ModuleInput,
   type ModuleResult,
@@ -51,6 +52,54 @@ const scopeMap: Partial<Record<ModuleId, 'scope1' | 'scope2' | 'scope3'>> = {
   C15: 'scope3',
 }
 
+const scope2LocationModules = new Set<ModuleId>(['B1', 'B2', 'B3', 'B4', 'B5', 'B6'])
+
+const intensityConceptKeyByScope: Record<
+  'scope1' | 'scope3',
+  Partial<Record<ModuleIntensity['basis'], string>>
+> = {
+  scope1: {
+    netRevenue: 'E1IntensityScope1NetRevenue',
+    production: 'E1IntensityScope1Production',
+    energy: 'E1IntensityScope1Energy',
+    employees: 'E1IntensityScope1Employees',
+  },
+  scope3: {
+    netRevenue: 'E1IntensityScope3NetRevenue',
+    production: 'E1IntensityScope3Production',
+    energy: 'E1IntensityScope3Energy',
+    employees: 'E1IntensityScope3Employees',
+  },
+}
+
+const scope2IntensityConceptKeys: {
+  location: Partial<Record<ModuleIntensity['basis'], string>>
+  market: Partial<Record<ModuleIntensity['basis'], string>>
+} = {
+  location: {
+    netRevenue: 'E1IntensityScope2LocationNetRevenue',
+    production: 'E1IntensityScope2LocationProduction',
+    energy: 'E1IntensityScope2LocationEnergy',
+    employees: 'E1IntensityScope2LocationEmployees',
+  },
+  market: {
+    netRevenue: 'E1IntensityScope2MarketNetRevenue',
+    production: 'E1IntensityScope2MarketProduction',
+    energy: 'E1IntensityScope2MarketEnergy',
+    employees: 'E1IntensityScope2MarketEmployees',
+  },
+}
+
+const intensityFactMeta: Record<
+  ModuleIntensity['basis'],
+  { unitId: string; decimals: number }
+> = {
+  netRevenue: { unitId: 'tCO2ePerDKKMillion', decimals: 3 },
+  production: { unitId: 'tCO2ePerUnit', decimals: 3 },
+  energy: { unitId: 'tCO2ePerKWh', decimals: 6 },
+  employees: { unitId: 'tCO2ePerFTE', decimals: 3 },
+}
+
 const previousYearField: Record<'scope1' | 'scope2' | 'scope3', keyof E1ContextInput> = {
   scope1: 'previousYearScope1Tonnes',
   scope2: 'previousYearScope2Tonnes',
@@ -71,6 +120,9 @@ export function withE1Insights(
   const targetsInput = ((input.E1Targets ?? {}) as E1TargetsInput) || {}
 
   const trace = [...result.trace]
+  const esrsFacts: ModuleEsrsFact[] = Array.isArray(result.esrsFacts)
+    ? [...result.esrsFacts]
+    : []
   const intensities: ModuleIntensity[] = []
   const energyMix = resolveEnergyMix(context)
   const targetProgress = resolveTargetProgress(moduleId, scope, targetsInput, result.value, trace)
@@ -138,6 +190,13 @@ export function withE1Insights(
     trace,
   }
 
+  for (const intensity of intensities) {
+    const fact = resolveIntensityFact(moduleId, scope, intensity)
+    if (fact) {
+      esrsFacts.push(fact)
+    }
+  }
+
   if (intensities.length > 0) {
     next.intensities = intensities
   }
@@ -154,7 +213,47 @@ export function withE1Insights(
     next.energyMix = energyMix
   }
 
+  if (esrsFacts.length > 0 || result.esrsFacts) {
+    next.esrsFacts = esrsFacts
+  }
+
   return next
+}
+
+function resolveIntensityFact(
+  moduleId: ModuleId,
+  scope: 'scope1' | 'scope2' | 'scope3',
+  intensity: ModuleIntensity,
+): ModuleEsrsFact | null {
+  const meta = intensityFactMeta[intensity.basis]
+  if (!meta) {
+    return null
+  }
+
+  const conceptKey = resolveIntensityConceptKey(moduleId, scope, intensity.basis)
+  if (!conceptKey) {
+    return null
+  }
+
+  return {
+    conceptKey,
+    value: intensity.value,
+    unitId: meta.unitId,
+    decimals: meta.decimals,
+  }
+}
+
+function resolveIntensityConceptKey(
+  moduleId: ModuleId,
+  scope: 'scope1' | 'scope2' | 'scope3',
+  basis: ModuleIntensity['basis'],
+): string | null {
+  if (scope === 'scope2') {
+    const variant = scope2LocationModules.has(moduleId) ? 'location' : 'market'
+    return scope2IntensityConceptKeys[variant][basis] ?? null
+  }
+
+  return intensityConceptKeyByScope[scope][basis] ?? null
 }
 
 function resolveTrend(

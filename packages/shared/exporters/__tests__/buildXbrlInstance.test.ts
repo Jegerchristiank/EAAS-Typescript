@@ -7,6 +7,7 @@ import { runSBM } from '../../calculations/modules/runSBM'
 import { runGOV } from '../../calculations/modules/runGOV'
 import { runIRO } from '../../calculations/modules/runIRO'
 import { runMR } from '../../calculations/modules/runMR'
+import { withE1Insights } from '../../calculations/e1Insights'
 import type { CalculatedModuleResult, ModuleId, ModuleResult, ModuleInput } from '../../types'
 
 function makeResult(moduleId: ModuleId, overrides: Partial<ModuleResult> = {}): CalculatedModuleResult {
@@ -41,7 +42,30 @@ const baseOptions = {
 
 describe('buildXbrlInstance', () => {
   it('serialises module results as ESRS facts with taxonomy validation', () => {
+    const e1Input: ModuleInput = {
+      E1Context: {
+        netRevenueDkk: 50_000_000,
+        productionVolume: 1_000,
+        productionUnit: 'ton',
+        employeesFte: 200,
+        totalEnergyConsumptionKwh: 250_000,
+      },
+    }
+
+    const createBaseResult = (): ModuleResult => ({
+      value: 1_000,
+      unit: 't CO2e',
+      assumptions: [],
+      trace: [],
+      warnings: [],
+    })
+
+    const scope2Location = withE1Insights('B1', e1Input, createBaseResult())
+    const scope2Market = withE1Insights('B7', e1Input, createBaseResult())
+
     const results: CalculatedModuleResult[] = [
+      makeResult('B1', scope2Location),
+      makeResult('B7', scope2Market),
       makeResult('A1', { value: 1200, unit: 't CO2e' }),
       makeResult('C1', { value: 87.5, unit: 't CO2e' }),
       makeResult('S1', { value: 42, unit: 'social score' }),
@@ -132,6 +156,36 @@ describe('buildXbrlInstance', () => {
       xbrl['esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'],
     )
     expect(String(targetsTable[0]['#text'])).toContain('"scope":"scope1"')
+
+    const locationIntensityNetRevenue = ensureArray(
+      xbrl['esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerNetRevenue'],
+    )
+    expect(Number(locationIntensityNetRevenue[0]['#text'])).toBeCloseTo(20)
+    expect(locationIntensityNetRevenue[0]['@_decimals']).toBe('3')
+
+    const marketIntensityNetRevenue = ensureArray(
+      xbrl['esrs:MarketBasedScope2GreenhouseGasEmissionsIntensityPerNetRevenue'],
+    )
+    expect(Number(marketIntensityNetRevenue[0]['#text'])).toBeCloseTo(20)
+    expect(marketIntensityNetRevenue[0]['@_decimals']).toBe('3')
+
+    const locationIntensityEnergy = ensureArray(
+      xbrl['esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerEnergyConsumption'],
+    )
+    expect(Number(locationIntensityEnergy[0]['#text'])).toBeCloseTo(0.004)
+    expect(locationIntensityEnergy[0]['@_decimals']).toBe('6')
+
+    const locationIntensityEmployees = ensureArray(
+      xbrl['esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerFullTimeEquivalent'],
+    )
+    expect(Number(locationIntensityEmployees[0]['#text'])).toBeCloseTo(5)
+    expect(locationIntensityEmployees[0]['@_decimals']).toBe('3')
+
+    const locationIntensityProduction = ensureArray(
+      xbrl['esrs:LocationBasedScope2GreenhouseGasEmissionsIntensityPerUnitOfPhysicalOutput'],
+    )
+    expect(Number(locationIntensityProduction[0]['#text'])).toBeCloseTo(1)
+    expect(locationIntensityProduction[0]['@_decimals']).toBe('3')
   })
 
   it('inkluderer narrativer og tabeller fra ESRS 2-moduler med gyldige contexts', () => {
