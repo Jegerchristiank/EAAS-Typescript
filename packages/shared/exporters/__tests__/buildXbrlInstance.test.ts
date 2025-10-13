@@ -46,14 +46,16 @@ describe('buildXbrlInstance', () => {
       makeResult('B1', {
         value: 480,
         unit: 't CO2e',
-        esrsFacts: [
+        intensities: [
           {
-            conceptKey: 'E1IntensityLocationBasedPerNetRevenue',
-            value: 0.000012345,
-            unitId: 'Emissions_per_Monetary',
-            decimals: 9
-          }
-        ]
+            basis: 'netRevenue',
+            label: 'tCO2e pr. mio. DKK nettoomsætning',
+            value: 4.8,
+            unit: 'tCO2e/mio. DKK',
+            denominatorValue: 100_000_000,
+            denominatorUnit: 'DKK',
+          },
+        ],
       }),
       makeResult('C1', { value: 87.5, unit: 't CO2e' }),
       makeResult('S1', { value: 42, unit: 'social score' }),
@@ -145,12 +147,25 @@ describe('buildXbrlInstance', () => {
     )
     expect(String(targetsTable[0]['#text'])).toContain('"scope":"scope1"')
 
-    const intensityFact = ensureArray(
+    const expectedIntensity = (1200 + 480 + 87.5) / 100_000_000
+
+    const locationIntensityFacts = ensureArray(
       xbrl['esrs:GHGEmissionsIntensityLocationbasedTotalGHGEmissionsPerNetRevenue']
     )
-    expect(intensityFact[0]['@_unitRef']).toBe('unit_Emissions_per_Monetary')
-    expect(intensityFact[0]['@_decimals']).toBe('9')
-    expect(String(intensityFact[0]['#text'])).toBe('0.000012345')
+    expect(locationIntensityFacts[0]['@_unitRef']).toBe('unit_Emissions_per_Monetary')
+    expect(locationIntensityFacts[0]['@_decimals']).toBe('9')
+    expect(String(locationIntensityFacts[0]['#text'])).toBe(
+      expectedIntensity.toFixed(9).replace(/0+$/, '').replace(/\.$/, ''),
+    )
+
+    const marketIntensityFacts = ensureArray(
+      xbrl['esrs:GHGEmissionsIntensityMarketbasedTotalGHGEmissionsPerNetRevenue']
+    )
+    expect(marketIntensityFacts[0]['@_unitRef']).toBe('unit_Emissions_per_Monetary')
+    expect(marketIntensityFacts[0]['@_decimals']).toBe('9')
+    expect(String(marketIntensityFacts[0]['#text'])).toBe(
+      expectedIntensity.toFixed(9).replace(/0+$/, '').replace(/\.$/, ''),
+    )
   })
 
   it('inkluderer narrativer og tabeller fra ESRS 2-moduler med gyldige contexts', () => {

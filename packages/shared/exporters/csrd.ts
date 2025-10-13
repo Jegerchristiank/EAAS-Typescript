@@ -26,6 +26,12 @@ const scope3ModuleIds = moduleIds.filter((id) => id.startsWith('C'))
 
 const emissionUnit = 't CO2e'
 
+const netRevenueIntensityDecimals = 9
+
+type NetRevenueIntensityConceptKey =
+  | 'E1IntensityLocationBasedPerNetRevenue'
+  | 'E1IntensityMarketBasedPerNetRevenue'
+
 export type ReportingPeriod = {
   start: string
   end: string
@@ -169,6 +175,7 @@ function buildCsrdReportPackageInternal({
   validateEntity(entity)
 
   const totals = calculateEmissionTotals(results)
+  const netRevenueDenominator = findNetRevenueDenominator(results)
 
   const preparedFacts: PreparedFact[] = []
   for (const { key, definition } of esrsEmissionConceptList) {
@@ -224,6 +231,10 @@ function buildCsrdReportPackageInternal({
         })
       }
     }
+  }
+
+  if (netRevenueDenominator != null) {
+    appendNetRevenueIntensityFacts(preparedFacts, totals, netRevenueDenominator)
   }
 
   const periodTypes = new Set<EsrsPeriodType>()
@@ -380,6 +391,80 @@ export function buildXbrlInstance(
 
 function isEsrsConceptKey(value: string): value is EsrsConceptKey {
   return Object.prototype.hasOwnProperty.call(esrsConceptDefinitions, value)
+}
+
+function findNetRevenueDenominator(results: CalculatedModuleResult[]): number | null {
+  for (const { result } of results) {
+    const intensities = result.intensities
+    if (!Array.isArray(intensities)) {
+      continue
+    }
+    for (const intensity of intensities) {
+      if (intensity.basis !== 'netRevenue') {
+        continue
+      }
+      const denominator = Number(intensity.denominatorValue)
+      if (Number.isFinite(denominator) && denominator > 0) {
+        return denominator
+      }
+    }
+  }
+  return null
+}
+
+function appendNetRevenueIntensityFacts(
+  preparedFacts: PreparedFact[],
+  totals: EmissionTotals,
+  netRevenue: number,
+): void {
+  pushNetRevenueIntensityFact(
+    preparedFacts,
+    'E1IntensityLocationBasedPerNetRevenue',
+    totals.totalLocationBased,
+    netRevenue,
+  )
+  pushNetRevenueIntensityFact(
+    preparedFacts,
+    'E1IntensityMarketBasedPerNetRevenue',
+    totals.totalMarketBased,
+    netRevenue,
+  )
+}
+
+function pushNetRevenueIntensityFact(
+  preparedFacts: PreparedFact[],
+  conceptKey: NetRevenueIntensityConceptKey,
+  totalEmissions: number | undefined,
+  netRevenue: number,
+): void {
+  if (typeof totalEmissions !== 'number' || !Number.isFinite(totalEmissions)) {
+    return
+  }
+
+  if (netRevenue <= 0 || !Number.isFinite(netRevenue)) {
+    return
+  }
+
+  if (preparedFacts.some((fact) => fact.conceptKey === conceptKey)) {
+    return
+  }
+
+  const definition = getEsrsConceptDefinition(conceptKey)
+  const intensity = totalEmissions / netRevenue
+  if (!Number.isFinite(intensity)) {
+    return
+  }
+
+  const prepared: PreparedFact = {
+    conceptKey,
+    value: formatDecimal(intensity, netRevenueIntensityDecimals),
+    periodType: definition.periodType,
+    decimals: String(netRevenueIntensityDecimals)
+  }
+  if (definition.unitId !== undefined) {
+    prepared.unitId = definition.unitId
+  }
+  preparedFacts.push(prepared)
 }
 
 type SerialisedModuleFact = {
