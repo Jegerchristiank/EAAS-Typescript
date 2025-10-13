@@ -103,7 +103,7 @@ export function runS4(input: ModuleInput): ModuleResult {
   }
 
   if (escalationDays != null && Number.isFinite(escalationDays)) {
-    esrsFacts.push({ conceptKey: 'S4EscalationTimeframeDays', value: Number(escalationDays), unitId: 'days', decimals: 0 })
+    esrsFacts.push({ conceptKey: 'S4EscalationTimeframeDays', value: Number(escalationDays), unitId: 'day', decimals: 0 })
   }
 
   const issuesCount = issues.length
