@@ -9,6 +9,8 @@ import type {
   ModuleResponsibility,
   ModuleNote,
   ModuleTransitionMeasure,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
 } from '../../types'
 
 const MINIMUM_DETAIL_LENGTH = 120
@@ -65,6 +67,10 @@ export function runSBM(input: ModuleInput): ModuleResult {
   const narratives: ModuleNarrative[] = []
   const notes: ModuleNote[] = []
   const responsibilities: ModuleResponsibility[] = []
+  const fieldNarratives: Partial<Record<keyof SbmInput, string>> = {}
+  const dependencySummaries: string[] = []
+  const opportunitySummaries: string[] = []
+  const transitionSummaries: string[] = []
 
   let completedCount = 0
   let totalElements = 0
@@ -81,6 +87,7 @@ export function runSBM(input: ModuleInput): ModuleResult {
     }
 
     narratives.push({ label, content: value })
+    fieldNarratives[key] = value
     completedCount += 1
 
     if (value.length < MINIMUM_DETAIL_LENGTH) {
@@ -116,6 +123,11 @@ export function runSBM(input: ModuleInput): ModuleResult {
       detail: hasDetail ? detailParts.join(' · ') : 'Ingen detaljer angivet.',
     })
 
+    const summaryParts = [dependency, hasDetail ? detailParts.join(' · ') : null].filter(Boolean)
+    if (summaryParts.length > 0) {
+      dependencySummaries.push(summaryParts.join(': '))
+    }
+
     if (responsible) {
       responsibilities.push({
         subject: dependency ?? `Afhængighed ${index + 1}`,
@@ -144,6 +156,15 @@ export function runSBM(input: ModuleInput): ModuleResult {
     totalElements += 1
     narratives.push({ label: title, content: timeframe ? `${description} (Tidsramme: ${timeframe})` : description })
     completedCount += 1
+
+    const summary = [
+      `${title}: ${description}`,
+      timeframe ? `Tidsramme: ${timeframe}` : null,
+      owner ? `Ansvarlig: ${owner}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    opportunitySummaries.push(summary)
 
     if (owner) {
       responsibilities.push({ subject: title, owner, role: 'Mulighedsansvarlig' })
@@ -183,6 +204,18 @@ export function runSBM(input: ModuleInput): ModuleResult {
               .join(' · '),
           })
 
+          const summary = [
+            initiative ?? `Tiltag ${index + 1}`,
+            status ? `Status: ${status}` : null,
+            milestoneYear != null ? `Milepæl: ${milestoneYear}` : null,
+            investmentNeed != null ? `Investering: ${investmentNeed} DKK` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')
+          if (summary.length > 0) {
+            transitionSummaries.push(summary)
+          }
+
           return {
             initiative,
             status,
@@ -197,6 +230,83 @@ export function runSBM(input: ModuleInput): ModuleResult {
 
   const score = totalElements > 0 ? Math.round((completedCount / totalElements) * 100) : 0
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const esrsTables: ModuleEsrsTable[] = []
+
+  const businessNarrativeParts: string[] = []
+  if (fieldNarratives.businessModelNarrative) {
+    businessNarrativeParts.push(`Forretningsmodel:\n${fieldNarratives.businessModelNarrative}`)
+  }
+  if (fieldNarratives.valueChainNarrative) {
+    businessNarrativeParts.push(`Værdikæde:\n${fieldNarratives.valueChainNarrative}`)
+  }
+  if (dependencySummaries.length > 0) {
+    businessNarrativeParts.push(`Afhængigheder:\n- ${dependencySummaries.join('\n- ')}`)
+  }
+  if (businessNarrativeParts.length > 0) {
+    esrsFacts.push({
+      conceptKey: 'SBMBusinessModelNarrative',
+      value: businessNarrativeParts.join('\n\n'),
+    })
+  }
+
+  const strategyNarrativeParts: string[] = []
+  if (fieldNarratives.sustainabilityStrategyNarrative) {
+    strategyNarrativeParts.push(fieldNarratives.sustainabilityStrategyNarrative)
+  }
+  if (opportunitySummaries.length > 0) {
+    strategyNarrativeParts.push(`Muligheder:\n- ${opportunitySummaries.join('\n- ')}`)
+  }
+  strategyNarrativeParts.push(`Intern vurdering: ${score}% af kravene er dokumenteret.`)
+  esrsFacts.push({
+    conceptKey: 'SBMStrategyNarrative',
+    value: strategyNarrativeParts.join('\n\n'),
+  })
+
+  const resilienceNarrativeParts: string[] = []
+  if (fieldNarratives.resilienceNarrative) {
+    resilienceNarrativeParts.push(fieldNarratives.resilienceNarrative)
+  }
+  if (resilienceNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'SBMResilienceNarrative', value: resilienceNarrativeParts.join('\n\n') })
+  }
+
+  const transitionNarrativeParts: string[] = []
+  if (fieldNarratives.transitionPlanNarrative) {
+    transitionNarrativeParts.push(fieldNarratives.transitionPlanNarrative)
+  }
+  if (transitionSummaries.length > 0) {
+    transitionNarrativeParts.push(`Overgangstiltag:\n- ${transitionSummaries.join('\n- ')}`)
+  }
+  if (transitionNarrativeParts.length > 0) {
+    esrsFacts.push({
+      conceptKey: 'SBMTransitionPlanNarrative',
+      value: transitionNarrativeParts.join('\n\n'),
+    })
+  }
+
+  const stakeholderNarrativeParts: string[] = []
+  if (fieldNarratives.stakeholderNarrative) {
+    stakeholderNarrativeParts.push(fieldNarratives.stakeholderNarrative)
+  }
+  if (stakeholderNarrativeParts.length > 0) {
+    esrsFacts.push({
+      conceptKey: 'SBMStakeholderNarrative',
+      value: stakeholderNarrativeParts.join('\n\n'),
+    })
+  }
+
+  if (responsibilities.length > 0) {
+    esrsTables.push({
+      conceptKey: 'SBMResponsibilitiesTable',
+      rows: responsibilities.map((entry) => ({
+        subject: entry.subject,
+        owner: entry.owner,
+        role: entry.role ?? null,
+      })),
+    })
+  }
+
   return {
     value: score,
     unit: 'score',
@@ -207,6 +317,8 @@ export function runSBM(input: ModuleInput): ModuleResult {
     notes,
     responsibilities,
     transitionMeasures,
+    ...(esrsFacts.length ? { esrsFacts } : {}),
+    ...(esrsTables.length ? { esrsTables } : {}),
   }
 }
 

@@ -10,7 +10,9 @@ import type {
   ModuleNote,
   ModuleTransitionMeasure,
   ModuleFinancialEffect,
-  ModuleRemovalProject
+  ModuleRemovalProject,
+  ModuleEsrsFact,
+  ModuleEsrsTable
 } from '../../types'
 
 const MINIMUM_DETAIL_LENGTH = 200
@@ -88,6 +90,7 @@ export function runMR(input: ModuleInput): ModuleResult {
   const notes: ModuleNote[] = []
 
   const requirements: RequirementResult[] = []
+  const narrativeValues: Partial<Record<NarrativeField['id'], string>> = {}
   const addRequirement = ({ id, label, passes, successDetail, failureDetail, warnings: extraWarnings = [] }: RequirementOptions) => {
     requirements.push({ id, label, passes, detail: passes ? successDetail : failureDetail })
     trace.push(`requirement:${id}=${passes ? 'pass' : 'fail'}`)
@@ -105,6 +108,7 @@ export function runMR(input: ModuleInput): ModuleResult {
 
     if (value) {
       narratives.push({ label, content: value })
+      narrativeValues[id] = value
     }
 
     const passes = value != null && value.length >= MINIMUM_DETAIL_LENGTH
@@ -203,6 +207,7 @@ export function runMR(input: ModuleInput): ModuleResult {
 
   const metrics = Array.isArray(mrRaw?.metrics) ? mrRaw.metrics : []
   let metricsWithData = 0
+  const metricSummaries: string[] = []
 
   metrics.forEach((metric, index) => {
     const name = normaliseText(metric?.name) ?? `Metric ${index + 1}`
@@ -260,6 +265,19 @@ export function runMR(input: ModuleInput): ModuleResult {
         .join(' · ')
     })
 
+    metricSummaries.push(
+      [
+        name,
+        baselineYear != null && baselineValue != null ? `Baseline ${baselineYear}: ${baselineValue} ${unit ?? ''}`.trim() : null,
+        currentYear != null && currentValue != null ? `Seneste ${currentYear}: ${currentValue} ${unit ?? ''}`.trim() : null,
+        targetYear != null && targetValue != null ? `Mål ${targetYear}: ${targetValue} ${unit ?? ''}`.trim() : null,
+        status ? `Status: ${status}` : null,
+        owner ? `Ansvarlig: ${owner}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    )
+
     if (owner) {
       notes.push({ label: `${name} – ansvarlig`, detail: owner })
     }
@@ -291,6 +309,162 @@ export function runMR(input: ModuleInput): ModuleResult {
 
   const passedCount = requirements.filter((requirement) => requirement.passes).length
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const esrsTables: ModuleEsrsTable[] = []
+
+  if (narrativeValues.intensityNarrative) {
+    esrsFacts.push({ conceptKey: 'MRIntensityNarrative', value: narrativeValues.intensityNarrative })
+  }
+
+  const targetNarrativeParts: string[] = []
+  if (narrativeValues.targetNarrative) {
+    targetNarrativeParts.push(narrativeValues.targetNarrative)
+  }
+  if (metricSummaries.length > 0) {
+    targetNarrativeParts.push(`Nøgletal:\n- ${metricSummaries.join('\n- ')}`)
+  }
+  if (targetNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'MRTargetsNarrative', value: targetNarrativeParts.join('\n\n') })
+  }
+
+  if (narrativeValues.assuranceNarrative) {
+    esrsFacts.push({ conceptKey: 'MRAssuranceNarrative', value: narrativeValues.assuranceNarrative })
+  }
+
+  const transitionSummaries = transitionMeasuresResult.items.map((measure, index) =>
+    [
+      measure.initiative ?? `Tiltag ${index + 1}`,
+      measure.status ? `Status: ${measure.status}` : null,
+      measure.milestoneYear != null ? `Milepæl: ${measure.milestoneYear}` : null,
+      measure.investmentNeedDkk != null ? `Investering: ${measure.investmentNeedDkk} DKK` : null,
+      measure.responsible ? `Ansvarlig: ${measure.responsible}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  )
+
+  const transitionNarrativeParts: string[] = []
+  if (transitionNarrative) {
+    transitionNarrativeParts.push(transitionNarrative)
+  }
+  if (transitionSummaries.length > 0) {
+    transitionNarrativeParts.push(`Overgangstiltag:\n- ${transitionSummaries.join('\n- ')}`)
+  }
+  if (transitionNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'MRTransitionPlanNarrative', value: transitionNarrativeParts.join('\n\n') })
+  }
+
+  const financialEffectSummaries = financialEffectsResult.items.map((effect, index) =>
+    [
+      effect.label ?? `Finansiel effekt ${index + 1}`,
+      effect.type ? `Type: ${effect.type}` : null,
+      effect.amountDkk != null ? `Beløb: ${effect.amountDkk} DKK` : null,
+      effect.timeframe ? `Tidsramme: ${effect.timeframe}` : null,
+      effect.description,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  )
+
+  const financialNarrativeParts: string[] = []
+  if (financialNarrative) {
+    financialNarrativeParts.push(financialNarrative)
+  }
+  if (financialEffectSummaries.length > 0) {
+    financialNarrativeParts.push(`Finansielle effekter:\n- ${financialEffectSummaries.join('\n- ')}`)
+  }
+  if (financialNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'MRFinancialEffectsNarrative', value: financialNarrativeParts.join('\n\n') })
+  }
+
+  const metricsNarrativeParts: string[] = []
+  metricsNarrativeParts.push(`Registrerede metrics med data: ${metricsWithData} af ${metrics.length}`)
+  if (metricSummaries.length > 0) {
+    metricsNarrativeParts.push(`Oversigt:\n- ${metricSummaries.join('\n- ')}`)
+  }
+  esrsFacts.push({ conceptKey: 'MRMetricsNarrative', value: metricsNarrativeParts.join('\n\n') })
+
+  const removalSummaries = removalProjectsResult.items.map((project, index) =>
+    [
+      project.projectName ?? `Removal projekt ${index + 1}`,
+      project.removalType ? `Type: ${project.removalType}` : null,
+      project.annualRemovalTonnes != null ? `Årlig removal: ${project.annualRemovalTonnes} t` : null,
+      project.storageDescription,
+      project.qualityStandard ? `Standard: ${project.qualityStandard}` : null,
+      project.permanenceYears != null ? `Permanens: ${project.permanenceYears} år` : null,
+      project.financedThroughCredits != null ? `Finansieret via kreditter: ${project.financedThroughCredits ? 'ja' : 'nej'}` : null,
+      project.responsible ? `Ansvarlig: ${project.responsible}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  )
+
+  const dataQualityNarrativeParts: string[] = []
+  if (narrativeValues.dataQualityNarrative) {
+    dataQualityNarrativeParts.push(narrativeValues.dataQualityNarrative)
+  }
+  if (removalSummaries.length > 0) {
+    dataQualityNarrativeParts.push(`Removal projekter:\n- ${removalSummaries.join('\n- ')}`)
+  }
+  if (dataQualityNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'MRDataQualityNarrative', value: dataQualityNarrativeParts.join('\n\n') })
+  }
+
+  if (transitionMeasuresResult.items.length > 0) {
+    esrsTables.push({
+      conceptKey: 'MRTransitionMeasuresTable',
+      rows: transitionMeasuresResult.items.map((measure, index) => ({
+        initiative: measure.initiative ?? `Tiltag ${index + 1}`,
+        status: measure.status ?? null,
+        milestoneYear: measure.milestoneYear ?? null,
+        investmentNeedDkk: measure.investmentNeedDkk ?? null,
+        responsible: measure.responsible ?? null,
+        description: measure.description ?? null,
+      })),
+    })
+  }
+
+  if (financialEffectsResult.items.length > 0) {
+    esrsTables.push({
+      conceptKey: 'MRFinancialEffectsTable',
+      rows: financialEffectsResult.items.map((effect, index) => ({
+        label: effect.label ?? `Finansiel effekt ${index + 1}`,
+        type: effect.type ?? null,
+        amountDkk: effect.amountDkk ?? null,
+        timeframe: effect.timeframe ?? null,
+        description: effect.description ?? null,
+      })),
+    })
+  }
+
+  if (removalProjectsResult.items.length > 0) {
+    esrsTables.push({
+      conceptKey: 'MRRemovalProjectsTable',
+      rows: removalProjectsResult.items.map((project, index) => ({
+        projectName: project.projectName ?? `Removal projekt ${index + 1}`,
+        removalType: project.removalType ?? null,
+        annualRemovalTonnes: project.annualRemovalTonnes ?? null,
+        storageDescription: project.storageDescription ?? null,
+        qualityStandard: project.qualityStandard ?? null,
+        permanenceYears: project.permanenceYears ?? null,
+        financedThroughCredits: project.financedThroughCredits ?? null,
+        responsible: project.responsible ?? null,
+      })),
+    })
+  }
+
+  if (requirements.length > 0) {
+    esrsTables.push({
+      conceptKey: 'MRRequirementsTable',
+      rows: requirements.map((requirement) => ({
+        id: requirement.id,
+        label: requirement.label,
+        passes: requirement.passes,
+        detail: requirement.detail,
+      })),
+    })
+  }
+
   return {
     value: passedCount,
     unit: 'opfyldte krav',
@@ -306,7 +480,9 @@ export function runMR(input: ModuleInput): ModuleResult {
       label: requirement.label,
       value: requirement.passes ? 'Opfyldt' : 'Mangler',
       context: requirement.detail
-    }))
+    })),
+    ...(esrsFacts.length ? { esrsFacts } : {}),
+    ...(esrsTables.length ? { esrsTables } : {}),
   }
 }
 

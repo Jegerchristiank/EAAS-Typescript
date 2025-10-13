@@ -735,6 +735,140 @@ export const esrsConceptDefinitions = {
     unitId: null,
     periodType: 'duration'
   },
+  SBMBusinessModelNarrative: {
+    qname: 'esrs:DescriptionOfBusinessModelAndValueChainExplanatory',
+    periodType: 'duration'
+  },
+  SBMStrategyNarrative: {
+    qname:
+      'esrs:DisclosureOfElementsOfStrategyThatRelateToOrImpactSustainabilityMattersBusinessModelAndValueChainExplanatory',
+    periodType: 'duration'
+  },
+  SBMResilienceNarrative: {
+    qname: 'esrs:DescriptionOfResultsOfResilienceAnalysisExplanatory',
+    periodType: 'duration'
+  },
+  SBMStakeholderNarrative: {
+    qname: 'esrs:DescriptionOfStakeholderEngagementExplanatory',
+    periodType: 'duration'
+  },
+  SBMTransitionPlanNarrative: {
+    qname:
+      'esrs:DescriptionOfProcessInRelationToClimaterelatedTransitionRisksAndOpportunitiesInOwnOperationsAndAlongUpstreamAndDownstreamValueChainExplanatory',
+    periodType: 'duration'
+  },
+  SBMResponsibilitiesTable: {
+    qname: 'esrs:StrategyBusinessModelAndValueChainTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  GOVOversightNarrative: {
+    qname: 'esrs:InformationAboutRolesAndResponsibilitiesOfAdministrativeManagementAndSupervisoryBodiesExplanatory',
+    periodType: 'duration'
+  },
+  GOVManagementNarrative: {
+    qname:
+      'esrs:DisclosureOfHowAdministrativeManagementAndSupervisoryBodiesAreInformedAboutSustainabilityMattersAndHowTheseMattersWereAddressedExplanatory',
+    periodType: 'duration'
+  },
+  GOVCompetenceNarrative: {
+    qname: 'esrs:InformationAboutExtentToWhichTrainingIsGivenToMembersOfAdministrativeManagementAndSupervisoryBodiesExplanatory',
+    periodType: 'duration'
+  },
+  GOVReportingNarrative: {
+    qname:
+      'esrs:DescriptionOfPeriodicReportingOfFindingsOfRiskAssessmentAndInternalControlsToAdministrativeManagementAndSupervisoryBodiesInRelationToSustainabilityReportingProcessExplanatory',
+    periodType: 'duration'
+  },
+  GOVIncentiveNarrative: {
+    qname:
+      'esrs:DescriptionOfSpecificSustainabilityrelatedTargetsAndOrImpactsUsedToAssessPerformanceOfMembersOfAdministrativeManagementAndSupervisoryBodiesExplanatory',
+    periodType: 'duration'
+  },
+  GOVResponsibilitiesTable: {
+    qname: 'esrs:RolesAndResponsibilitiesOfAdministrativeManagementAndSupervisoryBodiesTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  IROProcessNarrative: {
+    qname:
+      'esrs:DescriptionOfProcessToIdentifyAssessPrioritiseAndMonitorPotentialAndActualImpactsOnPeopleAndEnvironmentInformedByDueDiligenceProcessExplanatory',
+    periodType: 'duration'
+  },
+  IROIntegrationNarrative: {
+    qname:
+      'esrs:DisclosureOfHowAdministrativeManagementAndSupervisoryBodiesConsiderImpactsRisksAndOpportunitiesWhenOverseeingStrategyDecisionsOnMajorTransactionsAndRiskManagementProcessExplanatory',
+    periodType: 'duration'
+  },
+  IROStakeholderNarrative: {
+    qname: 'esrs:DescriptionOfHowStakeholderEngagementIsOrganisedExplanatory',
+    periodType: 'duration'
+  },
+  IRODueDiligenceNarrative: {
+    qname:
+      'esrs:InformationAboutMethodologiesAssumptionsAndToolsUsedToScreenAssetsAndOrActivitiesInOrderToIdentifyActualAndPotentialImpactsRisksAndOpportunitiesInEitherOwnOperationsOrValueChainExplanatory',
+    periodType: 'duration'
+  },
+  IROMonitoringNarrative: {
+    qname: 'esrs:DescriptionOfMetricsUsedToEvaluatePerformanceAndEffectivenessInRelationToMaterialImpactRiskOrOpportunityExplanatory',
+    periodType: 'duration'
+  },
+  IROActionsTable: {
+    qname: 'esrs:ProcessToIdentifyAndAssessMaterialImpactsRisksAndOpportunitiesESRS2Table',
+    unitId: null,
+    periodType: 'duration'
+  },
+  MRIntensityNarrative: {
+    qname: 'esrs:DescriptionOfMetricsScopeExplanatory',
+    periodType: 'duration'
+  },
+  MRTargetsNarrative: {
+    qname:
+      'esrs:DescriptionOfAnyTimeboundTargetsSetRelatedToSustainabilityMattersAssessedToBeMaterialPhaseinAndProgressMadeTowardsAchievingThoseTargetsExplanatory',
+    periodType: 'duration'
+  },
+  MRDataQualityNarrative: {
+    qname:
+      'esrs:DisclosureOfExtentToWhichDataAndProcessesThatAreUsedForSustainabilityReportingPurposesHaveBeenVerifiedByExternalAssuranceProviderAndFoundToConformToCorrespondingIsoNOIecOrCenNOCenelecStandardExplanatory',
+    periodType: 'duration'
+  },
+  MRAssuranceNarrative: {
+    qname: 'esrs:TypeOfExternalBodyOtherThanAssuranceProviderThatProvidesValidationExplanatory',
+    periodType: 'duration'
+  },
+  MRTransitionPlanNarrative: {
+    qname: 'esrs:DisclosureOfTransitionPlanForClimateChangeMitigationExplanatory',
+    periodType: 'duration'
+  },
+  MRFinancialEffectsNarrative: {
+    qname:
+      'esrs:DisclosureOfAnticipatedFinancialEffectsOfMaterialRisksAndOpportunitiesOnFinancialPerformanceAndCashFlowsOverShortMediumAndLongtermExplanatory',
+    periodType: 'duration'
+  },
+  MRMetricsNarrative: {
+    qname: 'esrs:DescriptionOfMetricsUsedToEvaluatePerformanceAndEffectivenessInRelationToMaterialImpactRiskOrOpportunityExplanatory',
+    periodType: 'duration'
+  },
+  MRTransitionMeasuresTable: {
+    qname: 'esrs:TransitionPlanForClimateChangeMitigationTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  MRFinancialEffectsTable: {
+    qname: 'esrs:AnticipatedFinancialEffectsFromMaterialPhysicalAndTransitionRisksDetailedTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  MRRemovalProjectsTable: {
+    qname: 'esrs:GHGRemovalsAndStorageActivityTable',
+    unitId: null,
+    periodType: 'duration'
+  },
+  MRRequirementsTable: {
+    qname: 'esrs:MinimumDisclosureRequirementMetricsListOfESRSMetricsTable',
+    unitId: null,
+    periodType: 'duration'
+  },
   D2ValidTopicsCount: {
     qname: 'esrs:D2ValidTopicsCount',
     unitId: 'pure',
