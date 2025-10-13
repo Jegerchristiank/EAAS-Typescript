@@ -237,6 +237,16 @@ describe('buildXbrlInstance', () => {
         keyNarratives: [{ title: 'Ekstra narrativ', content: 'Supplerende kvalitativ beskrivelse.' }]
       },
       E1Context: {
+        netRevenueDkk: 120_000_000,
+        productionVolume: 12_500,
+        productionUnit: 'MWh',
+        employeesFte: 640,
+        totalEnergyConsumptionKwh: 1_950_000,
+        energyProductionKwh: 320_000,
+        renewableEnergyProductionKwh: 180_000,
+        previousYearScope1Tonnes: 2_400,
+        previousYearScope2Tonnes: 1_200,
+        previousYearScope3Tonnes: 5_600,
         transitionPlanMeasures: [
           {
             initiative: 'Klimaaftaler',

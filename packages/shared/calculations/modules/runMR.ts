@@ -312,13 +312,15 @@ export function runMR(input: ModuleInput): ModuleResult {
   const esrsFacts: ModuleEsrsFact[] = []
   const esrsTables: ModuleEsrsTable[] = []
 
-  if (narrativeValues.intensityNarrative) {
-    esrsFacts.push({ conceptKey: 'MRIntensityNarrative', value: narrativeValues.intensityNarrative })
+  const intensityNarrativeValue = narrativeValues['intensityNarrative']
+  if (intensityNarrativeValue) {
+    esrsFacts.push({ conceptKey: 'MRIntensityNarrative', value: intensityNarrativeValue })
   }
 
   const targetNarrativeParts: string[] = []
-  if (narrativeValues.targetNarrative) {
-    targetNarrativeParts.push(narrativeValues.targetNarrative)
+  const targetNarrativeValue = narrativeValues['targetNarrative']
+  if (targetNarrativeValue) {
+    targetNarrativeParts.push(targetNarrativeValue)
   }
   if (metricSummaries.length > 0) {
     targetNarrativeParts.push(`Nøgletal:\n- ${metricSummaries.join('\n- ')}`)
@@ -327,8 +329,9 @@ export function runMR(input: ModuleInput): ModuleResult {
     esrsFacts.push({ conceptKey: 'MRTargetsNarrative', value: targetNarrativeParts.join('\n\n') })
   }
 
-  if (narrativeValues.assuranceNarrative) {
-    esrsFacts.push({ conceptKey: 'MRAssuranceNarrative', value: narrativeValues.assuranceNarrative })
+  const assuranceNarrativeValue = narrativeValues['assuranceNarrative']
+  if (assuranceNarrativeValue) {
+    esrsFacts.push({ conceptKey: 'MRAssuranceNarrative', value: assuranceNarrativeValue })
   }
 
   const transitionSummaries = transitionMeasuresResult.items.map((measure, index) =>
@@ -400,8 +403,9 @@ export function runMR(input: ModuleInput): ModuleResult {
   )
 
   const dataQualityNarrativeParts: string[] = []
-  if (narrativeValues.dataQualityNarrative) {
-    dataQualityNarrativeParts.push(narrativeValues.dataQualityNarrative)
+  const dataQualityNarrativeValue = narrativeValues['dataQualityNarrative']
+  if (dataQualityNarrativeValue) {
+    dataQualityNarrativeParts.push(dataQualityNarrativeValue)
   }
   if (removalSummaries.length > 0) {
     dataQualityNarrativeParts.push(`Removal projekter:\n- ${removalSummaries.join('\n- ')}`)
