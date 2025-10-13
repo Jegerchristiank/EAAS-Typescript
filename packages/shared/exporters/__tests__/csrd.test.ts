@@ -32,6 +32,11 @@ describe('buildCsrdReportPackage', () => {
       baseResult('C1', 3.2, 't CO2e'),
       baseResult('C5', 1.1, 't CO2e'),
       baseResult('D1', 75, 'governance score'),
+      baseResult('S4', 58, 'consumer score', {
+        esrsFacts: [
+          { conceptKey: 'S4EscalationTimeframeDays', value: 14, unitId: 'day', decimals: 0 }
+        ]
+      }),
       baseResult('E1Targets', 2, 'mål', {
         esrsFacts: [
           {
@@ -111,6 +116,12 @@ describe('buildCsrdReportPackage', () => {
     expect(weeklyHoursFact?.unitRef).toBe('unit_hour')
     expect(weeklyHoursFact?.contextRef).toBe('ctx_reporting_period')
 
+    const escalationTimeframeFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith('S4GrievanceEscalationTimeframeDays')
+    )
+    expect(escalationTimeframeFact?.unitRef).toBe('unit_day')
+    expect(escalationTimeframeFact?.decimals).toBe('0')
+
     const segmentTotalFact = pkg.facts.find((fact) => fact.concept.endsWith('S1SegmentHeadcountTotal'))
     expect(segmentTotalFact?.contextRef).toBe('ctx_reporting_period_instant')
     expect(segmentTotalFact?.value).toBe('125')
@@ -180,6 +191,10 @@ describe('buildCsrdReportPackage', () => {
         {
           id: 'unit_hour',
           measures: ['utr:hour']
+        },
+        {
+          id: 'unit_day',
+          measures: ['utr:day']
         }
       ])
     )
