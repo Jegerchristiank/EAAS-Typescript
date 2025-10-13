@@ -8,6 +8,8 @@ import type {
   ModuleNarrative,
   ModuleNote,
   ModuleResponsibility,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
 } from '../../types'
 
 const MINIMUM_DETAIL_LENGTH = 100
@@ -64,6 +66,10 @@ export function runGOV(input: ModuleInput): ModuleResult {
   const narratives: ModuleNarrative[] = []
   const notes: ModuleNote[] = []
   const responsibilities: ModuleResponsibility[] = []
+  const fieldNarratives: Partial<Record<keyof GovInput, string>> = {}
+  const oversightSummaries: string[] = []
+  const controlSummaries: string[] = []
+  const incentiveSummaries: string[] = []
 
   let totalElements = 0
   let completedCount = 0
@@ -79,6 +85,7 @@ export function runGOV(input: ModuleInput): ModuleResult {
     }
 
     narratives.push({ label, content: value })
+    fieldNarratives[key] = value
     completedCount += 1
 
     if (value.length < MINIMUM_DETAIL_LENGTH) {
@@ -114,6 +121,18 @@ export function runGOV(input: ModuleInput): ModuleResult {
       detail: details.join(' · ') || 'Ingen detaljer angivet.',
     })
 
+    const summary = [
+      body ?? `Governance-organ ${index + 1}`,
+      mandate,
+      frequency ? `Mødefrekvens: ${frequency}` : null,
+      chair ? `Formand: ${chair}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    if (summary.length > 0) {
+      oversightSummaries.push(summary)
+    }
+
     if (chair) {
       responsibilities.push({ subject: body ?? `Governance-organ ${index + 1}`, owner: chair, role: 'Formand' })
     }
@@ -139,6 +158,17 @@ export function runGOV(input: ModuleInput): ModuleResult {
     }
 
     notes.push({ label: process ?? `Kontrol ${index + 1}`, detail: description ?? 'Ingen detaljer angivet.' })
+
+    const summary = [
+      process ?? `Kontrol ${index + 1}`,
+      description,
+      owner ? `Ansvarlig: ${owner}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    if (summary.length > 0) {
+      controlSummaries.push(summary)
+    }
 
     if (owner) {
       responsibilities.push({ subject: process ?? `Kontrol ${index + 1}`, owner, role: 'Procesansvarlig' })
@@ -169,12 +199,87 @@ export function runGOV(input: ModuleInput): ModuleResult {
       detail: [incentive, metric ? `KPI: ${metric}` : null].filter(Boolean).join(' · ') || 'Ingen detaljer angivet.',
     })
 
+    const summary = [
+      role ?? `Incitament ${index + 1}`,
+      incentive,
+      metric ? `KPI: ${metric}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    if (summary.length > 0) {
+      incentiveSummaries.push(summary)
+    }
+
     if (role && incentive) {
       responsibilities.push({ subject: role, owner: role, role: 'Incitament' })
     }
   })
 
   const score = totalElements > 0 ? Math.round((completedCount / totalElements) * 100) : 0
+
+  const esrsFacts: ModuleEsrsFact[] = []
+  const esrsTables: ModuleEsrsTable[] = []
+
+  const oversightNarrativeParts: string[] = []
+  if (fieldNarratives.oversightNarrative) {
+    oversightNarrativeParts.push(fieldNarratives.oversightNarrative)
+  }
+  if (oversightSummaries.length > 0) {
+    oversightNarrativeParts.push(`Governance-organer:\n- ${oversightSummaries.join('\n- ')}`)
+  }
+  oversightNarrativeParts.push(`Intern vurdering: ${score}% af governance-kravene er dokumenteret.`)
+  esrsFacts.push({
+    conceptKey: 'GOVOversightNarrative',
+    value: oversightNarrativeParts.join('\n\n'),
+  })
+
+  const managementNarrativeParts: string[] = []
+  if (fieldNarratives.managementNarrative) {
+    managementNarrativeParts.push(fieldNarratives.managementNarrative)
+  }
+  if (controlSummaries.length > 0) {
+    managementNarrativeParts.push(`Kontrolprocesser:\n- ${controlSummaries.join('\n- ')}`)
+  }
+  if (managementNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'GOVManagementNarrative', value: managementNarrativeParts.join('\n\n') })
+  }
+
+  if (fieldNarratives.competenceNarrative) {
+    esrsFacts.push({ conceptKey: 'GOVCompetenceNarrative', value: fieldNarratives.competenceNarrative })
+  }
+
+  const reportingNarrativeParts: string[] = []
+  if (fieldNarratives.reportingNarrative) {
+    reportingNarrativeParts.push(fieldNarratives.reportingNarrative)
+  }
+  if (fieldNarratives.assuranceNarrative) {
+    reportingNarrativeParts.push(fieldNarratives.assuranceNarrative)
+  }
+  if (reportingNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'GOVReportingNarrative', value: reportingNarrativeParts.join('\n\n') })
+  }
+
+  const incentiveNarrativeParts: string[] = []
+  if (fieldNarratives.incentiveNarrative) {
+    incentiveNarrativeParts.push(fieldNarratives.incentiveNarrative)
+  }
+  if (incentiveSummaries.length > 0) {
+    incentiveNarrativeParts.push(`Incitamentsstrukturer:\n- ${incentiveSummaries.join('\n- ')}`)
+  }
+  if (incentiveNarrativeParts.length > 0) {
+    esrsFacts.push({ conceptKey: 'GOVIncentiveNarrative', value: incentiveNarrativeParts.join('\n\n') })
+  }
+
+  if (responsibilities.length > 0) {
+    esrsTables.push({
+      conceptKey: 'GOVResponsibilitiesTable',
+      rows: responsibilities.map((entry) => ({
+        subject: entry.subject,
+        owner: entry.owner,
+        role: entry.role ?? null,
+      })),
+    })
+  }
 
   return {
     value: score,
@@ -185,6 +290,8 @@ export function runGOV(input: ModuleInput): ModuleResult {
     narratives,
     notes,
     responsibilities,
+    ...(esrsFacts.length ? { esrsFacts } : {}),
+    ...(esrsTables.length ? { esrsTables } : {}),
   }
 }
 

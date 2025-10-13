@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest'
 
 import { buildCsrdReportPackage, buildSubmissionPayload, buildXbrlInstance } from '../csrd'
 import { esrsEmissionConceptList } from '../esrsTaxonomy'
-import type { CalculatedModuleResult, ModuleId, ModuleResult } from '../../types'
+import { runSBM } from '../../calculations/modules/runSBM'
+import { runGOV } from '../../calculations/modules/runGOV'
+import { runIRO } from '../../calculations/modules/runIRO'
+import { runMR } from '../../calculations/modules/runMR'
+import type { CalculatedModuleResult, ModuleId, ModuleResult, ModuleInput } from '../../types'
 
 function makeResult(moduleId: ModuleId, overrides: Partial<ModuleResult> = {}): CalculatedModuleResult {
   const baseResult: ModuleResult = {
@@ -128,6 +132,207 @@ describe('buildXbrlInstance', () => {
       xbrl['esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'],
     )
     expect(String(targetsTable[0]['#text'])).toContain('"scope":"scope1"')
+  })
+
+  it('inkluderer narrativer og tabeller fra ESRS 2-moduler med gyldige contexts', () => {
+    const repeatText = (text: string, repeat = 30) => Array(repeat).fill(text).join(' ')
+
+    const moduleInput: ModuleInput = {
+      SBM: {
+        businessModelNarrative: repeatText('Forretningsmodellen beskriver nøgleaktiviteter og værdiskabelse for kunder.'),
+        valueChainNarrative: repeatText('Værdikæden omfatter leverandører, distribution og eftermarkedstjenester.'),
+        sustainabilityStrategyNarrative: repeatText('Strategien integrerer bæredygtighed i produktudvikling og investeringer.'),
+        resilienceNarrative: repeatText('Robustheden testes via scenarier, stress-tests og løbende læring.'),
+        transitionPlanNarrative: repeatText('Overgangsplanen beskriver investeringer i energieffektivisering og partnerskaber.'),
+        stakeholderNarrative: repeatText('Interessentdialogen involverer kunder, leverandører og civilsamfund i prioriteringer.'),
+        dependencies: [
+          {
+            dependency: 'Strategisk afhængighed',
+            impact: 'Begrænset adgang til biobaserede materialer påvirker produktionen.',
+            mitigation: 'Indgår langtidskontrakter og udvikler alternative materialer.',
+            responsible: 'Eva Jensen'
+          }
+        ],
+        opportunities: [
+          {
+            title: 'Ny grøn service',
+            description: 'Udvider porteføljen med cirkulære serviceløsninger til nøglekunder.',
+            timeframe: '2026',
+            owner: 'Lars Holm'
+          }
+        ],
+        transitionPlanMeasures: [
+          {
+            initiative: 'Energieffektivisering af fabrikker',
+            description: 'Opgraderer anlæg med varmegenvinding og styringssystemer.',
+            status: 'inProgress',
+            milestoneYear: 2027,
+            investmentNeedDkk: 5000000,
+            responsible: 'Ida Madsen'
+          }
+        ]
+      },
+      GOV: {
+        oversightNarrative: repeatText('Bestyrelsen fører tilsyn med ESG-mål og indarbejder dem i risikostyring.', 25),
+        managementNarrative: repeatText('Direktionen sikrer, at bæredygtighed prioriteres i forretningsplaner og budgetter.', 25),
+        competenceNarrative: repeatText('Ledelsen deltager i kurser om klimarisici, menneskerettigheder og rapportering.', 25),
+        reportingNarrative: repeatText('Rapporteringsprocessen omfatter kvartalsvise reviews og interne kontroller.', 25),
+        assuranceNarrative: repeatText('Ekstern assurance dækker både CO2-data og sociale nøgletal med ISAE 3000.', 25),
+        incentiveNarrative: repeatText('Incitamentsprogrammet kobler bonus til reduktion af udledning og kundetilfredshed.', 25),
+        oversightBodies: [
+          { body: 'Bestyrelse', mandate: 'Strategisk ESG-tilsyn', chair: 'Anders Sørensen', meetingFrequency: 'Kvartalsvis' }
+        ],
+        controlProcesses: [
+          { process: 'ESG-kontrol', description: 'Gennemgang af data og kontroller inden offentliggørelse.', owner: 'Birgitte Lund' }
+        ],
+        incentiveStructures: [
+          { role: 'Direktør', incentive: 'CO2-reduktion og kundemålinger', metric: 'tCO2e pr. omsætning' }
+        ]
+      },
+      IRO: {
+        processNarrative: repeatText('Processen kortlægger impacts gennem due diligence, screening og workshops.', 40),
+        integrationNarrative: repeatText('Resultater integreres i strategi, produktstyring og investeringsbeslutninger.', 40),
+        stakeholderNarrative: repeatText('Interessenter bidrager med input gennem paneler, undersøgelser og dialog.', 40),
+        dueDiligenceNarrative: repeatText('Due diligence dækker både egen drift og værdikæden med prioriterede risici.', 40),
+        escalationNarrative: repeatText('Eskalering sker til direktion og bestyrelse via formelle beslutningsspor.', 40),
+        monitoringNarrative: repeatText('KPI’er og dashboards overvåger fremdrift og remediering af impacts.', 40),
+        riskProcesses: [
+          { step: 'Screening', description: 'Årlig risikovurdering af leverandører og aktiviteter.', frequency: 'Årlig', owner: 'Nina Vang' }
+        ],
+        impactResponses: [
+          {
+            topic: 'Leverandørpåvirkning',
+            severity: 'Høj',
+            response: 'Implementerer forbedringsplaner og audits.',
+            status: 'I gang',
+            responsible: 'Oskar Friis'
+          }
+        ]
+      },
+      MR: {
+        intensityNarrative: repeatText('Intensitet beskrives for scope 1-3 med forbedringer og forklaringer.', 50),
+        targetNarrative: repeatText('Målsætninger angiver milepæle for reduktion og energieffektivisering.', 50),
+        dataQualityNarrative: repeatText('Datakvaliteten vurderes via kontroller, plausibilitetstjek og systemer.', 50),
+        assuranceNarrative: repeatText('Validering udføres af ekstern partner samt intern auditfunktion.', 50),
+        transitionPlanNarrative: repeatText('Planen beskriver teknologiinvesteringer, partnerskaber og finansiering.', 50),
+        financialEffectNarrative: repeatText('Finansielle effekter omfatter capex, opex og forventede besparelser.', 50),
+        metrics: [
+          {
+            name: 'Scope 1 intensitet',
+            unit: 't/oms',
+            baselineYear: 2020,
+            baselineValue: 12,
+            currentYear: 2023,
+            currentValue: 8,
+            targetYear: 2030,
+            targetValue: 5,
+            status: 'onTrack',
+            owner: 'Pia Møller',
+            description: 'Reduktion i scope 1 intensitet gennem energieffektivisering.'
+          }
+        ],
+        financialEffects: [
+          { label: 'Tilpasning af anlæg', type: 'capex', amountDkk: 750000, timeframe: '2024-2026', description: 'Opgradering til elektrificerede processer.' }
+        ],
+        keyNarratives: [{ title: 'Ekstra narrativ', content: 'Supplerende kvalitativ beskrivelse.' }]
+      },
+      E1Context: {
+        netRevenueDkk: 120_000_000,
+        productionVolume: 12_500,
+        productionUnit: 'MWh',
+        employeesFte: 640,
+        totalEnergyConsumptionKwh: 1_950_000,
+        energyProductionKwh: 320_000,
+        renewableEnergyProductionKwh: 180_000,
+        previousYearScope1Tonnes: 2_400,
+        previousYearScope2Tonnes: 1_200,
+        previousYearScope3Tonnes: 5_600,
+        transitionPlanMeasures: [
+          {
+            initiative: 'Klimaaftaler',
+            description: 'Langsigtede PPA-aftaler med vedvarende energi.',
+            status: 'planned',
+            milestoneYear: 2026,
+            investmentNeedDkk: 4200000,
+            responsible: 'Sofie Kragh'
+          }
+        ],
+        financialEffects: [
+          { label: 'OPEX besparelse', type: 'revenues', amountDkk: 320000, timeframe: '2025', description: 'Reduceret energiforbrug.' }
+        ],
+        ghgRemovalProjects: [
+          {
+            projectName: 'Skovrejsning',
+            removalType: 'inHouse',
+            annualRemovalTonnes: 150,
+            storageDescription: 'Langsigtet skovrejsningsprojekt på egne arealer.',
+            qualityStandard: 'Gold Standard',
+            permanenceYears: 60,
+            financedThroughCredits: false,
+            responsible: 'Henrik Dahl'
+          }
+        ]
+      }
+    }
+
+    const sbmResult = runSBM(moduleInput)
+    const govResult = runGOV(moduleInput)
+    const iroResult = runIRO(moduleInput)
+    const mrResult = runMR(moduleInput)
+
+    const qualitativeResults: CalculatedModuleResult[] = [
+      { moduleId: 'SBM', title: 'SBM', result: sbmResult },
+      { moduleId: 'GOV', title: 'GOV', result: govResult },
+      { moduleId: 'IRO', title: 'IRO', result: iroResult },
+      { moduleId: 'MR', title: 'MR', result: mrResult }
+    ]
+
+    const pkg = buildCsrdReportPackage(qualitativeResults, baseOptions)
+    const factsByConcept = new Map(pkg.facts.map((fact) => [fact.concept, fact]))
+
+    expect(factsByConcept.get('esrs:DescriptionOfBusinessModelAndValueChainExplanatory')?.contextRef).toBe(
+      'ctx_reporting_period',
+    )
+    expect(factsByConcept.get('esrs:DescriptionOfBusinessModelAndValueChainExplanatory')?.unitRef).toBeUndefined()
+    expect(
+      factsByConcept.get('esrs:InformationAboutRolesAndResponsibilitiesOfAdministrativeManagementAndSupervisoryBodiesExplanatory')
+        ?.contextRef,
+    ).toBe('ctx_reporting_period')
+    expect(
+      factsByConcept.get(
+        'esrs:DescriptionOfProcessToIdentifyAssessPrioritiseAndMonitorPotentialAndActualImpactsOnPeopleAndEnvironmentInformedByDueDiligenceProcessExplanatory',
+      )?.contextRef,
+    ).toBe('ctx_reporting_period')
+    expect(
+      factsByConcept.get('esrs:DisclosureOfTransitionPlanForClimateChangeMitigationExplanatory')?.contextRef,
+    ).toBe('ctx_reporting_period')
+
+    const sbmTable = factsByConcept.get('esrs:StrategyBusinessModelAndValueChainTable')
+    expect(sbmTable?.contextRef).toBe('ctx_reporting_period')
+    expect(sbmTable?.value).toContain('Strategisk afhængighed')
+
+    const govTable = factsByConcept.get('esrs:RolesAndResponsibilitiesOfAdministrativeManagementAndSupervisoryBodiesTable')
+    expect(govTable?.value).toContain('Bestyrelse')
+
+    const iroTable = factsByConcept.get('esrs:ProcessToIdentifyAndAssessMaterialImpactsRisksAndOpportunitiesESRS2Table')
+    expect(iroTable?.value).toContain('Screening')
+
+    const mrRequirementsTable = factsByConcept.get('esrs:MinimumDisclosureRequirementMetricsListOfESRSMetricsTable')
+    expect(mrRequirementsTable?.value).toContain('transitionPlan')
+
+    const parser = new XMLParser({ ignoreAttributes: false })
+    const parsed = parser.parse(pkg.instance)
+    const xbrl = parsed['xbrli:xbrl']
+
+    const sbmNarrativeNode = ensureArray(
+      xbrl['esrs:DescriptionOfBusinessModelAndValueChainExplanatory'],
+    )[0]
+    expect(sbmNarrativeNode['@_contextRef']).toBe('ctx_reporting_period')
+
+    const mrTableNode = ensureArray(
+      xbrl['esrs:MinimumDisclosureRequirementMetricsListOfESRSMetricsTable'],
+    )[0]
+    expect(mrTableNode['@_contextRef']).toBe('ctx_reporting_period')
   })
 
   it('generates instant contexts for stock metrics', () => {
