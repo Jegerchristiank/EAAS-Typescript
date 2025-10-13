@@ -222,6 +222,16 @@ export const esrsConceptDefinitions = {
     qname: 'esrs:DescriptionOfCriticalAssumptionsMadeToDetermineCarbonPriceAppliedExplanatory',
     periodType: 'duration',
   },
+  E1IntensityLocationBasedPerNetRevenue: {
+    qname: 'esrs:GHGEmissionsIntensityLocationbasedTotalGHGEmissionsPerNetRevenue',
+    unitId: 'Emissions_per_Monetary',
+    periodType: 'duration'
+  },
+  E1IntensityMarketBasedPerNetRevenue: {
+    qname: 'esrs:GHGEmissionsIntensityMarketbasedTotalGHGEmissionsPerNetRevenue',
+    unitId: 'Emissions_per_Monetary',
+    periodType: 'duration'
+  },
   E1TargetsPresent: {
     qname:
       'esrs:GHGEmissionsReductionTargetsAndOrAnyOtherTargetsHaveBeenSetToManageMaterialClimaterelatedImpactsRisksAndOpportunities',

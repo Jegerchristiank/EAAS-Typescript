@@ -43,6 +43,18 @@ describe('buildXbrlInstance', () => {
   it('serialises module results as ESRS facts with taxonomy validation', () => {
     const results: CalculatedModuleResult[] = [
       makeResult('A1', { value: 1200, unit: 't CO2e' }),
+      makeResult('B1', {
+        value: 480,
+        unit: 't CO2e',
+        esrsFacts: [
+          {
+            conceptKey: 'E1IntensityLocationBasedPerNetRevenue',
+            value: 0.000012345,
+            unitId: 'Emissions_per_Monetary',
+            decimals: 9
+          }
+        ]
+      }),
       makeResult('C1', { value: 87.5, unit: 't CO2e' }),
       makeResult('S1', { value: 42, unit: 'social score' }),
       makeResult('E1Targets', {
@@ -132,6 +144,13 @@ describe('buildXbrlInstance', () => {
       xbrl['esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'],
     )
     expect(String(targetsTable[0]['#text'])).toContain('"scope":"scope1"')
+
+    const intensityFact = ensureArray(
+      xbrl['esrs:GHGEmissionsIntensityLocationbasedTotalGHGEmissionsPerNetRevenue']
+    )
+    expect(intensityFact[0]['@_unitRef']).toBe('unit_Emissions_per_Monetary')
+    expect(intensityFact[0]['@_decimals']).toBe('9')
+    expect(String(intensityFact[0]['#text'])).toBe('0.000012345')
   })
 
   it('inkluderer narrativer og tabeller fra ESRS 2-moduler med gyldige contexts', () => {

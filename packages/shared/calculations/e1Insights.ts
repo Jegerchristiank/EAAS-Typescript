@@ -51,6 +51,8 @@ const scopeMap: Partial<Record<ModuleId, 'scope1' | 'scope2' | 'scope3'>> = {
   C15: 'scope3',
 }
 
+const scope2MarketModules = new Set<ModuleId>(['B7', 'B8', 'B9', 'B10', 'B11'])
+
 const previousYearField: Record<'scope1' | 'scope2' | 'scope3', keyof E1ContextInput> = {
   scope1: 'previousYearScope1Tonnes',
   scope2: 'previousYearScope2Tonnes',
@@ -72,6 +74,7 @@ export function withE1Insights(
 
   const trace = [...result.trace]
   const intensities: ModuleIntensity[] = []
+  const esrsFacts = Array.isArray(result.esrsFacts) ? [...result.esrsFacts] : []
   const energyMix = resolveEnergyMix(context)
   const targetProgress = resolveTargetProgress(moduleId, scope, targetsInput, result.value, trace)
   const trend = resolveTrend(scope, context, result.value, result.unit, trace)
@@ -88,6 +91,18 @@ export function withE1Insights(
       denominatorUnit: 'DKK',
     })
     trace.push(`intensity.revenuePerMillion=${intensityValue}`)
+
+    const intensityPerCurrency = result.value / revenue
+    const conceptKey =
+      scope === 'scope2' && scope2MarketModules.has(moduleId)
+        ? 'E1IntensityMarketBasedPerNetRevenue'
+        : 'E1IntensityLocationBasedPerNetRevenue'
+    esrsFacts.push({
+      conceptKey,
+      value: intensityPerCurrency,
+      unitId: 'Emissions_per_Monetary',
+      decimals: 9,
+    })
   }
 
   const productionVolume = toPositiveNumber(context.productionVolume)
@@ -152,6 +167,10 @@ export function withE1Insights(
 
   if (energyMix.length > 0) {
     next.energyMix = energyMix
+  }
+
+  if (esrsFacts.length > 0) {
+    next.esrsFacts = esrsFacts
   }
 
   return next

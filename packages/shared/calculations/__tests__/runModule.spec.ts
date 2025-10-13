@@ -1929,6 +1929,15 @@ describe('runB11', () => {
     expect(result.intensities?.map((entry) => entry.basis)).toEqual(
       expect.arrayContaining(['netRevenue', 'production', 'energy'])
     )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'E1IntensityLocationBasedPerNetRevenue',
+          unitId: 'Emissions_per_Monetary',
+          decimals: 9,
+        }),
+      ])
+    )
     expect(result.trend).toMatchObject({ previousValue: 35, unit: result.unit })
     expect(result.targetProgress).toMatchObject({ scope: 'scope2', owner: 'Energiansvarlig' })
     expect(result.energyMix).toBeDefined()
