@@ -247,6 +247,46 @@ export const esrsConceptDefinitions = {
     unitId: null,
     periodType: 'duration',
   },
+  E1EnergyConsumptionTotalKwh: {
+    qname: 'esrs:EnergyConsumptionRelatedToOwnOperations',
+    unitId: 'kWh',
+    periodType: 'duration',
+  },
+  E1EnergyConsumptionRenewableKwh: {
+    qname: 'esrs:EnergyConsumptionFromRenewableSources',
+    unitId: 'kWh',
+    periodType: 'duration',
+  },
+  E1EnergyConsumptionNonRenewableKwh: {
+    qname: 'esrs:EnergyConsumptionFromFossilSources',
+    unitId: 'kWh',
+    periodType: 'duration',
+  },
+  E1EnergyRenewableSharePercent: {
+    qname: 'esrs:PercentageOfRenewableSourcesInTotalEnergyConsumption',
+    unitId: 'percent',
+    periodType: 'duration',
+  },
+  E1EnergyNonRenewableSharePercent: {
+    qname: 'esrs:PercentageOfFossilSourcesInTotalEnergyConsumption',
+    unitId: 'percent',
+    periodType: 'duration',
+  },
+  E1EnergyRenewableProductionKwh: {
+    qname: 'esrs:RenewableEnergyProduction',
+    unitId: 'kWh',
+    periodType: 'duration',
+  },
+  E1EnergyNonRenewableProductionKwh: {
+    qname: 'esrs:NonrenewableEnergyProduction',
+    unitId: 'kWh',
+    periodType: 'duration',
+  },
+  E1EnergyMixTable: {
+    qname: 'esrs:DisclosureOfEnergyConsumptionAndMixTable',
+    unitId: null,
+    periodType: 'duration',
+  },
   E1RiskPhysicalAssets: {
     qname: 'esrs:CarryingAmountOfAssetsAtMaterialPhysicalRisk',
     unitId: 'DKK',

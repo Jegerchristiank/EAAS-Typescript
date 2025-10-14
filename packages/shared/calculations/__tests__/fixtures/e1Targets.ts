@@ -1,6 +1,31 @@
 import type { ModuleInput } from '../../../types'
 
 export const e1TargetsFixture: ModuleInput = {
+  E1Context: {
+    totalEnergyConsumptionKwh: 1_950_000,
+    energyProductionKwh: 250_000,
+    renewableEnergyProductionKwh: 180_000,
+    energyMixLines: [
+      {
+        energyType: 'electricity',
+        consumptionKwh: 1_500_000,
+        documentationQualityPercent: 80,
+        sharePercent: 70,
+      },
+      {
+        energyType: 'biogas',
+        consumptionKwh: 300_000,
+        documentationQualityPercent: 90,
+        sharePercent: 15,
+      },
+      {
+        energyType: 'diesel',
+        consumptionKwh: 150_000,
+        documentationQualityPercent: 60,
+        sharePercent: 15,
+      },
+    ],
+  },
   E1Targets: {
     targets: [
       {

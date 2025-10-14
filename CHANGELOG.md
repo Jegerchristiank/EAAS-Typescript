@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - E1 kontekstmoduler for klimascenarier, interne CO₂-priser, risikogeografi og decarboniseringsdrivere med schema, beregninger,
   wizard-trin, ESRS-eksport og tests.
 - Server-baseret wizard-persistence med revisionslog, rollebaseret adgangskontrol, Vitest-dækning og runbook for drift/compliance.
+- Udvidet E1-målmodul med energiforbrug, vedvarende andele, dokumentationskvalitet og ESRS-eksport.
 
 
 ### Changed

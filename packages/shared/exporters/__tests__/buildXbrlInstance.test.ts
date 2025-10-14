@@ -66,6 +66,13 @@ describe('buildXbrlInstance', () => {
             conceptKey: 'E1TargetsNarrative',
             value: 'Scope 1 target – mål 45 t i 2027',
           },
+          { conceptKey: 'E1EnergyConsumptionTotalKwh', value: 1_950_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyConsumptionRenewableKwh', value: 180_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyConsumptionNonRenewableKwh', value: 1_770_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyRenewableSharePercent', value: 9.2, unitId: 'percent', decimals: 1 },
+          { conceptKey: 'E1EnergyNonRenewableSharePercent', value: 90.8, unitId: 'percent', decimals: 1 },
+          { conceptKey: 'E1EnergyRenewableProductionKwh', value: 180_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyNonRenewableProductionKwh', value: 70_000, unitId: 'kWh', decimals: 0 },
         ],
         esrsTables: [
           {
@@ -76,6 +83,17 @@ describe('buildXbrlInstance', () => {
                 name: 'Scope 1 target',
                 targetYear: 2027,
                 targetValueTonnes: 45,
+              },
+            ],
+          },
+          {
+            conceptKey: 'E1EnergyMixTable',
+            rows: [
+              {
+                energyType: 'electricity',
+                consumptionKwh: 1_500_000,
+                sharePercent: 70,
+                documentationQualityPercent: 80,
               },
             ],
           },
@@ -141,6 +159,17 @@ describe('buildXbrlInstance', () => {
       ],
     )
     expect(String(targetsNarrative[0]['#text'])).toContain('Scope 1 target')
+
+    const energyTotal = ensureArray(xbrl['esrs:EnergyConsumptionRelatedToOwnOperations'])
+    expect(String(energyTotal[0]['#text'])).toBe('1950000')
+
+    const renewableShareFact = ensureArray(
+      xbrl['esrs:PercentageOfRenewableSourcesInTotalEnergyConsumption'],
+    )
+    expect(String(renewableShareFact[0]['#text'])).toBe('9.2')
+
+    const energyMixTable = ensureArray(xbrl['esrs:DisclosureOfEnergyConsumptionAndMixTable'])
+    expect(String(energyMixTable[0]['#text'])).toContain('"energyType":"electricity"')
 
     const targetsTable = ensureArray(
       xbrl['esrs:TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'],

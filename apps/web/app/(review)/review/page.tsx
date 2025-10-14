@@ -85,6 +85,16 @@ const priorityBandLabels = {
   monitor: 'Monitorering'
 } as const
 
+const energyTypeLabels: Record<string, string> = {
+  electricity: 'Elektricitet',
+  districtHeat: 'Fjernvarme',
+  steam: 'Damp',
+  cooling: 'Køling',
+  biogas: 'Biogas',
+  diesel: 'Diesel',
+  other: 'Andet',
+}
+
 export default function ReviewPage(): JSX.Element {
   return (
     <WizardProvider>
@@ -542,7 +552,9 @@ function ResultCard({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
           <ul>
             {result.energyMix.map((entryMix, index) => (
               <li key={`${entry.moduleId}-energy-${index}`}>
-                {entryMix.energyType}: {entryMix.sharePercent}% ({entryMix.consumptionKwh} kWh)
+                {energyTypeLabels[entryMix.energyType] ?? entryMix.energyType}: {entryMix.sharePercent}% ({
+                  entryMix.consumptionKwh
+                } kWh)
               </li>
             ))}
           </ul>

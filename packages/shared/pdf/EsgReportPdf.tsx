@@ -149,6 +149,16 @@ const remediationLabels = {
   inPlace: 'Afhjælpning implementeret',
 } as const
 
+const energyTypeLabels: Record<string, string> = {
+  electricity: 'Elektricitet',
+  districtHeat: 'Fjernvarme',
+  steam: 'Damp',
+  cooling: 'Køling',
+  biogas: 'Biogas',
+  diesel: 'Diesel',
+  other: 'Andet',
+}
+
 function formatMetric(metric: ModuleMetric): string {
   const value = metric.value
   const formatted =
@@ -286,7 +296,9 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
           <Text style={styles.label}>Energimix</Text>
           {result.energyMix.map((mixEntry, index) => (
             <Text key={`${entry.moduleId}-mix-${index}`} style={styles.listItem}>
-              • {mixEntry.energyType}: {mixEntry.sharePercent}% ({mixEntry.consumptionKwh} kWh)
+              • {energyTypeLabels[mixEntry.energyType] ?? mixEntry.energyType}: {mixEntry.sharePercent}% ({
+                mixEntry.consumptionKwh
+              } kWh)
             </Text>
           ))}
         </View>
