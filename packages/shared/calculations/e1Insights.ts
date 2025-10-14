@@ -51,8 +51,6 @@ const scopeMap: Partial<Record<ModuleId, 'scope1' | 'scope2' | 'scope3'>> = {
   C15: 'scope3',
 }
 
-const scope2MarketModules = new Set<ModuleId>(['B7', 'B8', 'B9', 'B10', 'B11'])
-
 const previousYearField: Record<'scope1' | 'scope2' | 'scope3', keyof E1ContextInput> = {
   scope1: 'previousYearScope1Tonnes',
   scope2: 'previousYearScope2Tonnes',
