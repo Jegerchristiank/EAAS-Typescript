@@ -3,7 +3,7 @@
  */
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
 import {
@@ -118,6 +118,7 @@ function WizardShellContent(): JSX.Element {
   const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizardContext()
   const [isProfileOpen, setIsProfileOpen] = useState(() => !isProfileComplete(profile))
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
+  const navigationRef = useRef<HTMLDivElement | null>(null)
   const StepComponent = wizardSteps[currentStep]?.component
   const currentStepMeta = wizardSteps[currentStep]
 
@@ -141,6 +142,28 @@ function WizardShellContent(): JSX.Element {
     () => buildRelevantModuleGroups(profile, activeModuleId, recommendedStepId),
     [profile, activeModuleId, recommendedStepId]
   )
+
+  useEffect(() => {
+    const node = navigationRef.current
+    if (!node) {
+      return
+    }
+
+    const elementWithInert = node as HTMLElement & { inert?: boolean }
+
+    if (!navigationVisible && !isDesktopNavigation) {
+      elementWithInert.setAttribute('inert', '')
+      elementWithInert.inert = true
+    } else {
+      elementWithInert.removeAttribute('inert')
+      elementWithInert.inert = false
+    }
+
+    return () => {
+      elementWithInert.removeAttribute('inert')
+      elementWithInert.inert = false
+    }
+  }, [isDesktopNavigation, navigationVisible])
 
   const scopeSummaries = useMemo(
     () =>
@@ -311,6 +334,7 @@ function WizardShellContent(): JSX.Element {
         <div className="wizard-shell__primary">
           <div
             className="wizard-shell__navigation"
+            ref={navigationRef}
             data-open={navigationVisible ? 'true' : undefined}
             data-desktop={isDesktopNavigation ? 'true' : undefined}
             aria-hidden={navigationVisible ? undefined : 'true'}
