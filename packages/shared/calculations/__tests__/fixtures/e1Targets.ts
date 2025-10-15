@@ -2,6 +2,10 @@ import type { ModuleInput } from '../../../types'
 
 export const e1TargetsFixture: ModuleInput = {
   E1Context: {
+    netRevenueDkk: null,
+    productionVolume: null,
+    productionUnit: null,
+    employeesFte: null,
     totalEnergyConsumptionKwh: 1_950_000,
     energyProductionKwh: 250_000,
     renewableEnergyProductionKwh: 180_000,
@@ -25,6 +29,12 @@ export const e1TargetsFixture: ModuleInput = {
         sharePercent: 15,
       },
     ],
+    previousYearScope1Tonnes: null,
+    previousYearScope2Tonnes: null,
+    previousYearScope3Tonnes: null,
+    ghgRemovalProjects: [],
+    financialEffects: [],
+    transitionPlanMeasures: [],
   },
   E1Targets: {
     targets: [

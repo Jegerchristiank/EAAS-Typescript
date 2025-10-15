@@ -32,8 +32,8 @@ describe('convertCsvToSchema', () => {
     }
     const properties = schema.properties
 
-    expect(properties.FooString).toEqual({ type: 'string' })
-    expect(properties.BarArray).toEqual({ type: 'array' })
-    expect(properties.BazFlag).toEqual({ type: 'boolean' })
+    expect(properties['FooString']).toEqual({ type: 'string' })
+    expect(properties['BarArray']).toEqual({ type: 'array' })
+    expect(properties['BazFlag']).toEqual({ type: 'boolean' })
   })
 })
