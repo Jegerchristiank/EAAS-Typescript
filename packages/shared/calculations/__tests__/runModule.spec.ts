@@ -38,16 +38,37 @@ import { runA1 } from '../modules/runA1'
 import { runD1 } from '../modules/runD1'
 import { runD2 } from '../modules/runD2'
 import { runE1Targets } from '../modules/runE1Targets'
+import { runE1Scenarios } from '../modules/runE1Scenarios'
+import { runE1CarbonPrice } from '../modules/runE1CarbonPrice'
+import { runE1RiskGeography } from '../modules/runE1RiskGeography'
+import { runE1DecarbonisationDrivers } from '../modules/runE1DecarbonisationDrivers'
 import { runE2Water } from '../modules/runE2Water'
 import { runE3Pollution } from '../modules/runE3Pollution'
 import { runE4Biodiversity } from '../modules/runE4Biodiversity'
 import { runE5Resources } from '../modules/runE5Resources'
+import { runSBM } from '../modules/runSBM'
+import { runGOV } from '../modules/runGOV'
+import { runIRO } from '../modules/runIRO'
+import { runMR } from '../modules/runMR'
 import { runS1 } from '../modules/runS1'
 import { runS2 } from '../modules/runS2'
 import { runS3 } from '../modules/runS3'
 import { runS4 } from '../modules/runS4'
 import { runG1 } from '../modules/runG1'
 import { e1TargetsFixture } from './fixtures/e1Targets'
+import { e1NewModulesFixture } from './fixtures/e1NewModules'
+import {
+  createD1ApprovedFixture,
+  createD1RejectedFixture,
+  createMRApprovedFixture,
+  createMRRejectedFixture
+} from './fixtures/esrs2Governance'
+import {
+  d2TopicMissingFinancial,
+  d2TopicMissingFinancialWithOverride,
+  d2TopicWithFinancial,
+  d2TopicWithLowerFinancial
+} from './fixtures/d2Topics'
 
 describe('createDefaultResult', () => {
   it('returnerer forventet basisstruktur for andre moduler', () => {
@@ -280,13 +301,40 @@ describe('runS1', () => {
       S1: {
         reportingYear: 2024,
         totalHeadcount: 520,
+        totalFte: 483,
         dataCoveragePercent: 90,
+        fteCoveragePercent: 95,
+        averageWeeklyHours: 37,
         headcountBreakdown: [
           { segment: 'Danmark', headcount: 200, femalePercent: 48, collectiveAgreementCoveragePercent: 85 },
           { segment: 'Sverige', headcount: 120, femalePercent: 52, collectiveAgreementCoveragePercent: 80 },
           { segment: 'Produktion', headcount: 150, femalePercent: 18, collectiveAgreementCoveragePercent: 70 },
           { segment: 'HQ', headcount: 50, femalePercent: 60, collectiveAgreementCoveragePercent: 90 }
         ],
+        employmentContractBreakdown: [
+          { contractType: 'permanentEmployees', headcount: 420, fte: 400, femalePercent: 45 },
+          { contractType: 'temporaryEmployees', headcount: 70, fte: 60, femalePercent: 55 },
+          { contractType: 'nonEmployeeWorkers', headcount: 20, fte: 15, femalePercent: 40 },
+          { contractType: 'apprentices', headcount: 10, fte: 8, femalePercent: 35 }
+        ],
+        employmentStatusBreakdown: [
+          { status: 'fullTime', headcount: 430, fte: 410 },
+          { status: 'partTime', headcount: 70, fte: 60 },
+          { status: 'seasonal', headcount: 20, fte: 13 }
+        ],
+        hasCollectiveBargainingAgreements: true,
+        genderPayGapPercent: 4,
+        genderPayGapPercentManagement: 7,
+        genderPayGapPercentOperations: -1,
+        absenteeismRatePercent: 4,
+        lostTimeInjuryFrequencyRate: 1.2,
+        workRelatedAccidentsCount: 2,
+        workRelatedFatalitiesCount: 0,
+        averageTrainingHoursPerEmployee: 10,
+        trainingCoveragePercent: 85,
+        socialProtectionCoveragePercent: 90,
+        healthCareCoveragePercent: 80,
+        pensionPlanCoveragePercent: 88,
         workforceNarrative: 'Stabil bemanding med fokus på kollektiv repræsentation.'
       }
     }
@@ -299,6 +347,112 @@ describe('runS1', () => {
     )
     expect(result.warnings).toContain(
       'Segmentet "Produktion" har en kønsfordeling på 18% kvinder – markér indsats i S2 for at adressere ubalancer.'
+    )
+    expect(result.warnings).toContain('Registrerede arbejdsulykker: 2. Dokumentér forebyggelse.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S1TotalHeadcount', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1TotalFte', value: 483 }),
+        expect.objectContaining({ conceptKey: 'S1DataCoveragePercent', value: 90 }),
+        expect.objectContaining({ conceptKey: 'S1FteCoveragePercent', value: 95 }),
+        expect.objectContaining({ conceptKey: 'S1GenderPayGapPercentTotal', value: 4 }),
+        expect.objectContaining({ conceptKey: 'S1AbsenteeismRatePercent', value: 4 }),
+        expect.objectContaining({ conceptKey: 'S1AverageTrainingHoursPerEmployee', value: 10 }),
+        expect.objectContaining({ conceptKey: 'S1AverageWeeklyHours', value: 37 }),
+        expect.objectContaining({ conceptKey: 'S1SegmentHeadcountTotal', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1SegmentFemaleHeadcountEstimate', value: 215.4 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentContractHeadcountTotal', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentContractFteTotal', value: 483 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentStatusHeadcountTotal', value: 520 }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentStatusFteTotal', value: 483 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S1HeadcountBreakdownTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ segment: 'Danmark', headcount: 200 })
+          ])
+        }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentContractBreakdownTable' }),
+        expect.objectContaining({ conceptKey: 'S1EmploymentStatusBreakdownTable' })
+      ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Total headcount', value: 520 }),
+        expect.objectContaining({ label: 'Total FTE', value: 483 }),
+        expect.objectContaining({ label: 'Gns. ugentlige arbejdstimer', value: 37 }),
+        expect.objectContaining({ label: 'Træningstimer pr. medarbejder', value: 10 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's1-headcount-breakdown', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Arbejdsstyrkens udvikling' })])
+    )
+  })
+
+  it('giver datakvalitetsadvarsler når centrale S1-data mangler', () => {
+    const input: ModuleInput = {
+      S1: {
+        reportingYear: null,
+        totalHeadcount: 100,
+        totalFte: 60,
+        dataCoveragePercent: 100,
+        fteCoveragePercent: null,
+        averageWeeklyHours: null,
+        headcountBreakdown: [
+          { segment: 'HQ', headcount: 100, femalePercent: 55, collectiveAgreementCoveragePercent: 40 }
+        ],
+        employmentContractBreakdown: [
+          { contractType: 'permanentEmployees', headcount: 80, fte: 50, femalePercent: 50 }
+        ],
+        employmentStatusBreakdown: [{ status: 'fullTime', headcount: 100, fte: 55 }],
+        hasCollectiveBargainingAgreements: false,
+        genderPayGapPercent: null,
+        genderPayGapPercentManagement: null,
+        genderPayGapPercentOperations: null,
+        absenteeismRatePercent: 10,
+        lostTimeInjuryFrequencyRate: 3,
+        workRelatedAccidentsCount: null,
+        workRelatedFatalitiesCount: null,
+        averageTrainingHoursPerEmployee: 2,
+        trainingCoveragePercent: 40,
+        socialProtectionCoveragePercent: 40,
+        healthCareCoveragePercent: 30,
+        pensionPlanCoveragePercent: 35,
+        workforceNarrative: null
+      }
+    }
+
+    const result = runS1(input)
+
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Datadækning for FTE er ikke angivet. Feltet dokumenterer ESRS S1-6 krav om fuldt overblik.',
+        'Faglig repræsentation/dækningsgrad er kun 40% – vurder behov for kollektive aftaler og arbejdsmiljøudvalg.',
+        'Der er angivet at ingen kollektive overenskomster dækker medarbejderne – forvent opfølgning i handlingsplaner.',
+        'Løngab (samlet) er ikke angivet. ESRS S1 kræver kønsopdelt aflønning.',
+        'Løngab for ledelse er ikke angivet.',
+        'Løngab for øvrige medarbejdere er ikke angivet.',
+        'Fraværsraten er 10% – undersøg årsager og forbedringstiltag.',
+        'LTIFR er 3 – styrk sikkerhedstræning og rapportering.',
+        'Angiv antal arbejdsrelaterede ulykker for at opfylde ESRS S1-8.',
+        'Angiv antal arbejdsrelaterede dødsfald (0 hvis ingen).',
+        'Træningstimer pr. medarbejder er 2 – vurder behov for flere efteruddannelsesinitiativer.',
+        'Kun 40% af medarbejderne modtog træning – udvid programmerne.',
+        'Social beskyttelse dækker kun 40% – vurder forbedringer af ydelserne.',
+        'Sundhedsordninger dækker 30% – vurder forbedringer.',
+        'Pensionsordninger dækker 35% – dokumentér plan for udvidelse.',
+        'Ansættelsesformernes headcount (80) stemmer ikke overens med total headcount (100). Kontrollér opgørelsen.',
+        'Ansættelsesformernes FTE (50.00) stemmer ikke overens med total FTE (60). Juster fordeling eller total.',
+        'Statusfordelingens FTE (55.00) matcher ikke total FTE (60).'
+      ])
     )
   })
 })
@@ -348,6 +502,42 @@ describe('runS2', () => {
     expect(result.value).toBeGreaterThan(70)
     expect(result.trace).toContain('valueChainCoveragePercent=85')
     expect(result.warnings).toContain('1 klager fra leverandørarbejdere er åbne. Følg op og luk dem for at undgå ESRS S2 advarsler.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S2ValueChainWorkersCount', value: 2400 }),
+        expect.objectContaining({ conceptKey: 'S2IncidentsCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'S2SocialDialogueNarrative', value: expect.stringContaining('dialog') }),
+        expect.objectContaining({ conceptKey: 'S2RemediationNarrative', value: expect.stringContaining('Kompensation') })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S2IncidentsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ supplier: 'Alpha Textiles', workersAffected: 60 })
+          ])
+        })
+      ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Arbejdstagere i værdikæden', value: 2400 }),
+        expect.objectContaining({ label: 'Registrerede hændelser', value: 2 }),
+        expect.objectContaining({ label: 'Berørte arbejdstagere', value: 80 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's2-incident-list', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Social dialog og træning' }),
+        expect.objectContaining({ label: 'Afhjælpning og kompensation' })
+      ])
+    )
   })
 })
 
@@ -391,6 +581,43 @@ describe('runS3', () => {
     expect(result.value).toBeGreaterThan(60)
     expect(result.trace).toContain('impactAssessmentsCoveragePercent=80')
     expect(result.warnings).not.toContain('Ingen påvirkninger registreret endnu.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S3CommunitiesIdentifiedCount', value: 5 }),
+        expect.objectContaining({ conceptKey: 'S3ImpactsCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'S3HouseholdsAffectedTotal', value: 52 }),
+        expect.objectContaining({ conceptKey: 'S3EngagementNarrative', value: expect.stringContaining('FPIC') }),
+        expect.objectContaining({ conceptKey: 'S3RemedyNarrative', value: expect.stringContaining('Kompensationsfonde') })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S3CommunityImpactsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ community: 'Fjordbyen', householdsAffected: 40 })
+          ])
+        })
+      ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Identificerede lokalsamfund', value: 5 }),
+        expect.objectContaining({ label: 'Registrerede impacts', value: 2 }),
+        expect.objectContaining({ label: 'Berørte husholdninger', value: 52 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's3-community-impacts', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Engagement og samarbejde' }),
+        expect.objectContaining({ label: 'Afhjælpning og kompensation' })
+      ])
+    )
   })
 })
 
@@ -437,6 +664,45 @@ describe('runS4', () => {
     expect(result.value).toBeGreaterThan(50)
     expect(result.trace).toContain('productsAssessedPercent=70')
     expect(result.warnings).toContain('1 alvorlige hændelser rapporteret – offentliggør detaljer og kompensation.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'S4ProductsAssessedPercent', value: 70 }),
+        expect.objectContaining({ conceptKey: 'S4IssuesCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'S4VulnerableUsersNarrative', value: expect.stringContaining('supportlinje') }),
+        expect.objectContaining({
+          conceptKey: 'S4ConsumerEngagementNarrative',
+          value: expect.stringContaining('forbrugerorganisationer')
+        })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'S4ConsumerIssuesTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ productOrService: 'SmartHome Hub', usersAffected: 120 })
+          ])
+        })
+      ])
+    )
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Risikovurderede produkter', value: 70 }),
+        expect.objectContaining({ label: 'Registrerede issues', value: 2 }),
+        expect.objectContaining({ label: 'Berørte brugere', value: 170 })
+      ])
+    )
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 's4-issues', rows: expect.any(Array) })
+      ])
+    )
+    expect(result.narratives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Indsatser for udsatte brugere' }),
+        expect.objectContaining({ label: 'Forbrugerengagement' })
+      ])
+    )
   })
 })
 
@@ -479,6 +745,28 @@ describe('runG1', () => {
     expect(result.value).toBeCloseTo(44)
     expect(result.warnings).toContain('Angiv ejer/ansvarlig for politikken "Whistleblower".')
     expect(result.trace).toContain('policy[0]=ESG-politik|status=approved|owner=Legal')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'G1PolicyCount', value: 2 }),
+        expect.objectContaining({ conceptKey: 'G1BoardOversight', value: true }),
+        expect.objectContaining({
+          conceptKey: 'G1GovernanceNarrative',
+          value: expect.stringContaining('Bestyrelsen vurderer ESG-risici')
+        })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'G1PoliciesTable',
+          rows: expect.arrayContaining([expect.objectContaining({ topic: 'ESG-politik' })])
+        }),
+        expect.objectContaining({
+          conceptKey: 'G1TargetsTable',
+          rows: expect.arrayContaining([expect.objectContaining({ topic: 'CSRD readiness' })])
+        })
+      ])
+    )
   })
 })
 
@@ -487,54 +775,109 @@ describe('runD2', () => {
     const input: ModuleInput = {
       D2: {
         materialTopics: [
-          {
-            title: 'Klimarisiko i forsyningskæden',
-            description: 'Leverandører i højrisikoområder',
-            riskType: 'risk',
-            impactScore: 5,
-            financialScore: 4,
-            timeline: 'shortTerm',
-            responsible: 'CFO',
-            csrdGapStatus: 'missing'
-          },
-          {
-            title: 'Cirkulære services',
-            description: 'Nye take-back modeller',
-            riskType: 'opportunity',
-            impactScore: 3,
-            financialScore: 2,
-            timeline: 'longTerm',
-            responsible: null,
-            csrdGapStatus: 'partial'
-          },
-          {
-            title: 'Datastyring',
-            description: 'Mangler moden data governance',
-            riskType: 'risk',
-            impactScore: null,
-            financialScore: null,
-            timeline: null,
-            responsible: null,
-            csrdGapStatus: 'missing'
-          }
+          { ...d2TopicWithFinancial },
+          { ...d2TopicWithLowerFinancial },
+          { ...d2TopicMissingFinancial }
         ]
       }
     }
 
     const result = runD2(input)
 
-    expect(result.value).toBeCloseTo(72, 1)
+    expect(result.value).toBeCloseTo(58.1, 1)
     expect(result.unit).toBe(factors.d2.unit)
     expect(result.assumptions.some((entry) => entry.includes('Top prioriterede emner'))).toBe(true)
     expect(result.trace).toContain('inputTopics=3')
-    expect(result.trace).toContain('validTopics=2')
+    expect(result.trace).toContain('validTopics=3')
+    expect(result.trace.some((entry) => entry.includes('averageCompositeScore'))).toBe(true)
     expect(result.warnings.some((warning) => warning.includes('Prioriteret emne: Klimarisiko'))).toBe(true)
     expect(result.warnings.some((warning) => warning.includes('CSRD-gap mangler for Klimarisiko'))).toBe(true)
     expect(
+      result.warnings.some((warning) => warning.includes('Finansiel score mangler for "Datastyring"'))
+    ).toBe(true)
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'D2ValidTopicsCount', value: 3 }),
+        expect.objectContaining({ conceptKey: 'D2PrioritisedTopicsCount', value: 1 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'D2MaterialTopicsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({
+              name: 'Klimarisiko i forsyningskæden',
+              impactType: 'actual',
+              severity: 'severe',
+              likelihood: 'likely',
+              priorityBand: 'priority'
+            }),
+            expect.objectContaining({
+              name: 'Datastyring',
+              missingFinancial: true,
+              eligibleForPrioritisation: false,
+              priorityBand: 'monitor'
+            })
+          ])
+        })
+      ])
+    )
+
+    expect(result.doubleMateriality).toEqual(
+      expect.objectContaining({
+        overview: expect.objectContaining({
+          totalTopics: 3,
+          prioritisedTopics: 1,
+          attentionTopics: 1,
+          gapAlerts: 2,
+          averageScore: expect.any(Number)
+        }),
+        tables: expect.objectContaining({
+          topics: expect.arrayContaining([
+            expect.objectContaining({ name: 'Klimarisiko i forsyningskæden', priorityBand: 'priority' })
+          ]),
+          impactMatrix: expect.arrayContaining([
+            expect.objectContaining({ severity: 'severe', likelihood: 'likely', topics: expect.any(Number) })
+          ]),
+          gapAlerts: expect.arrayContaining(['Klimarisiko i forsyningskæden'])
+        }),
+        dueDiligence: expect.objectContaining({
+          impactTypes: expect.arrayContaining([
+            expect.objectContaining({ key: 'actual', topics: expect.any(Number) })
+          ])
+        })
+      })
+    )
+  })
+
+  it('tillader prioritering når finansiel undtagelse er begrundet og bekræftet', () => {
+    const input: ModuleInput = {
+      D2: {
+        materialTopics: [{ ...d2TopicMissingFinancialWithOverride }]
+      }
+    }
+
+    const result = runD2(input)
+
+    expect(result.value).toBeCloseTo(100, 1)
+    expect(result.trace.some((entry) => entry.includes('financialOverride=approved'))).toBe(true)
+    expect(
       result.warnings.some((warning) =>
-        warning.includes('"Datastyring" mangler både impact- og finansiel score')
+        warning.includes('Finansiel undtagelse er bekræftet for "Lovpligtig compliance"')
       )
     ).toBe(true)
+    expect(result.doubleMateriality?.overview?.prioritisedTopics).toBe(1)
+    expect(result.esrsTables?.[0]?.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Lovpligtig compliance',
+          missingFinancial: true,
+          financialOverrideApproved: true,
+          eligibleForPrioritisation: true
+        })
+      ])
+    )
   })
 
   it('returnerer 0 ved manglende emner', () => {
@@ -1541,8 +1884,18 @@ describe('runB11', () => {
         energyProductionKwh: 12_000,
         renewableEnergyProductionKwh: 12_000,
         energyMixLines: [
-          { energyType: 'electricity', consumptionKwh: 120_000, documentationQualityPercent: 95 },
-          { energyType: 'districtHeat', consumptionKwh: 60_000, documentationQualityPercent: 80 }
+          {
+            energyType: 'electricity',
+            consumptionKwh: 120_000,
+            sharePercent: 66,
+            documentationQualityPercent: 95,
+          },
+          {
+            energyType: 'districtHeat',
+            consumptionKwh: 60_000,
+            sharePercent: 34,
+            documentationQualityPercent: 80,
+          }
         ],
         previousYearScope1Tonnes: null,
         previousYearScope2Tonnes: 35,
@@ -1576,6 +1929,11 @@ describe('runB11', () => {
     expect(result.intensities?.map((entry) => entry.basis)).toEqual(
       expect.arrayContaining(['netRevenue', 'production', 'energy'])
     )
+    expect(
+      result.esrsFacts?.some(
+        (fact) => fact.conceptKey === 'E1IntensityLocationBasedPerNetRevenue',
+      ),
+    ).not.toBe(true)
     expect(result.trend).toMatchObject({ previousValue: 35, unit: result.unit })
     expect(result.targetProgress).toMatchObject({ scope: 'scope2', owner: 'Energiansvarlig' })
     expect(result.energyMix).toBeDefined()
@@ -1640,8 +1998,141 @@ describe('runE1Targets', () => {
     expect(result.targetsOverview).toBeDefined()
     expect(result.targetsOverview?.[0]).toMatchObject({ id: 'scope1-1', scope: 'scope1' })
     expect(result.plannedActions?.length).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Samlet energiforbrug', value: 1_950_000 }),
+        expect.objectContaining({ label: 'Vedvarende energiandel', value: 9.2 }),
+        expect.objectContaining({ label: 'Ikke-vedvarende energiandel', value: 90.8 }),
+        expect.objectContaining({ label: 'Dokumentationskvalitet', value: 80 }),
+      ]),
+    )
+    expect(result.energyMix?.length).toBe(3)
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'e1-energy-mix',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ energyType: 'Elektricitet', sharePercent: 70 }),
+          ]),
+        }),
+      ]),
+    )
     expect(result.trace).toEqual(expect.arrayContaining(['targets.onTrack=1', 'targets.lagging=1']))
     expect(result.warnings).toEqual([])
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1TargetsPresent', value: true }),
+        expect.objectContaining({ conceptKey: 'E1TargetsNarrative', value: expect.stringContaining('Scope 1 reduktion') }),
+        expect.objectContaining({ conceptKey: 'E1EnergyConsumptionTotalKwh', value: 1_950_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyConsumptionRenewableKwh', value: 180_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyConsumptionNonRenewableKwh', value: 1_770_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyRenewableSharePercent', value: 9.2 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyNonRenewableSharePercent', value: 90.8 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyRenewableProductionKwh', value: 180_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyNonRenewableProductionKwh', value: 70_000 }),
+      ]),
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'E1TargetsTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ scope: 'scope1', targetYear: 2027, status: 'lagging' }),
+          ]),
+        }),
+        expect.objectContaining({
+          conceptKey: 'E1EnergyMixTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ energyType: 'electricity', consumptionKwh: 1_500_000 }),
+          ]),
+        }),
+      ]),
+    )
+  })
+})
+
+describe('runE1Scenarios', () => {
+  it('normaliserer scenarier og udsender ESRS-facts', () => {
+    const result = runE1Scenarios(e1NewModulesFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.unit).toBe('scenarier')
+    expect(result.scenarios?.length).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Gennemsnitlig dækningsgrad', value: 62.5 }),
+      ]),
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1ScenariosDiverseRange', value: true }),
+        expect.objectContaining({ conceptKey: 'E1ScenariosNarrative' }),
+      ]),
+    )
+  })
+})
+
+describe('runE1CarbonPrice', () => {
+  it('beregner gennemsnitspris og dækning for CO₂-ordninger', () => {
+    const result = runE1CarbonPrice(e1NewModulesFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Gennemsnitlig CO₂-pris', value: 675 }),
+        expect.objectContaining({ label: 'Gennemsnitlig dækningsgrad', value: 47.5 }),
+      ]),
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1CarbonPriceAmount', value: 675 }),
+        expect.objectContaining({ conceptKey: 'E1CarbonPriceAlignment', value: true }),
+      ]),
+    )
+    expect(result.carbonPriceSchemes?.[0]).toMatchObject({ scheme: 'Investeringsscreening', scope: 'combined' })
+  })
+})
+
+describe('runE1RiskGeography', () => {
+  it('summerer aktiver og omsætning på tværs af risikokategorier', () => {
+    const result = runE1RiskGeography(e1NewModulesFixture)
+
+    expect(result.value).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Aktiver eksponeret for fysisk risiko', value: 120000000 }),
+        expect.objectContaining({ label: 'Aktiver eksponeret for transitionrisiko', value: 80000000 }),
+      ]),
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1RiskPhysicalAssets', value: 120000000 }),
+        expect.objectContaining({ conceptKey: 'E1RiskTransitionRevenue', value: 65000000 }),
+      ]),
+    )
+  })
+})
+
+describe('runE1DecarbonisationDrivers', () => {
+  it('opsummerer reduktioner og investeringer', () => {
+    const result = runE1DecarbonisationDrivers(e1NewModulesFixture)
+
+    expect(result.value).toBe(4600)
+    expect(result.unit).toBe('tCO₂e')
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Antal drivere', value: 2 }),
+        expect.objectContaining({ label: 'Forventet reduktion', value: 4600 }),
+        expect.objectContaining({ label: 'Estimeret investering', value: 17500000 }),
+      ]),
+    )
+    expect(result.decarbonisationDrivers?.[0]).toMatchObject({ lever: 'energyEfficiency', name: 'LED og varmegenvinding' })
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E1DecarbonisationLeverTypes', value: expect.stringContaining('energyEfficiency') }),
+      ]),
+    )
+    expect(result.esrsTables?.[0]?.conceptKey).toBe('E1DecarbonisationTable')
   })
 })
 
@@ -2117,166 +2608,530 @@ describe('runC9', () => {
   })
 })
 
+describe('runSBM', () => {
+  const longNarrative = 'Detaljeret beskrivelse af strategi og forretningsmodel '.repeat(6)
+
+  it('beregner score og samler overgangstiltag, noter og ansvarlige', () => {
+    const input: ModuleInput = {
+      SBM: {
+        businessModelNarrative: longNarrative,
+        valueChainNarrative: longNarrative,
+        sustainabilityStrategyNarrative: longNarrative,
+        resilienceNarrative: longNarrative,
+        transitionPlanNarrative: longNarrative,
+        stakeholderNarrative: longNarrative,
+        dependencies: [
+          {
+            dependency: 'Grøn strøm',
+            impact: 'Manglende adgang kan stoppe produktion.',
+            mitigation: 'Diversificering af leverandører.',
+            responsible: 'COO'
+          },
+          {
+            dependency: 'Logistikpartnere',
+            impact: 'Udsving i fragtpriser påvirker marginer.',
+            mitigation: 'Langsigtede kontrakter og effektiviseringsprogram.',
+            responsible: 'Supply Chain Lead'
+          }
+        ],
+        opportunities: [
+          {
+            title: 'Digital service',
+            description: 'Serviceforretning med lavere CO₂-intensitet end fysiske produkter.',
+            timeframe: '2025',
+            owner: 'CSO'
+          },
+          {
+            title: 'Partnerskaber',
+            description: 'Partnerskab med cirkulær platform reducerer materialeforbrug.',
+            timeframe: '2026',
+            owner: 'Sustainability Manager'
+          }
+        ],
+        transitionPlanMeasures: [
+          {
+            initiative: 'Energieffektivisering',
+            description: 'Opgradering af produktionslinjer med lavere energiforbrug.',
+            status: 'inProgress',
+            milestoneYear: 2026,
+            investmentNeedDkk: 1_500_000,
+            responsible: 'Energi Lead'
+          },
+          {
+            initiative: 'Leverandørsamarbejde',
+            description: 'Code of conduct for transportpartnere og CO₂-krav.',
+            status: 'planned',
+            milestoneYear: 2027,
+            investmentNeedDkk: 750_000,
+            responsible: 'Indkøbschef'
+          }
+        ]
+      }
+    }
+
+    const result = runSBM(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toEqual([])
+    expect(result.transitionMeasures).toHaveLength(2)
+    expect(result.responsibilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ subject: 'Grøn strøm', owner: 'COO', role: 'Ansvarlig for opfølgning' }),
+        expect.objectContaining({ subject: 'Digital service', owner: 'CSO', role: 'Mulighedsansvarlig' }),
+        expect.objectContaining({ subject: 'Energieffektivisering', owner: 'Energi Lead', role: 'Overgangstiltag' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^businessModelNarrativeLength=\d+$/),
+        'dependency[0]=Grøn strøm',
+        'transition[0]=Energieffektivisering'
+      ])
+    )
+  })
+
+  it('udsteder advarsler og returnerer nulscore ved manglende dokumentation', () => {
+    const input: ModuleInput = {
+      SBM: {
+        businessModelNarrative: '  ',
+        valueChainNarrative: null,
+        sustainabilityStrategyNarrative: null,
+        resilienceNarrative: null,
+        dependencies: [
+          {
+            dependency: 'Kritisk leverandør',
+            impact: null,
+            mitigation: null,
+            responsible: null,
+          }
+        ],
+        transitionPlanNarrative: '',
+        stakeholderNarrative: null,
+        transitionPlanMeasures: [
+          {
+            initiative: 'Scope 3 roadmap',
+            description: null,
+            status: null,
+            milestoneYear: null,
+            investmentNeedDkk: null,
+            responsible: null,
+          }
+        ]
+      }
+    }
+
+    const result = runSBM(input)
+
+    expect(result.value).toBe(13)
+    expect(result.transitionMeasures).toEqual([
+      {
+        initiative: 'Scope 3 roadmap',
+        description: null,
+        status: null,
+        milestoneYear: null,
+        investmentNeedDkk: null,
+        responsible: null
+      }
+    ])
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv forretningsmodellen og centrale aktiviteter for ESRS 2 SBM.',
+        'Angiv hvordan væsentlige ressourcer og partnere påvirker bæredygtighedsprofilen.',
+        'Forklar hvordan bæredygtighed indgår i strategi og governance.',
+        'Uddyb analyser af modstandsdygtighed over for klima- og overgangsrisici.',
+        'Angiv hvordan virksomheden planlægger at nå klimamål og overholde ESRS E1.',
+        'Beskriv hvordan væsentlige interessenter inddrages i strategien.',
+        'Uddyb påvirkning eller afbødning for afhængighed 1.'
+      ])
+    )
+  })
+})
+
+describe('runGOV', () => {
+  const longNarrative = 'Detaljeret governancebeskrivelse '.repeat(5)
+
+  it('beregner score og samler governance-noter uden advarsler', () => {
+    const input: ModuleInput = {
+      GOV: {
+        oversightNarrative: longNarrative,
+        managementNarrative: longNarrative,
+        competenceNarrative: longNarrative,
+        reportingNarrative: longNarrative,
+        assuranceNarrative: longNarrative,
+        incentiveNarrative: longNarrative,
+        oversightBodies: [
+          {
+            body: 'Revisionsudvalg',
+            mandate: 'Overvåger ESG-rapportering og interne kontroller.',
+            chair: 'Bestyrelsesformand',
+            meetingFrequency: 'Kvartalsvis'
+          }
+        ],
+        controlProcesses: [
+          {
+            process: 'ESG-kontroller',
+            description: 'Månedlig validering af emissionsdata.',
+            owner: 'Risk Manager'
+          }
+        ],
+        incentiveStructures: [
+          {
+            role: 'Direktør',
+            incentive: '10 % bonus koblet til scope 1-reduktion.',
+            metric: 'Scope 1 ton CO₂e'
+          }
+        ]
+      }
+    }
+
+    const result = runGOV(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toEqual([])
+    expect(result.notes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Revisionsudvalg', detail: expect.stringContaining('Kvartalsvis') }),
+        expect.objectContaining({ label: 'ESG-kontroller', detail: 'Månedlig validering af emissionsdata.' }),
+        expect.objectContaining({ label: 'Direktør', detail: expect.stringContaining('Scope 1 ton CO₂e') })
+      ])
+    )
+    expect(result.responsibilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ subject: 'Revisionsudvalg', owner: 'Bestyrelsesformand', role: 'Formand' }),
+        expect.objectContaining({ subject: 'ESG-kontroller', owner: 'Risk Manager', role: 'Procesansvarlig' }),
+        expect.objectContaining({ subject: 'Direktør', owner: 'Direktør', role: 'Incitament' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^oversightNarrativeLength=\d+$/),
+        'incentive[0]=Direktør'
+      ])
+    )
+  })
+
+  it('returnerer nulscore og advarsler når governance-felter mangler', () => {
+    const input: ModuleInput = {
+      GOV: {
+        oversightNarrative: '  ',
+        managementNarrative: '',
+        competenceNarrative: null,
+        reportingNarrative: null,
+        assuranceNarrative: null,
+        incentiveNarrative: null,
+        oversightBodies: [
+          {
+            body: 'Audit komité',
+            mandate: null,
+            chair: null,
+            meetingFrequency: null,
+          }
+        ],
+        controlProcesses: [
+          {
+            process: 'Intern kontrol',
+            description: null,
+            owner: null,
+          }
+        ],
+        incentiveStructures: [
+          {
+            role: 'CEO',
+            incentive: null,
+            metric: null,
+          }
+        ]
+      }
+    }
+
+    const result = runGOV(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv bestyrelsens rolle i ESG-styring for ESRS 2 GOV.',
+        'Forklar hvordan direktionen driver ESG-dagsordenen.',
+        'Dokumentér træning og kompetenceopbygning for ledelsen.',
+        'Beskriv kontrolmiljø og rapporteringscyklus for ESG-data.',
+        'Angiv omfang af intern/ekstern assurance på ESG-rapporteringen.',
+        'Forklar hvordan incitamentsstruktur knyttes til ESG-mål.',
+        'Tilføj mandat eller mødefrekvens for governance-organ 1.',
+        'Kontrolproces 1 mangler beskrivelse.',
+        'Incitament 1 mangler beskrivelse af kobling til ESG.'
+      ])
+    )
+  })
+})
+
+describe('runIRO', () => {
+  const longNarrative = 'Detaljeret beskrivelse af risikoproces '.repeat(5)
+
+  it('aggregerer processer, impacts og ansvarlige', () => {
+    const input: ModuleInput = {
+      IRO: {
+        processNarrative: longNarrative,
+        integrationNarrative: longNarrative,
+        stakeholderNarrative: longNarrative,
+        dueDiligenceNarrative: longNarrative,
+        escalationNarrative: longNarrative,
+        monitoringNarrative: longNarrative,
+        riskProcesses: [
+          {
+            step: 'Identifikation',
+            description: 'Halvårlig vurdering af leverandørkædens risici.',
+            frequency: 'Halvårlig',
+            owner: 'Procurement Lead'
+          }
+        ],
+        impactResponses: [
+          {
+            topic: 'CO₂e i leverandørkæden',
+            severity: 'Høj',
+            response: 'Implementerer auditprogram og datapartnerskab.',
+            status: 'inProgress',
+            responsible: 'CSO'
+          }
+        ]
+      }
+    }
+
+    const result = runIRO(input)
+
+    expect(result.value).toBe(100)
+    expect(result.warnings).toEqual([])
+    expect(result.notes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Identifikation', detail: expect.stringContaining('Halvårlig') }),
+        expect.objectContaining({ label: 'CO₂e i leverandørkæden', detail: expect.stringContaining('Status: inProgress') })
+      ])
+    )
+    expect(result.responsibilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ subject: 'Identifikation', owner: 'Procurement Lead', role: 'Procesansvarlig' }),
+        expect.objectContaining({ subject: 'CO₂e i leverandørkæden', owner: 'CSO', role: 'Ansvarlig' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^processNarrativeLength=\d+$/),
+        'riskProcess[0]=Identifikation'
+      ])
+    )
+  })
+
+  it('returnerer nulscore og relevante advarsler ved manglende oplysninger', () => {
+    const input: ModuleInput = {
+      IRO: {
+        processNarrative: ' ',
+        integrationNarrative: null,
+        stakeholderNarrative: null,
+        dueDiligenceNarrative: null,
+        escalationNarrative: null,
+        monitoringNarrative: null,
+        riskProcesses: [
+          {
+            step: 'Screening',
+            description: null,
+            frequency: null,
+            owner: null,
+          }
+        ],
+        impactResponses: [
+          {
+            topic: 'Biodiversitet',
+            severity: null,
+            response: null,
+            status: null,
+            responsible: null,
+          }
+        ]
+      }
+    }
+
+    const result = runIRO(input)
+
+    expect(result.value).toBe(0)
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv processen for at identificere væsentlige impacts, risici og muligheder.',
+        'Forklar hvordan resultater integreres i beslutninger og styring.',
+        'Dokumentér hvordan interessenter bidrager til analyserne.',
+        'Beskriv due diligence-processer for værdikæden.',
+        'Forklar hvordan alvorlige impacts eskaleres til ledelsen.',
+        'Dokumentér opfølgning og KPI’er for risici og muligheder.',
+        'Proces 1 mangler beskrivelse af fremgangsmåde.',
+        'Angiv afværge- eller handlingsplan for impact 1.'
+      ])
+    )
+  })
+})
+
+describe('runMR', () => {
+  it('klassificerer krav, overgangsplaner, finansielle effekter og removals', () => {
+    const input = createMRApprovedFixture()
+
+    const result = runMR(input)
+
+    expect(result.value).toBe(8)
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.assumptions[0]).toBe('Evalueringen tester 8 krav fra ESRS 2 MR med binære resultater (opfyldt/ikke opfyldt).')
+    expect(result.transitionMeasures).toHaveLength(2)
+    expect(result.financialEffects).toHaveLength(2)
+    expect(result.removalProjects).toHaveLength(1)
+    expect(result.warnings).toEqual([])
+    expect(result.metrics).toHaveLength(8)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Intensiteter og udvikling er beskrevet', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'Finansielle effekter er dokumenteret', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'GHG-removal projekter er dokumenteret', value: 'Opfyldt' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^intensityNarrativeLength=\d+$/),
+        expect.stringMatching(/^requirement:intensityNarrative=pass$/),
+        expect.stringMatching(/^requirement:metrics=pass$/),
+        'transitionPlan[0]=Solcellepark',
+        'financialEffect[1]=Intern opex',
+        'removalProject[0]=Skovrejsning'
+      ])
+    )
+    expect(result.notes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Scope 1 intensitet', detail: expect.stringContaining('Mål 2026: 7') }),
+        expect.objectContaining({ label: 'Vedvarende andel', detail: expect.stringContaining('Seneste 2023: 55') })
+      ])
+    )
+  })
+
+  it('udsteder advarsler og nulscore når data mangler', () => {
+    const input = createMRRejectedFixture()
+
+    const result = runMR(input)
+
+    expect(result.value).toBe(0)
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        'Beskriv udviklingen i intensiteter for ESRS 2 MR.',
+        'Forklar fremdrift på klimamål og væsentlige KPI’er.',
+        'Dokumentér kvalitet og kontroller for nøgletal.',
+        'Angiv scope for intern og ekstern assurance.',
+        'Uddyb registrerede overgangstiltag med status, milepæl eller investering.',
+        'Angiv beløb eller uddybelse for de registrerede finansielle effekter.',
+        'Tilføj mindst én klimarelateret metric med baseline og mål eller aktuel status.',
+        'Tilføj kvantificerede data for removal-projekterne.',
+        'Tilføj aktuelle værdier eller mål for Scope 1 intensitet.',
+        'Angiv beløb eller beskrivelse for Capex solceller.',
+        'Angiv beløb eller beskrivelse for Intern opex.',
+        'Uddyb overgangstiltag 1 med status eller milepæl.',
+        'Tilføj kvantificerede data for removal-projekt 1.'
+      ])
+    )
+    expect(result.metrics).toHaveLength(8)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Intensiteter og udvikling er beskrevet', value: 'Mangler' }),
+        expect.objectContaining({ label: 'Klimametrics er dokumenteret', value: 'Mangler' }),
+        expect.objectContaining({ label: 'GHG-removal projekter er dokumenteret', value: 'Mangler' })
+      ])
+    )
+    expect(result.transitionMeasures).toHaveLength(1)
+    expect(result.financialEffects).toHaveLength(2)
+    expect(result.removalProjects).toHaveLength(1)
+  })
+})
+
 describe('runD1', () => {
   it('returnerer 0 og neutral antagelse uden input', () => {
     const result = runD1({} as ModuleInput)
 
     expect(result.value).toBe(0)
-    expect(result.unit).toBe(factors.d1.unit)
-    expect(result.assumptions).toContain('Udfyld governance-felterne for at beregne en D1-score.')
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.assumptions).toContain('Udfyld D1-felterne for at validere governance-oplysningerne mod ESRS-krav.')
     expect(result.warnings).toHaveLength(0)
     expect(result.trace).toContain('organizationalBoundary=null')
+    expect(result.metrics).toBeUndefined()
   })
 
-  it('scorer governance-dimensionerne og fremhæver mangler', () => {
-    const input: ModuleInput = {
-      D1: {
-        organizationalBoundary: 'financialControl',
-        scope2Method: 'locationBased',
-        scope3ScreeningCompleted: false,
-        dataQuality: 'proxy',
-        materialityAssessmentDescription: 'Kort note om væsentlighed',
-        strategyDescription: null,
-        strategy: {
-          businessModelSummary: 'Kort beskrivelse',
-          sustainabilityIntegration: null,
-          resilienceDescription: null,
-          stakeholderEngagement: null
-        },
-        governance: {
-          oversight: 'Kort note',
-          managementRoles: null,
-          esgExpertise: null,
-          incentives: null,
-          policies: null,
-          hasEsgCommittee: false
-        },
-        impactsRisksOpportunities: {
-          processDescription: null,
-          prioritisationCriteria: null,
-          integrationIntoManagement: null,
-          mitigationActions: null,
-          valueChainCoverage: 'ownOperations',
-          timeHorizons: ['shortTerm']
-        },
-        targetsAndKpis: {
-          hasQuantitativeTargets: false,
-          governanceIntegration: null,
-          progressDescription: null,
-          kpis: [
-            {
-              name: 'CO₂-reduktion',
-              kpi: 'Ton CO₂e',
-              unit: 't',
-              baselineYear: 2020,
-              baselineValue: 100,
-              targetYear: 2030,
-              targetValue: 50,
-              comments: null
-            }
-          ]
-        }
-      }
-    }
+  it('klassificerer krav og fremhæver mangler', () => {
+    const input = createD1RejectedFixture()
 
     const result = runD1(input)
 
-    expect(result.assumptions[0]).toContain('Governance-scoren er gennemsnittet')
-    expect(result.value).toBeCloseTo(41.1, 1)
+    expect(result.unit).toBe('opfyldte krav')
+    expect(result.assumptions[0]).toBe('Evalueringen tester 7 krav fra ESRS 2 D1 (opfyldt/ikke opfyldt).')
+    expect(result.value).toBe(1)
     expect(result.warnings).toEqual(
       expect.arrayContaining([
-        'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.',
-        'Uddyb væsentlighedsvurderingen med centrale risici og muligheder.',
-        'Beskriv strategi, målsætninger og politikker for ESG-governance.',
-        'Markér screening som gennemført, når scope 3 kategorier er vurderet.',
-        'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.',
-        'Tilføj flere KPI’er for at dække alle væsentlige mål.'
+        'Proxy-data er svag dokumentation – planlæg overgang til primære eller sekundære kilder.',
+        'Markér at Scope 3 screeningen er gennemført.',
+        'Uddyb væsentlighedsvurderingen (mindst 200 tegn).',
+        'Beskriv strategi og politikker (mindst 200 tegn).',
+        'Uddyb bestyrelsens tilsyn, ledelsesroller, incitamenter og politikker.',
+        'Uddyb processen for identificering, prioritering og håndtering af impacts/risici/muligheder.',
+        'Bekræft kvantitative mål for væsentlige impacts og risici.',
+        'Uddyb governance-forankring og fremdrift for målene.'
       ])
     )
-    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=0.6')
+    expect(result.metrics).toHaveLength(7)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Metodegrundlag er dokumenteret', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'Scope 3 screening dækker værdikæden og tidshorisonter', value: 'Mangler' }),
+        expect.objectContaining({ label: 'Mål, opfølgning og KPI’er er dokumenteret', value: 'Mangler' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^requirement:methodology=pass$/),
+        expect.stringMatching(/^requirement:scope3Coverage=fail$/),
+        expect.stringMatching(/^requirement:targets=fail$/)
+      ])
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'D1OrganizationalBoundary', value: 'financialControl' }),
+        expect.objectContaining({ conceptKey: 'D1Scope3ScreeningCompleted', value: false }),
+        expect.objectContaining({ conceptKey: 'D1KpiCount', value: 1 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'D1StrategyNarrativesTable',
+          rows: expect.arrayContaining([expect.objectContaining({ key: 'businessModelSummary' })])
+        }),
+        expect.objectContaining({
+          conceptKey: 'D1KpiOverviewTable',
+          rows: expect.arrayContaining([expect.objectContaining({ name: 'CO₂-reduktion' })])
+        })
+      ])
+    )
   })
 
-  it('giver fuld score ved best practice governance', () => {
-    const detailedText = 'Detaljeret beskrivelse af processer og kontroller. '.repeat(8)
-    const strategyText = 'Strategi og politikker for hele organisationen med klare mål. '.repeat(8)
-    const longNote = 'Lang beskrivelse af robust governance-setup og processer. '.repeat(8)
-    const input: ModuleInput = {
-      D1: {
-        organizationalBoundary: 'operationalControl',
-        scope2Method: 'marketBased',
-        scope3ScreeningCompleted: true,
-        dataQuality: 'primary',
-        materialityAssessmentDescription: detailedText,
-        strategyDescription: strategyText,
-        strategy: {
-          businessModelSummary: longNote,
-          sustainabilityIntegration: longNote,
-          resilienceDescription: longNote,
-          stakeholderEngagement: longNote
-        },
-        governance: {
-          oversight: longNote,
-          managementRoles: longNote,
-          esgExpertise: longNote,
-          incentives: longNote,
-          policies: longNote,
-          hasEsgCommittee: true
-        },
-        impactsRisksOpportunities: {
-          processDescription: longNote,
-          prioritisationCriteria: longNote,
-          integrationIntoManagement: longNote,
-          mitigationActions: longNote,
-          valueChainCoverage: 'fullValueChain',
-          timeHorizons: ['shortTerm', 'mediumTerm', 'longTerm']
-        },
-        targetsAndKpis: {
-          hasQuantitativeTargets: true,
-          governanceIntegration: longNote,
-          progressDescription: longNote,
-          kpis: [
-            {
-              name: 'CO₂-intensitet',
-              kpi: 'kg CO₂e/omsætning',
-              unit: 'kg/kr',
-              baselineYear: 2020,
-              baselineValue: 10,
-              targetYear: 2025,
-              targetValue: 5,
-              comments: 'Reduceret via energiprojekter'
-            },
-            {
-              name: 'Andel vedvarende energi',
-              kpi: 'Procent',
-              unit: '%',
-              baselineYear: 2020,
-              baselineValue: 30,
-              targetYear: 2027,
-              targetValue: 80,
-              comments: 'Indkøb af grøn strøm og PPAs'
-            },
-            {
-              name: 'Leverandør-audits',
-              kpi: 'Antal audits',
-              unit: 'antal',
-              baselineYear: 2021,
-              baselineValue: 20,
-              targetYear: 2026,
-              targetValue: 60,
-              comments: 'Udvidet auditprogram' 
-            }
-          ]
-        }
-      }
-    }
+  it('markerer alle krav som opfyldt ved best practice governance', () => {
+    const input = createD1ApprovedFixture()
 
     const result = runD1(input)
 
-    expect(result.value).toBe(100)
+    expect(result.value).toBe(7)
+    expect(result.unit).toBe('opfyldte krav')
     expect(result.warnings).toHaveLength(0)
-    expect(result.trace).toContain('strategyDetails.businessModelSummaryScore=1')
-    expect(result.trace).toContain('valueChainCoverageScore=1')
-    expect(result.trace).toContain('kpiCoverageScore=1')
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Metodegrundlag er dokumenteret', value: 'Opfyldt' }),
+        expect.objectContaining({ label: 'Mål, opfølgning og KPI’er er dokumenteret', value: 'Opfyldt' })
+      ])
+    )
+    expect(result.trace).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^requirement:methodology=pass$/),
+        expect.stringMatching(/^requirement:scope3Coverage=pass$/),
+        expect.stringMatching(/^requirement:targets=pass$/)
+      ])
+    )
   })
 })
 
@@ -2301,6 +3156,12 @@ describe('runE2Water', () => {
       'Mere end 40 % af vandudtaget (50.0 %) foregår i vandstressede områder – prioriter risikoplaner.',
     )
     expect(result.warnings).not.toContain('Ingen dokumenteret genbrug af vand. Overvej recirkulation eller sekundære kilder.')
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E2TotalWaterWithdrawalM3', value: 5000 }),
+        expect.objectContaining({ conceptKey: 'E2WaterStressSharePercent', value: 50 })
+      ])
+    )
   })
 
   it('returnerer nul og advarsel ved manglende vandforbrug', () => {
@@ -2339,6 +3200,20 @@ describe('runE3Pollution', () => {
     expect(result.warnings).toContain(
       'Der er registreret 2 hændelse(r) med rapporteringspligt. Sikr opfølgning og root-cause analyse.',
     )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E3AirEmissionsTonnes', value: 80 }),
+        expect.objectContaining({ conceptKey: 'E3ReportableIncidentsCount', value: 2 })
+      ])
+    )
+    expect(result.esrsTables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          conceptKey: 'E3MediumsTable',
+          rows: expect.arrayContaining([expect.objectContaining({ medium: 'air', exceedPercent: 60 })])
+        })
+      ])
+    )
   })
 })
 
@@ -2366,6 +3241,12 @@ describe('runE4Biodiversity', () => {
     )
     expect(result.warnings).toContain(
       'Dokumentationskvalitet på 65 % er under anbefalet niveau på 70 %. Suppler feltdata eller tredjepartsverifikation.',
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E4SitesInProtectedAreasCount', value: 3 }),
+        expect.objectContaining({ conceptKey: 'E4RestorationHectares', value: 10 })
+      ])
     )
   })
 })
@@ -2397,6 +3278,12 @@ describe('runE5Resources', () => {
     expect(result.warnings).toContain('Ressourceindekset overstiger 55 point – prioriter cirkularitet i handlingsplanen.')
     expect(result.warnings).toContain(
       'Dokumentationskvalitet på 60 % er under anbefalingen på 70 %. Indhent leverandørdata eller tredjepartsattester.',
+    )
+    expect(result.esrsFacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ conceptKey: 'E5PrimaryMaterialConsumptionTonnes', value: 800 }),
+        expect.objectContaining({ conceptKey: 'E5CriticalMaterialsSharePercent', value: 45 })
+      ])
     )
   })
 })

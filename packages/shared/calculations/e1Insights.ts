@@ -72,6 +72,7 @@ export function withE1Insights(
 
   const trace = [...result.trace]
   const intensities: ModuleIntensity[] = []
+  const esrsFacts = Array.isArray(result.esrsFacts) ? [...result.esrsFacts] : []
   const energyMix = resolveEnergyMix(context)
   const targetProgress = resolveTargetProgress(moduleId, scope, targetsInput, result.value, trace)
   const trend = resolveTrend(scope, context, result.value, result.unit, trace)
@@ -88,6 +89,7 @@ export function withE1Insights(
       denominatorUnit: 'DKK',
     })
     trace.push(`intensity.revenuePerMillion=${intensityValue}`)
+
   }
 
   const productionVolume = toPositiveNumber(context.productionVolume)
@@ -154,6 +156,10 @@ export function withE1Insights(
     next.energyMix = energyMix
   }
 
+  if (esrsFacts.length > 0) {
+    next.esrsFacts = esrsFacts
+  }
+
   return next
 }
 
@@ -199,8 +205,9 @@ function resolveEnergyMix(context: E1ContextInput): ModuleEnergyMixEntry[] {
       const rawType = line.energyType as E1EnergyMixType | undefined
       const energyType: E1EnergyMixType = isEnergyMixType(rawType) ? rawType : 'other'
       const consumption = toPositiveNumber(line.consumptionKwh) ?? 0
+      const share = clampPercent(line.sharePercent)
       const documentationQualityPercent = clampPercent(line.documentationQualityPercent)
-      return { energyType, consumption, documentationQualityPercent }
+      return { energyType, consumption, share, documentationQualityPercent }
     })
     .filter((entry) => entry.consumption > 0)
 
@@ -209,12 +216,16 @@ function resolveEnergyMix(context: E1ContextInput): ModuleEnergyMixEntry[] {
     return []
   }
 
-  return sanitised.map<ModuleEnergyMixEntry>((entry) => ({
-    energyType: entry.energyType,
-    consumptionKwh: round(entry.consumption, 3),
-    sharePercent: round((entry.consumption / total) * 100, 1),
-    documentationQualityPercent: entry.documentationQualityPercent,
-  }))
+  return sanitised.map<ModuleEnergyMixEntry>((entry) => {
+    const defaultShare = round((entry.consumption / total) * 100, 1)
+    const sharePercent = entry.share != null ? round(entry.share, 1) : defaultShare
+    return {
+      energyType: entry.energyType,
+      consumptionKwh: round(entry.consumption, 3),
+      sharePercent,
+      documentationQualityPercent: entry.documentationQualityPercent,
+    }
+  })
 }
 
 function resolveTargetProgress(

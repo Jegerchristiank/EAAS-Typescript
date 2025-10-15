@@ -1,7 +1,7 @@
 /**
  * Beregning for modul E5 – ressourcer og materialeforbrug.
  */
-import type { E5ResourcesInput, ModuleInput, ModuleResult } from '../../types'
+import type { E5ResourcesInput, ModuleEsrsFact, ModuleInput, ModuleResult } from '../../types'
 import { factors } from '../factors'
 
 const { e5Resources } = factors
@@ -82,12 +82,30 @@ export function runE5Resources(input: ModuleInput): ModuleResult {
 
   trace.push(`dataQualityPercent=${dataQualityPercent.toFixed(2)}`)
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number, unitId: string, decimals: number) => {
+    if (!Number.isFinite(value)) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('E5PrimaryMaterialConsumptionTonnes', primaryConsumption, 'tonne', 2)
+  pushNumericFact('E5SecondaryMaterialConsumptionTonnes', secondaryConsumption, 'tonne', 2)
+  pushNumericFact('E5RecycledContentPercent', recycledPercent, 'percent', 1)
+  pushNumericFact('E5RenewableMaterialSharePercent', renewableSharePercent, 'percent', 1)
+  pushNumericFact('E5CriticalMaterialsSharePercent', criticalSharePercent, 'percent', 1)
+  pushNumericFact('E5CircularityTargetPercent', circularityTargetPercent, 'percent', 1)
+  pushNumericFact('E5TargetGapPercent', targetGapPercent, 'percent', 1)
+  pushNumericFact('E5DocumentationQualityPercent', dataQualityPercent, 'percent', 1)
+
   return {
     value,
     unit: e5Resources.unit,
     assumptions,
     trace,
     warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {})
   }
 }
 

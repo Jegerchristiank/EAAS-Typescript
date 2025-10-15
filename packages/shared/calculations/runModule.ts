@@ -42,10 +42,18 @@ import { runC13 } from './modules/runC13'
 import { runC14 } from './modules/runC14'
 import { runC15 } from './modules/runC15'
 import { runE1Targets } from './modules/runE1Targets'
+import { runE1Scenarios } from './modules/runE1Scenarios'
+import { runE1CarbonPrice } from './modules/runE1CarbonPrice'
+import { runE1RiskGeography } from './modules/runE1RiskGeography'
+import { runE1DecarbonisationDrivers } from './modules/runE1DecarbonisationDrivers'
 import { runE2Water } from './modules/runE2Water'
 import { runE3Pollution } from './modules/runE3Pollution'
 import { runE4Biodiversity } from './modules/runE4Biodiversity'
 import { runE5Resources } from './modules/runE5Resources'
+import { runSBM } from './modules/runSBM'
+import { runGOV } from './modules/runGOV'
+import { runIRO } from './modules/runIRO'
+import { runMR } from './modules/runMR'
 import { runS1 } from './modules/runS1'
 import { runS2 } from './modules/runS2'
 import { runS3 } from './modules/runS3'
@@ -85,11 +93,19 @@ const moduleTitles: Record<ModuleId, string> = {
   C13: 'C13 – Investeringer og finansielle aktiviteter',
   C14: 'C14 – Behandling af solgte produkter',
   C15: 'C15 – Øvrige kategorioplysninger',
+  E1Scenarios: 'E1 – Klimascenarier',
+  E1CarbonPrice: 'E1 – Interne CO₂-priser',
+  E1RiskGeography: 'E1 – Risikogeografi',
+  E1DecarbonisationDrivers: 'E1 – Decarboniseringsdrivere',
   E1Targets: 'E1 – Klimamål og handlinger',
   E2Water: 'E2 – Vandforbrug og vandstress',
   E3Pollution: 'E3 – Emissioner til luft, vand og jord',
   E4Biodiversity: 'E4 – Påvirkning af biodiversitet',
   E5Resources: 'E5 – Ressourcer og materialeforbrug',
+  SBM: 'ESRS 2 – Strategi og forretningsmodel (SBM)',
+  GOV: 'ESRS 2 – Governance (GOV)',
+  IRO: 'ESRS 2 – Impacts, risici og muligheder (IRO)',
+  MR: 'ESRS 2 – Metrics og targets (MR)',
   S1: 'S1 – Arbejdsstyrke & headcount',
   S2: 'S2 – Værdikædearbejdere',
   S3: 'S3 – Lokalsamfund og påvirkninger',
@@ -130,11 +146,19 @@ export const moduleCalculators: Record<ModuleId, ModuleCalculator> = {
   C13: runC13,
   C14: runC14,
   C15: runC15,
+  E1Scenarios: runE1Scenarios,
+  E1CarbonPrice: runE1CarbonPrice,
+  E1RiskGeography: runE1RiskGeography,
+  E1DecarbonisationDrivers: runE1DecarbonisationDrivers,
   E1Targets: runE1Targets,
   E2Water: runE2Water,
   E3Pollution: runE3Pollution,
   E4Biodiversity: runE4Biodiversity,
   E5Resources: runE5Resources,
+  SBM: runSBM,
+  GOV: runGOV,
+  IRO: runIRO,
+  MR: runMR,
   S1: runS1,
   S2: runS2,
   S3: runS3,

@@ -30,8 +30,12 @@ function makeResult(moduleId: ModuleId, title = moduleId): CalculatedModuleResul
 describe('groupResultsByEsrs', () => {
   it('grupperer resultater efter ESRS-struktur og genbruger D2 til dobbelt væsentlighed', () => {
     const layout = groupResultsByEsrs([
+      makeResult('SBM'),
+      makeResult('GOV'),
+      makeResult('IRO'),
       makeResult('D1'),
       makeResult('D2'),
+      makeResult('MR'),
       makeResult('G1'),
       makeResult('S4'),
       makeResult('E1Targets'),
@@ -39,12 +43,12 @@ describe('groupResultsByEsrs', () => {
       makeResult('S1'),
     ])
 
-    expect(layout.general.map((entry) => entry.moduleId)).toEqual(['D1', 'D2'])
+    expect(layout.general.map((entry) => entry.moduleId)).toEqual(['SBM', 'GOV', 'IRO', 'D1'])
+    expect(layout.general.at(-1)?.moduleId).toBe('D1')
     expect(layout.doubleMateriality?.moduleId).toBe('D2')
-    expect(layout.doubleMateriality).toBe(layout.general.at(-1))
 
     expect(layout.policies.map((entry) => entry.moduleId)).toEqual(['G1', 'S4'])
-    expect(layout.targets.map((entry) => entry.moduleId)).toEqual(['E1Targets'])
+    expect(layout.targets.map((entry) => entry.moduleId)).toEqual(['MR', 'E1Targets'])
 
     const environment = layout.metrics.find((section) => section.id === 'environment')
     const social = layout.metrics.find((section) => section.id === 'social')

@@ -48,6 +48,10 @@ export type WizardProfileKey =
   | 'hasMaterialRisks'
   | 'hasMaterialOpportunities'
   | 'hasCsrdGapAssessment'
+  | 'hasTransitionPlan'
+  | 'assessesClimateResilience'
+  | 'tracksFinancialEffects'
+  | 'hasRemovalProjects'
 
 export type WizardProfile = Record<WizardProfileKey, boolean | null>
 
@@ -96,7 +100,11 @@ export const ALL_PROFILE_KEYS: WizardProfileKey[] = [
   'hasMaterialTopics',
   'hasMaterialRisks',
   'hasMaterialOpportunities',
-  'hasCsrdGapAssessment'
+  'hasCsrdGapAssessment',
+  'hasTransitionPlan',
+  'assessesClimateResilience',
+  'tracksFinancialEffects',
+  'hasRemovalProjects'
 ]
 
 export function createInitialWizardProfile(): WizardProfile {
@@ -397,6 +405,26 @@ export const wizardProfileSections: WizardProfileSection[] = [
         label: 'Har virksomheden datainfrastruktur til rapportering (IT-systemer, API’er)?',
         helpText: 'Systemer og processer til indsamling af ESG-data på tværs af organisationen.',
       },
+      {
+        id: 'hasTransitionPlan',
+        label: 'Har virksomheden en formaliseret klimatransitionsplan?',
+        helpText: 'Planer med milepæle, investeringer og ansvarlige for at nå klimamål.',
+      },
+      {
+        id: 'assessesClimateResilience',
+        label: 'Arbejder virksomheden med scenarieanalyser eller klimamodstandsdygtighed?',
+        helpText: 'Fx stresstest af forretningsmodel, klimatilpasning eller scenarievurderinger.',
+      },
+      {
+        id: 'tracksFinancialEffects',
+        label: 'Sporer virksomheden finansielle effekter af klimaindsatsen (CapEx/OpEx)?',
+        helpText: 'Opfølgning på investeringer, omkostninger og indtægter relateret til klima.',
+      },
+      {
+        id: 'hasRemovalProjects',
+        label: 'Investerer virksomheden i removal-projekter eller klimakreditter?',
+        helpText: 'Egne projekter, værdikædeinitiativer eller købte credits til udligning.',
+      },
     ],
   },
 ]
@@ -437,6 +465,10 @@ const moduleDependencies: Partial<Record<ModuleId, WizardProfileKey[]>> = {
   E3Pollution: ['hasIndustrialEmissions'],
   E4Biodiversity: ['impactsNatureAreas'],
   E5Resources: ['managesCriticalMaterials', 'purchasesMaterials'],
+  SBM: ['doesEsgReporting', 'hasTransitionPlan', 'assessesClimateResilience'],
+  GOV: ['hasBoardOversight', 'hasEsgPolicy', 'doesEsgReporting'],
+  IRO: ['hasMaterialTopics', 'hasMaterialRisks', 'hasMaterialOpportunities'],
+  MR: ['hasTransitionPlan', 'tracksFinancialEffects', 'hasNetZeroTarget', 'hasRemovalProjects'],
   D1: ['hasEsgPolicy', 'doesEsgReporting', 'hasBoardOversight', 'hasNetZeroTarget'],
   D2: ['hasMaterialTopics', 'hasMaterialRisks', 'hasMaterialOpportunities', 'hasCsrdGapAssessment'],
 }

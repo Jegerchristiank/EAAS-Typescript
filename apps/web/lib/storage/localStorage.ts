@@ -1,175 +1,28 @@
-/**
- * Helper-funktioner til at gemme og hente wizard-state fra localStorage.
- */
 'use client'
 
-import { ALL_PROFILE_KEYS, createInitialWizardProfile, type WizardProfile } from '../../src/modules/wizard/profile'
+import { createInitialWizardProfile } from '../../src/modules/wizard/profile'
 
-import type { ModuleInput } from '@org/shared'
+import type {
+  PersistedWizardProfile,
+  PersistedWizardStorage,
+  WizardPersistenceSnapshot,
+} from '@org/shared/wizard/persistence'
 
-type UnknownRecord = Record<string, unknown>
-
-export type WizardFieldRevision = {
-  id: string
-  field: string
-  timestamp: number
-  summary: string
-  updatedBy: string | null
+export type PersistMetadata = {
+  userId: string
+  reason?: string
 }
 
-export type WizardFieldHistory = Record<string, WizardFieldRevision[]>
-
-export type WizardResponsibilityEntry = {
-  path: string
-  value: string
-}
-
-export type WizardResponsibilityIndex = Record<string, WizardResponsibilityEntry[]>
-
-export type PersistedWizardProfile = {
-  id: string
-  name: string
-  state: ModuleInput
-  profile: WizardProfile
-  createdAt: number
-  updatedAt: number
-  history: WizardFieldHistory
-  responsibilities: WizardResponsibilityIndex
-}
-
-export type PersistedWizardStorage = {
-  activeProfileId: string
-  profiles: Record<string, PersistedWizardProfile>
-}
-
-const STORAGE_KEY = 'esg-wizard-profiles'
-const LEGACY_STATE_KEY = 'esg-wizard-state'
-const LEGACY_PROFILE_KEY = 'wizardProfile'
+const API_BASE_URL = process.env['NEXT_PUBLIC_PERSISTENCE_BASE_URL'] ?? 'http://localhost:4010'
+const API_TOKEN = process.env['NEXT_PUBLIC_PERSISTENCE_TOKEN'] ?? 'local-dev-token'
 
 const DEFAULT_PROFILE_ID = 'default'
 const DEFAULT_PROFILE_NAME = 'Profil 1'
 
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function safeParse<T>(raw: string | null): T | undefined {
-  if (!raw) {
-    return undefined
-  }
-
-  try {
-    return JSON.parse(raw) as T
-  } catch (error) {
-    console.warn('Kunne ikke parse localStorage-indhold', error)
-    return undefined
-  }
-}
-
-function sanitiseWizardProfile(value: unknown): WizardProfile {
-  const base = createInitialWizardProfile()
-
-  if (!isRecord(value)) {
-    return base
-  }
-
-  const record = value as UnknownRecord
-
-  for (const key of ALL_PROFILE_KEYS) {
-    const raw = record[key]
-    if (raw === true || raw === false || raw === null) {
-      base[key] = raw
-    }
-  }
-
-  return base
-}
-
-function normaliseHistory(value: unknown): WizardFieldHistory {
-  if (!isRecord(value)) {
-    return {}
-  }
-
-  const entries = value as UnknownRecord
-  return Object.entries(entries).reduce<WizardFieldHistory>((acc, [field, raw]) => {
-    if (!Array.isArray(raw)) {
-      return acc
-    }
-
-    const revisions = raw
-      .map((item) => {
-        if (!isRecord(item)) {
-          return null
-        }
-
-        const record = item as UnknownRecord
-        const timestamp = typeof record['timestamp'] === 'number' ? (record['timestamp'] as number) : Date.now()
-        const summary = typeof record['summary'] === 'string' ? (record['summary'] as string) : ''
-        const updatedBy =
-          typeof record['updatedBy'] === 'string' || record['updatedBy'] === null
-            ? (record['updatedBy'] as string | null)
-            : null
-        const id = typeof record['id'] === 'string' ? (record['id'] as string) : `${field}-${timestamp}`
-
-        return {
-          id,
-          field,
-          timestamp,
-          summary,
-          updatedBy,
-        }
-      })
-      .filter((revision): revision is WizardFieldRevision => revision !== null)
-
-    if (revisions.length > 0) {
-      acc[field] = revisions
-    }
-
-    return acc
-  }, {})
-}
-
-function normaliseResponsibilities(value: unknown): WizardResponsibilityIndex {
-  if (!isRecord(value)) {
-    return {}
-  }
-
-  const entries = value as UnknownRecord
-  return Object.entries(entries).reduce<WizardResponsibilityIndex>((acc, [field, raw]) => {
-    if (!Array.isArray(raw)) {
-      return acc
-    }
-
-    const responsibilities = raw
-      .map((item) => {
-        if (!isRecord(item)) {
-          return null
-        }
-
-        const record = item as UnknownRecord
-        const path = typeof record['path'] === 'string' ? (record['path'] as string) : null
-        const value = typeof record['value'] === 'string' ? (record['value'] as string) : null
-
-        if (!path || !value) {
-          return null
-        }
-
-        return { path, value }
-      })
-      .filter((entry): entry is WizardResponsibilityEntry => entry !== null)
-
-    if (responsibilities.length > 0) {
-      acc[field] = responsibilities
-    }
-
-    return acc
-  }, {})
-}
-
-function createProfileEntry(
+export function createProfileEntry(
   id: string,
   name: string,
-  state: ModuleInput = {} as ModuleInput,
+  state: Record<string, unknown> = {},
 ): PersistedWizardProfile {
   const now = Date.now()
   return {
@@ -181,189 +34,47 @@ function createProfileEntry(
     updatedAt: now,
     history: {},
     responsibilities: {},
+    version: 1,
   }
 }
 
-function normaliseProfile(id: string, value: unknown, fallbackName: string): PersistedWizardProfile {
-  const base = createProfileEntry(id, fallbackName)
-
-  if (!isRecord(value)) {
-    return base
-  }
-
-  const record = value as UnknownRecord
-  const profileName =
-    typeof record['name'] === 'string' && record['name'].trim().length > 0 ? (record['name'] as string) : base.name
-  const state = isRecord(record['state']) ? (record['state'] as ModuleInput) : base.state
-  const parsedProfile = sanitiseWizardProfile(record['profile'])
-  const createdAt = typeof record['createdAt'] === 'number' ? (record['createdAt'] as number) : base.createdAt
-  const updatedAt = typeof record['updatedAt'] === 'number' ? (record['updatedAt'] as number) : createdAt
-
+export function createFallbackStorage(): PersistedWizardStorage {
+  const profile = createProfileEntry(DEFAULT_PROFILE_ID, DEFAULT_PROFILE_NAME)
   return {
-    id,
-    name: profileName,
-    state,
-    profile: parsedProfile,
-    createdAt,
-    updatedAt,
-    history: normaliseHistory(record['history']),
-    responsibilities: normaliseResponsibilities(record['responsibilities']),
+    activeProfileId: profile.id,
+    profiles: { [profile.id]: profile },
   }
 }
 
-function normaliseStorage(raw: unknown): PersistedWizardStorage | undefined {
-  if (!isRecord(raw)) {
-    return undefined
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const message = await response.text()
+    throw new Error(message || `Persistence request failed with status ${response.status}`)
   }
 
-  const storageRecord = raw as UnknownRecord
-  const profilesRaw = storageRecord['profiles']
-  if (!isRecord(profilesRaw)) {
-    return undefined
-  }
-
-  const entries = Object.entries(profilesRaw)
-  if (entries.length === 0) {
-    return undefined
-  }
-
-  const profiles = entries.reduce<Record<string, PersistedWizardProfile>>((acc, [id, value], index) => {
-    acc[id] = normaliseProfile(id, value, `Profil ${index + 1}`)
-    return acc
-  }, {})
-
-  const fallbackActiveId = Object.keys(profiles)[0]!
-  const rawActiveId = storageRecord['activeProfileId']
-  const activeProfileId =
-    typeof rawActiveId === 'string' && profiles[rawActiveId]
-      ? rawActiveId
-      : fallbackActiveId
-
-  return { activeProfileId, profiles }
+  return (await response.json()) as T
 }
 
-function migrateLegacyStorage(): PersistedWizardStorage {
-  const state = safeParse<ModuleInput>(window.localStorage.getItem(LEGACY_STATE_KEY)) ?? {}
-  const profileOverrides = safeParse<Partial<WizardProfile>>(window.localStorage.getItem(LEGACY_PROFILE_KEY)) ?? {}
-
-  const entry = createProfileEntry(DEFAULT_PROFILE_ID, DEFAULT_PROFILE_NAME, state)
-  entry.profile = sanitiseWizardProfile(profileOverrides)
-
-  const storage: PersistedWizardStorage = {
-    activeProfileId: entry.id,
-    profiles: { [entry.id]: entry },
-  }
-
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(storage))
-    window.localStorage.removeItem(LEGACY_STATE_KEY)
-    window.localStorage.removeItem(LEGACY_PROFILE_KEY)
-  } catch (error) {
-    console.warn('Kunne ikke migrere wizard-data', error)
-  }
-
-  return storage
+export async function fetchWizardSnapshot(): Promise<WizardPersistenceSnapshot> {
+  return request<WizardPersistenceSnapshot>('/wizard/snapshot')
 }
 
-function ensureStorage(): PersistedWizardStorage {
-  if (typeof window === 'undefined') {
-    return {
-      activeProfileId: DEFAULT_PROFILE_ID,
-      profiles: { [DEFAULT_PROFILE_ID]: createProfileEntry(DEFAULT_PROFILE_ID, DEFAULT_PROFILE_NAME) },
-    }
-  }
-
-  const parsed = safeParse<unknown>(window.localStorage.getItem(STORAGE_KEY))
-  const storage = normaliseStorage(parsed ?? {})
-
-  if (storage) {
-    return storage
-  }
-
-  if (window.localStorage.getItem(LEGACY_STATE_KEY) || window.localStorage.getItem(LEGACY_PROFILE_KEY)) {
-    return migrateLegacyStorage()
-  }
-
-  const fallbackProfile = createProfileEntry(DEFAULT_PROFILE_ID, DEFAULT_PROFILE_NAME)
-  const fallbackStorage: PersistedWizardStorage = {
-    activeProfileId: fallbackProfile.id,
-    profiles: { [fallbackProfile.id]: fallbackProfile },
-  }
-
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackStorage))
-  } catch (error) {
-    console.warn('Kunne ikke initialisere wizard-storage', error)
-  }
-
-  return fallbackStorage
-}
-
-export function loadWizardStorage(): PersistedWizardStorage {
-  return ensureStorage()
-}
-
-export function persistWizardStorage(storage: PersistedWizardStorage): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(storage))
-  } catch (error) {
-    console.warn('Kunne ikke gemme wizard-storage', error)
-  }
-}
-
-export function loadWizardState(): ModuleInput {
-  const storage = ensureStorage()
-  const active = storage.profiles[storage.activeProfileId]
-  return active?.state ?? {}
-}
-
-export function persistWizardState(state: ModuleInput): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  const storage = ensureStorage()
-  const active = storage.profiles[storage.activeProfileId] ?? createProfileEntry(storage.activeProfileId, DEFAULT_PROFILE_NAME)
-  storage.profiles[storage.activeProfileId] = {
-    ...active,
-    state,
-    updatedAt: Date.now(),
-  }
-
-  persistWizardStorage(storage)
-}
-
-export function clearWizardState(): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-  window.localStorage.removeItem(STORAGE_KEY)
-  window.localStorage.removeItem(LEGACY_STATE_KEY)
-  window.localStorage.removeItem(LEGACY_PROFILE_KEY)
-}
-
-export function loadWizardProfile(): WizardProfile {
-  const storage = ensureStorage()
-  const active = storage.profiles[storage.activeProfileId]
-  return active?.profile ?? createInitialWizardProfile()
-}
-
-export function persistWizardProfile(profile: WizardProfile): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  const storage = ensureStorage()
-  const active = storage.profiles[storage.activeProfileId] ?? createProfileEntry(storage.activeProfileId, DEFAULT_PROFILE_NAME)
-  storage.profiles[storage.activeProfileId] = {
-    ...active,
-    profile: { ...createInitialWizardProfile(), ...profile },
-    updatedAt: Date.now(),
-  }
-
-  persistWizardStorage(storage)
+export async function persistWizardStorage(
+  storage: PersistedWizardStorage,
+  metadata: PersistMetadata,
+): Promise<WizardPersistenceSnapshot> {
+  return request<WizardPersistenceSnapshot>('/wizard/snapshot', {
+    method: 'PUT',
+    body: JSON.stringify({ storage, metadata }),
+  })
 }

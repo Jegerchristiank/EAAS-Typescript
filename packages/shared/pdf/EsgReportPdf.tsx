@@ -2,7 +2,7 @@
  * React-PDF dokument der strukturerer beregninger efter ESRS-sektioner.
  */
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
-import type { CalculatedModuleResult } from '../types'
+import type { CalculatedModuleResult, ModuleMetric, ModuleTable } from '../types'
 import { groupResultsByEsrs } from '../reporting/esrsLayout'
 
 const styles = StyleSheet.create({
@@ -68,6 +68,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     marginBottom: 2,
   },
+  metricList: {
+    marginBottom: 6,
+  },
   inline: {
     fontSize: 9,
     marginBottom: 2,
@@ -85,7 +88,138 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#b23d2e',
   },
+  table: {
+    borderWidth: 1,
+    borderColor: '#d0d7d5',
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottom: '1 solid #d0d7d5',
+  },
+  tableRowLast: {
+    borderBottomWidth: 0,
+  },
+  tableHeaderRow: {
+    backgroundColor: '#eef5f1',
+  },
+  tableHeaderCell: {
+    flex: 1,
+    padding: 4,
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  tableCell: {
+    flex: 1,
+    padding: 4,
+    fontSize: 8,
+  },
 })
+
+const impactTypeLabels = {
+  actual: 'Faktisk påvirkning',
+  potential: 'Potentiel påvirkning',
+} as const
+
+const severityLabels = {
+  minor: 'Begrænset alvor',
+  moderate: 'Middel alvor',
+  major: 'Væsentlig alvor',
+  severe: 'Kritisk alvor',
+} as const
+
+const likelihoodLabels = {
+  rare: 'Sjælden',
+  unlikely: 'Usandsynlig',
+  possible: 'Mulig',
+  likely: 'Sandsynlig',
+  veryLikely: 'Meget sandsynlig',
+} as const
+
+const valueChainLabels = {
+  ownOperations: 'Egne aktiviteter',
+  upstream: 'Upstream',
+  downstream: 'Downstream',
+} as const
+
+const remediationLabels = {
+  none: 'Ingen afhjælpning',
+  planned: 'Planlagt indsats',
+  inPlace: 'Afhjælpning implementeret',
+} as const
+
+const energyTypeLabels: Record<string, string> = {
+  electricity: 'Elektricitet',
+  districtHeat: 'Fjernvarme',
+  steam: 'Damp',
+  cooling: 'Køling',
+  biogas: 'Biogas',
+  diesel: 'Diesel',
+  other: 'Andet',
+}
+
+function formatMetric(metric: ModuleMetric): string {
+  const value = metric.value
+  const formatted =
+    value == null || (typeof value === 'number' && Number.isNaN(value))
+      ? '–'
+      : value
+  const unit = metric.unit ? ` ${metric.unit}` : ''
+  return `${formatted}${unit}`
+}
+
+function formatTableValue(value: string | number | null, format?: string): string {
+  if (value == null || (typeof value === 'number' && Number.isNaN(value))) {
+    return '–'
+  }
+  if (format === 'percent' && typeof value === 'number') {
+    return `${value}%`
+  }
+  return String(value)
+}
+
+function resolveTextAlign(align: ModuleTable['columns'][number]['align']): 'left' | 'center' | 'right' {
+  if (align === 'center') {
+    return 'center'
+  }
+  if (align === 'end') {
+    return 'right'
+  }
+  return 'left'
+}
+
+const riskLabels = {
+  risk: 'Risiko',
+  opportunity: 'Mulighed',
+  both: 'Risiko & mulighed',
+} as const
+
+const timelineLabels = {
+  shortTerm: '0-12 mdr.',
+  mediumTerm: '1-3 år',
+  longTerm: '3+ år',
+  ongoing: 'Løbende',
+} as const
+
+const gapStatusLabels = {
+  aligned: 'Ingen gap',
+  partial: 'Delvist afdækket',
+  missing: 'Gap mangler',
+} as const
+
+const priorityBandLabels = {
+  priority: 'Høj prioritet',
+  attention: 'Observation',
+  monitor: 'Monitorering',
+} as const
+
+function formatLabel(value: string | null | undefined, labels: Record<string, string>): string {
+  if (!value) {
+    return 'Ukendt'
+  }
+  return labels[value] ?? value
+}
 
 type ModuleBlockProps = {
   entry: CalculatedModuleResult
@@ -100,6 +234,18 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
       <Text style={styles.moduleMetric}>
         Resultat: {String(result.value)} {result.unit}
       </Text>
+
+      {result.metrics && result.metrics.length > 0 && (
+        <View style={styles.metricList}>
+          <Text style={styles.label}>Nøgletal</Text>
+          {result.metrics.map((metric, index) => (
+            <View key={`${entry.moduleId}-metric-${index}`} style={{ marginBottom: 2 }}>
+              <Text style={styles.listItem}>• {metric.label}: {formatMetric(metric)}</Text>
+              {metric.context ? <Text style={styles.inline}>{metric.context}</Text> : null}
+            </View>
+          ))}
+        </View>
+      )}
 
       {result.intensities && result.intensities.length > 0 && (
         <View style={styles.list}>
@@ -150,7 +296,9 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
           <Text style={styles.label}>Energimix</Text>
           {result.energyMix.map((mixEntry, index) => (
             <Text key={`${entry.moduleId}-mix-${index}`} style={styles.listItem}>
-              • {mixEntry.energyType}: {mixEntry.sharePercent}% ({mixEntry.consumptionKwh} kWh)
+              • {energyTypeLabels[mixEntry.energyType] ?? mixEntry.energyType}: {mixEntry.sharePercent}% ({
+                mixEntry.consumptionKwh
+              } kWh)
             </Text>
           ))}
         </View>
@@ -174,6 +322,47 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
           {result.plannedActions.map((action, index) => (
             <Text key={`${entry.moduleId}-action-${index}`} style={styles.listItem}>
               • {action.title ?? 'Handling'} – {action.status ?? 'ukendt'} ({action.dueQuarter ?? 'ukendt'})
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {result.transitionMeasures && result.transitionMeasures.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Overgangstiltag</Text>
+          {result.transitionMeasures.map((measure, index) => (
+            <Text key={`${entry.moduleId}-transition-${index}`} style={styles.listItem}>
+              • {measure.initiative ?? `Tiltag ${index + 1}`} – {measure.status ?? 'ukendt status'}
+              {measure.milestoneYear != null ? ` · Milepæl: ${measure.milestoneYear}` : ''}
+              {measure.investmentNeedDkk != null ? ` · Investering: ${measure.investmentNeedDkk} DKK` : ''}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {result.financialEffects && result.financialEffects.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Finansielle effekter</Text>
+          {result.financialEffects.map((effect, index) => (
+            <Text key={`${entry.moduleId}-finance-${index}`} style={styles.listItem}>
+              • {effect.label ?? `Effekt ${index + 1}`} – {effect.type ?? 'ukendt type'}
+              {effect.amountDkk != null ? ` · ${effect.amountDkk} DKK` : ''}
+              {effect.timeframe ? ` · Periode: ${effect.timeframe}` : ''}
+              {effect.description ? ` · ${effect.description}` : ''}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {result.removalProjects && result.removalProjects.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Removal-projekter</Text>
+          {result.removalProjects.map((project, index) => (
+            <Text key={`${entry.moduleId}-removal-${index}`} style={styles.listItem}>
+              • {project.projectName ?? `Projekt ${index + 1}`} – {project.removalType ?? 'ukendt type'}
+              {project.annualRemovalTonnes != null ? ` · ${project.annualRemovalTonnes} tCO2e/år` : ''}
+              {project.qualityStandard ? ` · Standard: ${project.qualityStandard}` : ''}
+              {project.storageDescription ? ` · Lager: ${project.storageDescription}` : ''}
             </Text>
           ))}
         </View>
@@ -214,6 +403,42 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
         </View>
       )}
 
+      {result.tables && result.tables.length > 0 && (
+        <View style={styles.metricList}>
+          {result.tables.map((table) => (
+            <View key={`${entry.moduleId}-${table.id}`} style={{ marginBottom: 6 }}>
+              <Text style={styles.label}>{table.title}</Text>
+              {table.summary ? <Text style={styles.inline}>{table.summary}</Text> : null}
+              <View style={styles.table}>
+                <View style={[styles.tableRow, styles.tableHeaderRow]}>
+                  {table.columns.map((column) => (
+                    <View key={column.key} style={styles.tableHeaderCell}>
+                      <Text style={{ fontSize: 8, fontWeight: 'bold', textAlign: resolveTextAlign(column.align ?? 'start') }}>
+                        {column.label}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                {table.rows.map((row, rowIndex) => (
+                  <View
+                    key={`${entry.moduleId}-${table.id}-row-${rowIndex}`}
+                    style={[styles.tableRow, ...(rowIndex === table.rows.length - 1 ? [styles.tableRowLast] : [])]}
+                  >
+                    {table.columns.map((column) => (
+                      <View key={`${entry.moduleId}-${table.id}-row-${rowIndex}-${column.key}`} style={styles.tableCell}>
+                        <Text style={{ fontSize: 8, textAlign: resolveTextAlign(column.align ?? 'start') }}>
+                          {formatTableValue(row[column.key] ?? null, column.format)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       {result.warnings.length > 0 && (
         <View style={styles.list}>
           <Text style={styles.label}>Advarsler</Text>
@@ -248,9 +473,9 @@ function ModuleBlock({ entry }: ModuleBlockProps): JSX.Element {
 
 function DoubleMaterialitySection({ entry }: { entry: CalculatedModuleResult }): JSX.Element {
   const { result } = entry
-  const summary = result.doubleMateriality
+  const materiality = result.doubleMateriality
 
-  if (!summary) {
+  if (!materiality) {
     return (
       <View style={styles.section} wrap={false}>
         <Text style={styles.sectionTitle}>Dobbelt væsentlighed</Text>
@@ -260,36 +485,110 @@ function DoubleMaterialitySection({ entry }: { entry: CalculatedModuleResult }):
       </View>
     )
   }
+  const { overview, prioritisationCriteria, tables, dueDiligence } = materiality
+  const gapAlerts = tables.gapAlerts
+  const topTopics = tables.topics
+  const impactMatrix = tables.impactMatrix
 
   return (
     <View style={styles.section} wrap={false}>
       <Text style={styles.sectionTitle}>Dobbelt væsentlighed</Text>
-      <Text style={styles.sectionDescription}>{summary.summary}</Text>
+      <Text style={styles.sectionDescription}>
+        Prioritets-score {overview.averageScore.toFixed(1)} · Prioriterede emner {overview.prioritisedTopics}/
+        {overview.totalTopics} · Gap-advarsler {overview.gapAlerts}
+      </Text>
 
-      {summary.gapAlerts.length > 0 && (
+      <View style={styles.list}>
+        <Text style={styles.label}>Overblik</Text>
+        <Text style={styles.listItem}>• Emner i alt: {overview.totalTopics}</Text>
+        <Text style={styles.listItem}>• Prioriterede emner: {overview.prioritisedTopics}</Text>
+        <Text style={styles.listItem}>• Observationer: {overview.attentionTopics}</Text>
+        <Text style={styles.listItem}>• Gap-advarsler: {overview.gapAlerts}</Text>
+      </View>
+
+      {prioritisationCriteria.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Prioriteringskriterier</Text>
+          {prioritisationCriteria.map((criterion, index) => (
+            <Text key={`${entry.moduleId}-criterion-${index}`} style={styles.listItem}>
+              • {criterion.title}: {criterion.description}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {topTopics.map((topic, index) => (
+        <View key={`${entry.moduleId}-topic-${index}`} style={styles.topicRow} wrap={false}>
+          <Text style={styles.topicHeader}>{topic.name}</Text>
+          <Text style={styles.inline}>
+            {priorityBandLabels[topic.priorityBand]} · Score {topic.combinedScore.toFixed(1)}
+          </Text>
+          <Text style={styles.inline}>
+            Impactmatrix: {formatLabel(topic.impactType, impactTypeLabels as Record<string, string>)} ·{' '}
+            {formatLabel(topic.severity, severityLabels as Record<string, string>)} ·{' '}
+            {formatLabel(topic.likelihood, likelihoodLabels as Record<string, string>)}
+          </Text>
+          <Text style={styles.inline}>
+            Impactscore {topic.impactScore.toFixed(1)} · Finansiel score{' '}
+            {topic.financialScore != null ? topic.financialScore.toFixed(1) : 'n/a'} · Tidslinje-score{' '}
+            {topic.timelineScore != null ? topic.timelineScore.toFixed(1) : 'n/a'}
+          </Text>
+          <Text style={styles.inline}>
+            Tidslinje {formatLabel(topic.timeline, timelineLabels as Record<string, string>)} · Værdikæde{' '}
+            {formatLabel(topic.valueChainSegment, valueChainLabels as Record<string, string>)} · Afhjælpning{' '}
+            {formatLabel(topic.remediationStatus, remediationLabels as Record<string, string>)} · Risiko{' '}
+            {formatLabel(topic.riskType, riskLabels as Record<string, string>)} · CSRD-gap{' '}
+            {formatLabel(topic.csrdGapStatus, gapStatusLabels as Record<string, string>)}
+          </Text>
+          {topic.description && <Text style={styles.inline}>Note: {topic.description}</Text>}
+        </View>
+      ))}
+
+      {impactMatrix.length > 0 && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Impact-matrix</Text>
+          {impactMatrix.map((row, index) => (
+            <Text key={`${entry.moduleId}-matrix-${index}`} style={styles.listItem}>
+              • {formatLabel(row.severity, severityLabels as Record<string, string>)} ×{' '}
+              {formatLabel(row.likelihood, likelihoodLabels as Record<string, string>)}: {row.topics}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {(dueDiligence.impactTypes.length > 0 ||
+        dueDiligence.valueChain.length > 0 ||
+        dueDiligence.remediation.length > 0) && (
+        <View style={styles.list}>
+          <Text style={styles.label}>Due diligence reference</Text>
+          {dueDiligence.impactTypes.length > 0 && (
+            <Text style={styles.listItem}>
+              • Påvirkningstyper: {dueDiligence.impactTypes.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+            </Text>
+          )}
+          {dueDiligence.valueChain.length > 0 && (
+            <Text style={styles.listItem}>
+              • Værdikædeled: {dueDiligence.valueChain.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+            </Text>
+          )}
+          {dueDiligence.remediation.length > 0 && (
+            <Text style={styles.listItem}>
+              • Afhjælpning: {dueDiligence.remediation.map((entry) => `${entry.label}: ${entry.topics}`).join(', ')}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {gapAlerts.length > 0 && (
         <View style={styles.list}>
           <Text style={styles.label}>Gap-advarsler</Text>
-          {summary.gapAlerts.map((topic, index) => (
+          {gapAlerts.map((topic, index) => (
             <Text key={`${entry.moduleId}-gap-${index}`} style={styles.gapAlert}>
               • Manglende CSRD-gap for {topic}
             </Text>
           ))}
         </View>
       )}
-
-      {summary.topics.map((topic, index) => (
-        <View key={`${entry.moduleId}-topic-${index}`} style={styles.topicRow} wrap={false}>
-          <Text style={styles.topicHeader}>{topic.name}</Text>
-          <Text style={styles.inline}>
-            Impact: {topic.impactScore.toFixed(1)} · Finansiel: {topic.financialScore.toFixed(1)} · Kombineret:{' '}
-            {topic.combinedScore.toFixed(2)}
-          </Text>
-          <Text style={styles.inline}>
-            Risiko: {topic.riskType ?? 'ukendt'} · Tidslinje: {topic.timeline ?? 'ukendt'} · Ansvarlig:{' '}
-            {topic.responsible ?? 'n/a'} · CSRD-gap: {topic.csrdGapStatus ?? 'ukendt'}
-          </Text>
-        </View>
-      ))}
     </View>
   )
 }
@@ -304,7 +603,7 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
         <View style={styles.header}>
           <Text style={styles.pageTitle}>ESRS-rapport</Text>
           <Text style={styles.subtitle}>
-            Struktureret efter generelle oplysninger, politikker, mål, metrics og dobbelt væsentlighed.
+            Struktureret efter ESRS 2 (SBM, GOV, IRO, MR), politikker, mål, metrics og dobbelt væsentlighed.
           </Text>
         </View>
 
@@ -315,7 +614,7 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
             <View style={styles.section} wrap={false}>
               <Text style={styles.sectionTitle}>Generelle oplysninger</Text>
               <Text style={styles.sectionDescription}>
-                D1 og D2-modulerne dokumenterer metodik, governance og materialitet.
+                ESRS 2-modulerne for strategi (SBM), governance (GOV), IRO samt D1 beskriver grundlaget for rapporteringen.
               </Text>
               {layout.general.map((entry) => (
                 <ModuleBlock key={entry.moduleId} entry={entry} />
@@ -338,7 +637,7 @@ export function EsgReportPdf({ results }: { results: CalculatedModuleResult[] })
             <View style={styles.section} wrap={false}>
               <Text style={styles.sectionTitle}>Mål og fremskridt</Text>
               <Text style={styles.sectionDescription}>
-                ESRS E1-mål og handlinger med ansvarlige og milestones.
+                ESRS 2 MR og ESRS E1 samler mål, målinger, finansielle effekter og planlagte handlinger.
               </Text>
               {layout.targets.map((entry) => (
                 <ModuleBlock key={entry.moduleId} entry={entry} />

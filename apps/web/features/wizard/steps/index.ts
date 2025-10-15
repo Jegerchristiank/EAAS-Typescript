@@ -61,11 +61,22 @@ const C12Step = createLazyStep(() => import('./C12'), 'C12Step')
 const C13Step = createLazyStep(() => import('./C13'), 'C13Step')
 const C14Step = createLazyStep(() => import('./C14'), 'C14Step')
 const C15Step = createLazyStep(() => import('./C15'), 'C15Step')
+const E1ScenariosStep = createLazyStep(() => import('./E1Scenarios'), 'E1ScenariosStep')
+const E1CarbonPriceStep = createLazyStep(() => import('./E1CarbonPrice'), 'E1CarbonPriceStep')
+const E1RiskGeographyStep = createLazyStep(() => import('./E1RiskGeography'), 'E1RiskGeographyStep')
+const E1DecarbonisationDriversStep = createLazyStep(
+  () => import('./E1DecarbonisationDrivers'),
+  'E1DecarbonisationDriversStep',
+)
 const E1TargetsStep = createLazyStep(() => import('./E1Targets'), 'E1TargetsStep')
 const E2WaterStep = createLazyStep(() => import('./E2Water'), 'E2WaterStep')
 const E3PollutionStep = createLazyStep(() => import('./E3Pollution'), 'E3PollutionStep')
 const E4BiodiversityStep = createLazyStep(() => import('./E4Biodiversity'), 'E4BiodiversityStep')
 const E5ResourcesStep = createLazyStep(() => import('./E5Resources'), 'E5ResourcesStep')
+const SBMStep = createLazyStep(() => import('./SBM'), 'SBMStep')
+const GOVStep = createLazyStep(() => import('./GOV'), 'GOVStep')
+const IROStep = createLazyStep(() => import('./IRO'), 'IROStep')
+const MRStep = createLazyStep(() => import('./MR'), 'MRStep')
 const S1Step = createLazyStep(() => import('./S1'), 'S1Step')
 const S2Step = createLazyStep(() => import('./S2'), 'S2Step')
 const S3Step = createLazyStep(() => import('./S3'), 'S3Step')
@@ -118,6 +129,34 @@ export const wizardSteps: WizardStep[] = [
   { id: 'C14', label: 'C14 – Behandling af solgte produkter', component: C14Step, scope: 'Scope 3', status: 'ready' },
   { id: 'C15', label: 'C15 – Øvrige kategorioplysninger', component: C15Step, scope: 'Scope 3', status: 'ready' },
   {
+    id: 'E1Scenarios',
+    label: 'E1 – Klimascenarier',
+    component: E1ScenariosStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
+    id: 'E1CarbonPrice',
+    label: 'E1 – Interne CO₂-priser',
+    component: E1CarbonPriceStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
+    id: 'E1RiskGeography',
+    label: 'E1 – Risikogeografi',
+    component: E1RiskGeographyStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
+    id: 'E1DecarbonisationDrivers',
+    label: 'E1 – Decarboniseringsdrivere',
+    component: E1DecarbonisationDriversStep,
+    scope: 'Environment',
+    status: 'ready',
+  },
+  {
     id: 'E1Targets',
     label: 'E1 – Klimamål og handlinger',
     component: E1TargetsStep,
@@ -150,6 +189,34 @@ export const wizardSteps: WizardStep[] = [
     label: 'E5 – Ressourcer og materialeforbrug',
     component: E5ResourcesStep,
     scope: 'Environment',
+    status: 'ready'
+  },
+  {
+    id: 'SBM',
+    label: 'ESRS 2 – Strategi og forretningsmodel',
+    component: SBMStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'GOV',
+    label: 'ESRS 2 – Governance',
+    component: GOVStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'IRO',
+    label: 'ESRS 2 – Impacts, risici og muligheder',
+    component: IROStep,
+    scope: 'Governance',
+    status: 'ready'
+  },
+  {
+    id: 'MR',
+    label: 'ESRS 2 – Metrics og targets',
+    component: MRStep,
+    scope: 'Governance',
     status: 'ready'
   },
   { id: 'S1', label: 'S1 – Arbejdsstyrke & headcount', component: S1Step, scope: 'Social', status: 'ready' },

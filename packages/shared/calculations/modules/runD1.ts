@@ -1,38 +1,37 @@
 /**
- * Beregning for modul D1 – governance-score baseret på metodevalg og beskrivelser.
+ * ESRS 2 D1 – governance validation against qualitative requirements.
  */
-import type { D1Input, ModuleInput, ModuleResult } from '../../types'
-import { factors } from '../factors'
+import type {
+  D1Input,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult
+} from '../../types'
+
+const MIN_CORE_TEXT_LENGTH = 200
+const MIN_SUPPORTING_TEXT_LENGTH = 150
+
+type RequirementResult = {
+  id: string
+  label: string
+  passes: boolean
+  detail: string
+}
+
+type RequirementOptions = {
+  id: string
+  label: string
+  passes: boolean
+  successDetail: string
+  failureDetail: string
+  warnings: string[]
+}
 
 type ImpactsDetails = NonNullable<D1Input['impactsRisksOpportunities']>
 type TargetLine = NonNullable<NonNullable<D1Input['targetsAndKpis']>['kpis']>[number]
 type ValueChainCoverage = NonNullable<ImpactsDetails['valueChainCoverage']>
 type TimeHorizonValue = NonNullable<ImpactsDetails['timeHorizons']>[number]
-
-const boundaryScores: Record<NonNullable<D1Input['organizationalBoundary']>, number> = {
-  equityShare: 0.6,
-  financialControl: 0.8,
-  operationalControl: 1
-}
-
-const scope2MethodScores: Record<NonNullable<D1Input['scope2Method']>, number> = {
-  locationBased: 0.7,
-  marketBased: 1
-}
-
-const dataQualityScores: Record<NonNullable<D1Input['dataQuality']>, number> = {
-  primary: 1,
-  secondary: 0.75,
-  proxy: 0.5
-}
-
-const valueChainCoverageScores: Record<ValueChainCoverage, number> = {
-  ownOperations: 0.5,
-  upstreamOnly: 0.7,
-  downstreamOnly: 0.7,
-  upstreamAndDownstream: 0.9,
-  fullValueChain: 1
-}
 
 const timeHorizonLabels: Record<TimeHorizonValue, string> = {
   shortTerm: 'kort sigt',
@@ -60,102 +59,72 @@ export function runD1(input: ModuleInput): ModuleResult {
   const strategyEntries = [
     {
       key: 'businessModelSummary',
-      value: normaliseText(strategy?.businessModelSummary),
-      emptyWarning: 'Beskriv forretningsmodellen og væsentlige bæredygtighedsafhængigheder.',
-      shortWarning: 'Uddyb forretningsmodellen, så sammenhængen til bæredygtighed bliver tydelig.'
+      value: normaliseText(strategy?.businessModelSummary)
     },
     {
       key: 'sustainabilityIntegration',
-      value: normaliseText(strategy?.sustainabilityIntegration),
-      emptyWarning: 'Forklar hvordan bæredygtighed indgår i strategien og beslutningerne.',
-      shortWarning: 'Uddyb hvordan bæredygtighed integreres i strategi og mål.'
+      value: normaliseText(strategy?.sustainabilityIntegration)
     },
     {
       key: 'resilienceDescription',
-      value: normaliseText(strategy?.resilienceDescription),
-      emptyWarning: 'Dokumentér robusthed og scenariearbejde for forretningsmodellen.',
-      shortWarning: 'Beskriv scenarier eller stresstests mere detaljeret.'
+      value: normaliseText(strategy?.resilienceDescription)
     },
     {
       key: 'stakeholderEngagement',
-      value: normaliseText(strategy?.stakeholderEngagement),
-      emptyWarning: 'Angiv hvordan interessenter inddrages i strategiudviklingen.',
-      shortWarning: 'Beskriv stakeholderprocessen mere detaljeret.'
+      value: normaliseText(strategy?.stakeholderEngagement)
     }
   ]
 
   const governanceEntries = [
     {
       key: 'oversight',
-      value: normaliseText(governance?.oversight),
-      emptyWarning: 'Beskriv bestyrelsens tilsyn med ESG-rapporteringen.',
-      shortWarning: 'Uddyb hvordan bestyrelsen følger op og træffer beslutninger.'
+      value: normaliseText(governance?.oversight)
     },
     {
       key: 'managementRoles',
-      value: normaliseText(governance?.managementRoles),
-      emptyWarning: 'Angiv direktionens roller og ansvar for bæredygtighed.',
-      shortWarning: 'Beskriv direktionens fora, KPI’er og ansvar mere konkret.'
+      value: normaliseText(governance?.managementRoles)
     },
     {
       key: 'esgExpertise',
-      value: normaliseText(governance?.esgExpertise),
-      emptyWarning: 'Dokumentér kompetencer og træning inden for bæredygtighed.',
-      shortWarning: 'Uddyb hvordan kompetenceudvikling sikres.'
+      value: normaliseText(governance?.esgExpertise)
     },
     {
       key: 'incentives',
-      value: normaliseText(governance?.incentives),
-      emptyWarning: 'Beskriv incitamenter der knytter sig til bæredygtighedsmål.',
-      shortWarning: 'Uddyb koblingen mellem incitamenter og ESG-resultater.'
+      value: normaliseText(governance?.incentives)
     },
     {
       key: 'policies',
-      value: normaliseText(governance?.policies),
-      emptyWarning: 'Angiv centrale politikker og kontroller for rapporteringen.',
-      shortWarning: 'Beskriv politikker og kontroller mere detaljeret.'
+      value: normaliseText(governance?.policies)
     }
   ]
 
   const impactsEntries = [
     {
       key: 'processDescription',
-      value: normaliseText(impacts?.processDescription),
-      emptyWarning: 'Dokumentér processen for analyse af impacts, risici og muligheder.',
-      shortWarning: 'Uddyb procesbeskrivelsen med frekvens og ansvar.'
+      value: normaliseText(impacts?.processDescription)
     },
     {
       key: 'prioritisationCriteria',
-      value: normaliseText(impacts?.prioritisationCriteria),
-      emptyWarning: 'Angiv kriterierne for prioritering og væsentlighed.',
-      shortWarning: 'Beskriv prioriteringskriterierne mere detaljeret.'
+      value: normaliseText(impacts?.prioritisationCriteria)
     },
     {
       key: 'integrationIntoManagement',
-      value: normaliseText(impacts?.integrationIntoManagement),
-      emptyWarning: 'Forklar hvordan resultaterne integreres i styring og beslutninger.',
-      shortWarning: 'Uddyb hvordan resultaterne påvirker strategi, risikostyring og investeringer.'
+      value: normaliseText(impacts?.integrationIntoManagement)
     },
     {
       key: 'mitigationActions',
-      value: normaliseText(impacts?.mitigationActions),
-      emptyWarning: 'Beskriv konkrete tiltag og handlingsplaner for væsentlige impacts.',
-      shortWarning: 'Uddyb de planlagte tiltag og tidsplaner.'
+      value: normaliseText(impacts?.mitigationActions)
     }
   ]
 
   const targetEntries = [
     {
       key: 'governanceIntegration',
-      value: normaliseText(targets?.governanceIntegration),
-      emptyWarning: 'Forklar hvordan mål og KPI’er er forankret i governance-processer.',
-      shortWarning: 'Uddyb opfølgningsrutiner og fora for mål og KPI’er.'
+      value: normaliseText(targets?.governanceIntegration)
     },
     {
       key: 'progressDescription',
-      value: normaliseText(targets?.progressDescription),
-      emptyWarning: 'Beskriv status og fremdrift på mål og KPI’er.',
-      shortWarning: 'Uddyb resultater, delmål og afvigelser.'
+      value: normaliseText(targets?.progressDescription)
     }
   ]
 
@@ -182,16 +151,22 @@ export function runD1(input: ModuleInput): ModuleResult {
     quantitativeTargets !== null ||
     meaningfulKpis.length > 0
 
-  const trace = [
+  const trace: string[] = [
     `organizationalBoundary=${boundary ?? 'null'}`,
     `scope2Method=${scope2Method ?? 'null'}`,
     `scope3ScreeningCompleted=${screeningCompleted ?? 'null'}`,
     `dataQuality=${dataQuality ?? 'null'}`,
     `materialityLength=${materiality.length}`,
     `strategySummaryLength=${strategySummary.length}`,
-    `strategyDetailLengths=${strategyEntries.map((entry) => `${entry.key}:${entry.value.length}`).join(',')}`,
-    `governanceDetailLengths=${governanceEntries.map((entry) => `${entry.key}:${entry.value.length}`).join(',')}`,
-    `impactsDetailLengths=${impactsEntries.map((entry) => `${entry.key}:${entry.value.length}`).join(',')}`,
+    `strategyDetailLengths=${strategyEntries
+      .map((entry) => `${entry.key}:${entry.value.length}`)
+      .join(',')}`,
+    `governanceDetailLengths=${governanceEntries
+      .map((entry) => `${entry.key}:${entry.value.length}`)
+      .join(',')}`,
+    `impactsDetailLengths=${impactsEntries
+      .map((entry) => `${entry.key}:${entry.value.length}`)
+      .join(',')}`,
     `valueChainCoverage=${valueChainCoverage ?? 'null'}`,
     `timeHorizons=${timeHorizons.length > 0 ? timeHorizons.join('|') : 'none'}`,
     `quantitativeTargets=${quantitativeTargets ?? 'null'}`,
@@ -201,326 +176,495 @@ export function runD1(input: ModuleInput): ModuleResult {
   if (!hasAnyInput) {
     return {
       value: 0,
-      unit: factors.d1.unit,
-      assumptions: ['Udfyld governance-felterne for at beregne en D1-score.'],
+      unit: 'opfyldte krav',
+      assumptions: ['Udfyld D1-felterne for at validere governance-oplysningerne mod ESRS-krav.'],
       trace,
       warnings: []
     }
   }
 
   const warnings: string[] = []
-  const boundaryWarning =
-    boundary == null
-      ? 'Vælg et konsolideringsprincip for at dokumentere organisatorisk afgrænsning.'
-      : undefined
+  const requirements: RequirementResult[] = []
 
-  const scope2Warning =
-    scope2Method == null
-      ? 'Vælg primær Scope 2 metode (location- eller market-based).'
-      : undefined
-
-  const scope3Warning =
-    screeningCompleted === true
-      ? undefined
-      : screeningCompleted === false
-        ? 'Markér screening som gennemført, når scope 3 kategorier er vurderet.'
-        : 'Angiv om Scope 3 screening er gennemført.'
-
-  const dataQualityWarning =
-    dataQuality == null
-      ? 'Vælg dominerende datakvalitet for rapporteringen.'
-      : dataQuality === 'proxy'
-        ? 'Proxy-data giver lav governance-score – prioriter primære eller sekundære datakilder.'
-        : undefined
-
-  const metrics: Array<{ label: string; score: number; warning?: string }> = [
-    {
-      label: 'organizationalBoundary',
-      score: boundary == null ? 0 : boundaryScores[boundary] ?? 0,
-      ...(boundaryWarning ? { warning: boundaryWarning } : {})
-    },
-    {
-      label: 'scope2Method',
-      score: scope2Method == null ? 0 : scope2MethodScores[scope2Method] ?? 0,
-      ...(scope2Warning ? { warning: scope2Warning } : {})
-    },
-    {
-      label: 'scope3ScreeningCompleted',
-      score: screeningCompleted === true ? 1 : screeningCompleted === false ? 0.4 : 0,
-      ...(scope3Warning ? { warning: scope3Warning } : {})
-    },
-    {
-      label: 'dataQuality',
-      score: dataQuality == null ? 0 : dataQualityScores[dataQuality] ?? 0,
-      ...(dataQualityWarning ? { warning: dataQualityWarning } : {})
+  const addRequirement = ({ id, label, passes, successDetail, failureDetail, warnings: extraWarnings }: RequirementOptions) => {
+    requirements.push({ id, label, passes, detail: passes ? successDetail : failureDetail })
+    trace.push(`requirement:${id}=${passes ? 'pass' : 'fail'}`)
+    if (!passes) {
+      warnings.push(failureDetail)
     }
-  ]
-
-  const materialityMetric = evaluateTextDimension('materialityAssessment', materiality, {
-    emptyWarning: 'Tilføj en kort beskrivelse af væsentlighedsvurderingen.',
-    shortWarning: 'Uddyb væsentlighedsvurderingen med centrale risici og muligheder.'
-  })
-  metrics.push(materialityMetric)
-
-  const strategySummaryMetric = evaluateTextDimension('strategySummary', strategySummary, {
-    emptyWarning: 'Beskriv strategi, målsætninger og politikker for ESG-governance.',
-    shortWarning: 'Uddyb strategi og politikker, så governance-planen fremstår tydelig.'
-  })
-  metrics.push(strategySummaryMetric)
-
-  const strategyGroup = evaluateTextGroup('strategyDetails', strategyEntries)
-  metrics.push({ label: 'strategyDetails', score: strategyGroup.score })
-  warnings.push(...strategyGroup.warnings)
-  trace.push(...strategyGroup.traceEntries)
-
-  const governanceGroup = evaluateTextGroup('governanceDetails', governanceEntries)
-  metrics.push({ label: 'governanceDetails', score: governanceGroup.score })
-  warnings.push(...governanceGroup.warnings)
-  trace.push(...governanceGroup.traceEntries)
-
-  const hasCommittee = governance?.hasEsgCommittee ?? null
-  const committeeWarning =
-    hasCommittee === true
-      ? undefined
-      : hasCommittee === false
-        ? 'Dokumentér mandatet for ESG-/bæredygtighedsudvalget for at styrke governance.'
-        : 'Angiv om der er et dedikeret ESG-/bæredygtighedsudvalg.'
-
-  metrics.push({
-    label: 'esgCommittee',
-    score: hasCommittee === true ? 1 : hasCommittee === false ? 0.6 : 0,
-    ...(committeeWarning ? { warning: committeeWarning } : {})
-  })
-
-  const impactsGroup = evaluateTextGroup('impactsProcess', impactsEntries)
-  metrics.push({ label: 'impactsProcess', score: impactsGroup.score })
-  warnings.push(...impactsGroup.warnings)
-  trace.push(...impactsGroup.traceEntries)
-
-  const valueChainWarning =
-    valueChainCoverage == null
-      ? 'Angiv hvor stor en del af værdikæden analysen dækker.'
-      : valueChainCoverage === 'ownOperations'
-        ? 'Udvid analysen til upstream og downstream for at dokumentere hele værdikæden.'
-        : valueChainCoverage === 'upstreamOnly' || valueChainCoverage === 'downstreamOnly'
-          ? 'Dæk både upstream og downstream for at opnå fuld score.'
-          : valueChainCoverage === 'upstreamAndDownstream'
-            ? 'Dokumentér fuld værdikædedækning for at opnå 100 % score.'
-            : undefined
-
-  metrics.push({
-    label: 'valueChainCoverage',
-    score: valueChainCoverage == null ? 0 : valueChainCoverageScores[valueChainCoverage] ?? 0,
-    ...(valueChainWarning ? { warning: valueChainWarning } : {})
-  })
-
-  const uniqueHorizons = Array.from(new Set(timeHorizons))
-  let timeHorizonScore = 0
-  let timeHorizonWarning: string | undefined
-  if (uniqueHorizons.length === 0) {
-    timeHorizonWarning = 'Markér hvilke tidshorisonter der er analyseret (kort, mellem og lang sigt).'
-  } else if (uniqueHorizons.length === 1) {
-    timeHorizonScore = 0.6
-    const missing = allTimeHorizons.filter((value) => !uniqueHorizons.includes(value))
-    timeHorizonWarning = `Udvid analysen til også at dække ${missing.map((value) => timeHorizonLabels[value]).join(' og ')}.`
-  } else if (uniqueHorizons.length === 2) {
-    timeHorizonScore = 0.85
-    const missing = allTimeHorizons.filter((value) => !uniqueHorizons.includes(value))
-    timeHorizonWarning = `Tilføj også ${missing.map((value) => timeHorizonLabels[value]).join(' og ')} for fuld robusthed.`
-  } else {
-    timeHorizonScore = 1
+    warnings.push(...extraWarnings)
   }
 
-  metrics.push({
-    label: 'timeHorizons',
-    score: timeHorizonScore,
-    ...(timeHorizonWarning ? { warning: timeHorizonWarning } : {})
+  const scope3Detail = evaluateScope3Requirement({
+    screeningCompleted,
+    valueChainCoverage,
+    timeHorizons
   })
 
-  const targetGroup = evaluateTextGroup('targetsNarrative', targetEntries)
-  metrics.push({ label: 'targetsNarrative', score: targetGroup.score })
-  warnings.push(...targetGroup.warnings)
-  trace.push(...targetGroup.traceEntries)
+  const methodPass = boundary !== null && scope2Method !== null && dataQuality !== null
+  const methodWarnings: string[] = []
+  if (dataQuality === 'proxy') {
+    methodWarnings.push('Proxy-data er svag dokumentation – planlæg overgang til primære eller sekundære kilder.')
+  }
+  if (boundary === 'equityShare') {
+    methodWarnings.push('Overvej operational control for at afspejle styringsmuligheder i D1-rapporteringen.')
+  }
 
-  const quantitativeWarning =
-    quantitativeTargets === true
-      ? undefined
-      : quantitativeTargets === false
-        ? 'Overvej at opstille kvantitative mål for væsentlige impacts og risici.'
-        : 'Angiv om organisationen har kvantitative mål.'
-
-  metrics.push({
-    label: 'quantitativeTargets',
-    score: quantitativeTargets === true ? 1 : quantitativeTargets === false ? 0.6 : 0,
-    ...(quantitativeWarning ? { warning: quantitativeWarning } : {})
+  addRequirement({
+    id: 'methodology',
+    label: 'Metodegrundlag er dokumenteret',
+    passes: methodPass,
+    successDetail: `Afgrænsning: ${boundary}; Scope 2 metode: ${scope2Method}; datakvalitet: ${dataQuality}.`,
+    failureDetail: 'Angiv organisatorisk afgrænsning, primær Scope 2 metode og dominerende datakvalitet.',
+    warnings: methodWarnings
   })
 
-  const kpiScore =
-    meaningfulKpis.length === 0
-      ? 0
-      : meaningfulKpis.length === 1
-        ? 0.6
-        : meaningfulKpis.length === 2
-          ? 0.85
-          : 1
-
-  const kpiWarning =
-    meaningfulKpis.length === 0
-      ? 'Tilføj mindst én KPI for at demonstrere opfølgning på målene.'
-      : meaningfulKpis.length === 1
-        ? 'Tilføj flere KPI’er for at dække alle væsentlige mål.'
-        : undefined
-
-  metrics.push({
-    label: 'kpiCoverage',
-    score: kpiScore,
-    ...(kpiWarning ? { warning: kpiWarning } : {})
+  addRequirement({
+    id: 'scope3Coverage',
+    label: 'Scope 3 screening dækker værdikæden og tidshorisonter',
+    passes: scope3Detail.passes,
+    successDetail: scope3Detail.successDetail,
+    failureDetail: scope3Detail.failureDetail,
+    warnings: scope3Detail.warnings
   })
 
-  const totalScore = metrics.reduce((sum, metric) => sum + metric.score, 0)
-  const averageScore = totalScore / metrics.length
-  const value = Number((averageScore * factors.d1.maxScore).toFixed(factors.d1.resultPrecision))
+  const materialityDetail = evaluateNarrativeRequirement({
+    label: 'materialitet',
+    value: materiality,
+    emptyMessage: 'Beskriv væsentlighedsvurderingen og dens resultater.',
+    shortMessage: `Uddyb væsentlighedsvurderingen (mindst ${MIN_CORE_TEXT_LENGTH} tegn).`,
+    minLength: MIN_CORE_TEXT_LENGTH
+  })
+
+  addRequirement({
+    id: 'materiality',
+    label: 'Væsentlighedsvurderingen er beskrevet',
+    passes: materialityDetail.passes,
+    successDetail: materialityDetail.successDetail,
+    failureDetail: materialityDetail.failureDetail,
+    warnings: []
+  })
+
+  const strategyDetail = evaluateStrategyRequirement(strategySummary, strategyEntries)
+  addRequirement({
+    id: 'strategy',
+    label: 'Strategi og integration er dokumenteret',
+    passes: strategyDetail.passes,
+    successDetail: strategyDetail.successDetail,
+    failureDetail: strategyDetail.failureDetail,
+    warnings: strategyDetail.warnings
+  })
+
+  const governanceDetail = evaluateGovernanceRequirement(governanceEntries, governance?.hasEsgCommittee ?? null)
+  addRequirement({
+    id: 'governance',
+    label: 'Governance-roller og tilsyn er beskrevet',
+    passes: governanceDetail.passes,
+    successDetail: governanceDetail.successDetail,
+    failureDetail: governanceDetail.failureDetail,
+    warnings: governanceDetail.warnings
+  })
+
+  const impactsDetail = evaluateImpactsRequirement(impactsEntries)
+  addRequirement({
+    id: 'impactsProcess',
+    label: 'Proces for impacts, risici og muligheder er beskrevet',
+    passes: impactsDetail.passes,
+    successDetail: impactsDetail.successDetail,
+    failureDetail: impactsDetail.failureDetail,
+    warnings: []
+  })
+
+  const targetsDetail = evaluateTargetsRequirement(targetEntries, quantitativeTargets, meaningfulKpis)
+  addRequirement({
+    id: 'targets',
+    label: 'Mål, opfølgning og KPI’er er dokumenteret',
+    passes: targetsDetail.passes,
+    successDetail: targetsDetail.successDetail,
+    failureDetail: targetsDetail.failureDetail,
+    warnings: targetsDetail.warnings
+  })
+
+  const passedCount = requirements.filter((requirement) => requirement.passes).length
 
   const assumptions = [
-    `Governance-scoren er gennemsnittet af ${metrics.length} deldimensioner (0-100).`,
-    'Operational control, market-based Scope 2, fuld Scope 3 screening og primære data giver fuld score på metode-dimensionerne.',
-    `Detaljerede beskrivelser vurderes ud fra ${factors.d1.partialTextLength} og ${factors.d1.detailedTextLength} tegn.`,
-    'Strategi, governance, impacts og mål vurderes på både kvalitative beskrivelser og strukturelle datapunkter (værdikæde, tidshorisonter, KPI’er).'
+    `Evalueringen tester ${requirements.length} krav fra ESRS 2 D1 (opfyldt/ikke opfyldt).`,
+    `Narrativer vurderes som fyldestgørende ved ${MIN_CORE_TEXT_LENGTH} tegn for kernefelter og ${MIN_SUPPORTING_TEXT_LENGTH} tegn for understøttende detaljer.`,
+    'Scope 3-kravet kræver fuldført screening, værdikædedækning og analyser på mellemsigt og lang sigt.',
+    'KPI-kravet opfyldes først når mindst én KPI har baseline og mål sammen med kvalitative beskrivelser.'
   ]
 
-  for (const metric of metrics) {
-    if (metric.warning) {
-      warnings.push(metric.warning)
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushStringFact = (key: string, value: string | null | undefined) => {
+    const resolved = value == null ? '' : value.trim()
+    if (resolved.length === 0) {
+      return
     }
-    trace.push(`${metric.label}Score=${metric.score}`)
+    esrsFacts.push({ conceptKey: key, value: resolved, unitId: null })
+  }
+
+  const pushBooleanFact = (key: string, value: boolean | null | undefined) => {
+    if (value == null) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value, unitId: null })
+  }
+
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushStringFact('D1OrganizationalBoundary', boundary)
+  pushStringFact('D1Scope2Method', scope2Method)
+  pushBooleanFact('D1Scope3ScreeningCompleted', screeningCompleted)
+  pushStringFact('D1DataQuality', dataQuality)
+  pushStringFact('D1MaterialityAssessmentDescription', materiality)
+  pushStringFact('D1StrategySummary', strategySummary)
+  pushStringFact('D1ValueChainCoverage', valueChainCoverage)
+  pushBooleanFact('D1QuantitativeTargets', quantitativeTargets)
+  pushNumericFact('D1TimeHorizonsCoveredCount', new Set(timeHorizons).size, 'pure', 0)
+  pushNumericFact('D1KpiCount', meaningfulKpis.length, 'pure', 0)
+  pushBooleanFact('D1HasEsgCommittee', governance?.hasEsgCommittee ?? null)
+
+  const esrsTables: ModuleEsrsTable[] = []
+
+  const strategyRows = strategyEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (strategyRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1StrategyNarrativesTable', rows: strategyRows })
+  }
+
+  const governanceRows = governanceEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (governanceRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1GovernanceNarrativesTable', rows: governanceRows })
+  }
+
+  const impactsRows = impactsEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (impactsRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1ImpactsProcessTable', rows: impactsRows })
+  }
+
+  const targetsRows = targetEntries
+    .map((entry) => ({ key: entry.key, value: entry.value }))
+    .filter((entry) => entry.value.length > 0)
+  if (targetsRows.length > 0) {
+    esrsTables.push({ conceptKey: 'D1TargetsNarrativesTable', rows: targetsRows })
+  }
+
+  if (meaningfulKpis.length > 0) {
+    esrsTables.push({
+      conceptKey: 'D1KpiOverviewTable',
+      rows: meaningfulKpis.map((kpi) => ({
+        name: normaliseText(kpi.name),
+        kpi: normaliseText(kpi.kpi),
+        unit: normaliseText(kpi.unit),
+        baselineYear: kpi.baselineYear ?? null,
+        baselineValue: kpi.baselineValue ?? null,
+        targetYear: kpi.targetYear ?? null,
+        targetValue: kpi.targetValue ?? null,
+        comments: normaliseText(kpi.comments)
+      }))
+    })
   }
 
   return {
-    value,
-    unit: factors.d1.unit,
+    value: passedCount,
+    unit: 'opfyldte krav',
     assumptions,
     trace,
-    warnings
+    warnings,
+    metrics: requirements.map((requirement) => ({
+      label: requirement.label,
+      value: requirement.passes ? 'Opfyldt' : 'Mangler',
+      context: requirement.detail
+    })),
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables.length > 0 ? { esrsTables } : {})
   }
-}
+ }
 
-function normaliseText(value: string | null | undefined): string {
+ function normaliseText(value: string | null | undefined): string {
   if (!value) {
     return ''
   }
   return value.trim()
-}
+ }
 
-type TextDimensionConfig = {
-  emptyWarning?: string
-  shortWarning?: string
-}
-
-type TextDimensionResult = {
-  label: string
-  score: number
-  warning?: string
-}
-
-function evaluateTextDimension(label: string, value: string, config?: TextDimensionConfig): TextDimensionResult {
-  const emptyWarning =
-    config?.emptyWarning ??
-    (label === 'materialityAssessment'
-      ? 'Tilføj en kort beskrivelse af væsentlighedsvurderingen.'
-      : 'Beskriv strategi, målsætninger og politikker for ESG-governance.')
-
-  const shortWarning =
-    config?.shortWarning ??
-    (label === 'materialityAssessment'
-      ? 'Uddyb væsentlighedsvurderingen med centrale risici og muligheder.'
-      : 'Uddyb strategi og politikker, så governance-planen fremstår tydelig.')
-
-  if (value.length === 0) {
-    return {
-      label,
-      score: 0,
-      warning: emptyWarning
-    }
-  }
-
-  if (value.length < factors.d1.partialTextLength) {
-    return {
-      label,
-      score: 0.6,
-      warning: shortWarning
-    }
-  }
-
-  if (value.length < factors.d1.detailedTextLength) {
-    return {
-      label,
-      score: 0.85
-    }
-  }
-
-  return {
-    label,
-    score: 1
-  }
-}
-
-type TextGroupEntry = {
-  key: string
-  value: string
-  emptyWarning: string
-  shortWarning: string
-}
-
-type TextGroupResult = {
-  label: string
-  score: number
-  warnings: string[]
-  traceEntries: string[]
-}
-
-function evaluateTextGroup(label: string, entries: TextGroupEntry[]): TextGroupResult {
-  if (entries.length === 0) {
-    return {
-      label,
-      score: 0,
-      warnings: [],
-      traceEntries: []
-    }
-  }
-
-  let total = 0
-  const warnings: string[] = []
-  const traceEntries: string[] = []
-
-  for (const entry of entries) {
-    const result = evaluateTextDimension(`${label}.${entry.key}`, entry.value, {
-      emptyWarning: entry.emptyWarning,
-      shortWarning: entry.shortWarning
-    })
-    total += result.score
-    traceEntries.push(`${result.label}Score=${result.score}`)
-    if (result.warning) {
-      warnings.push(result.warning)
-    }
-  }
-
-  return {
-    label,
-    score: total / entries.length,
-    warnings,
-    traceEntries
-  }
-}
-
-function hasAnyKpiData(line: TargetLine): boolean {
+ function hasAnyKpiData(line: TargetLine): boolean {
   return (
     normaliseText(line.name).length > 0 ||
     normaliseText(line.kpi).length > 0 ||
     normaliseText(line.unit).length > 0 ||
     normaliseText(line.comments).length > 0 ||
-    line.baselineYear !== null && line.baselineYear !== undefined ||
-    line.baselineValue !== null && line.baselineValue !== undefined ||
-    line.targetYear !== null && line.targetYear !== undefined ||
-    line.targetValue !== null && line.targetValue !== undefined
+    (line.baselineYear !== null && line.baselineYear !== undefined) ||
+    (line.baselineValue !== null && line.baselineValue !== undefined) ||
+    (line.targetYear !== null && line.targetYear !== undefined) ||
+    (line.targetValue !== null && line.targetValue !== undefined)
   )
-}
+ }
+
+ function evaluateScope3Requirement({
+  screeningCompleted,
+  valueChainCoverage,
+  timeHorizons
+ }: {
+  screeningCompleted: boolean | null
+  valueChainCoverage: ValueChainCoverage | null
+  timeHorizons: TimeHorizonValue[]
+ }): {
+  passes: boolean
+  successDetail: string
+  failureDetail: string
+  warnings: string[]
+ } {
+  const uniqueHorizons = Array.from(new Set(timeHorizons))
+  const hasMedium = uniqueHorizons.includes('mediumTerm')
+  const hasLong = uniqueHorizons.includes('longTerm')
+
+  if (screeningCompleted !== true) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Markér at Scope 3 screeningen er gennemført.',
+      warnings: []
+    }
+  }
+
+  if (valueChainCoverage == null) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Angiv værdikædedækning for Scope 3 screeningen.',
+      warnings: []
+    }
+  }
+
+  if (valueChainCoverage === 'ownOperations') {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Udvid Scope 3 screeningen til upstream og downstream led.',
+      warnings: []
+    }
+  }
+
+  if (valueChainCoverage === 'upstreamOnly' || valueChainCoverage === 'downstreamOnly') {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Dæk både upstream og downstream i Scope 3 screeningen.',
+      warnings: []
+    }
+  }
+
+  if (!hasMedium || !hasLong) {
+    const missing = allTimeHorizons
+      .filter((value) => !uniqueHorizons.includes(value))
+      .map((value) => timeHorizonLabels[value])
+      .join(' og ')
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: `Tilføj analyser for ${missing} i Scope 3 screeningen.`,
+      warnings: []
+    }
+  }
+
+  const detail = `Screeningen dækker ${valueChainCoverage} og analyserer ${uniqueHorizons
+    .map((value) => timeHorizonLabels[value])
+    .join(', ')}.`
+
+  const warnings: string[] = []
+  if (valueChainCoverage === 'upstreamAndDownstream') {
+    warnings.push('Dokumentér fuld værdikædedækning for at matche ESRS bedste praksis.')
+  }
+
+  return {
+    passes: true,
+    successDetail: detail,
+    failureDetail: '',
+    warnings
+  }
+ }
+
+ function evaluateNarrativeRequirement({
+  label,
+  value,
+  emptyMessage,
+  shortMessage,
+  minLength
+ }: {
+  label: string
+  value: string
+  emptyMessage: string
+  shortMessage: string
+  minLength: number
+ }): { passes: boolean; successDetail: string; failureDetail: string } {
+  if (value.length === 0) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: emptyMessage
+    }
+  }
+
+  if (value.length < minLength) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: shortMessage
+    }
+  }
+
+  return {
+    passes: true,
+    successDetail: `Narrativet for ${label} er udfyldt med ${value.length} tegn.`,
+    failureDetail: ''
+  }
+ }
+
+ function evaluateStrategyRequirement(strategySummary: string, entries: Array<{ key: string; value: string }>) {
+  const detailedEntries = entries.filter((entry) => entry.value.length >= MIN_SUPPORTING_TEXT_LENGTH)
+  const summaryDetailed = strategySummary.length >= MIN_CORE_TEXT_LENGTH
+
+  if (!summaryDetailed) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: `Beskriv strategi og politikker (mindst ${MIN_CORE_TEXT_LENGTH} tegn).`,
+      warnings: []
+    }
+  }
+
+  if (detailedEntries.length < 3) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Uddyb hvordan bæredygtighed integreres i forretningsmodel, robusthed og stakeholderinddragelse.',
+      warnings: []
+    }
+  }
+
+  const detail = `Strategien dækker ${detailedEntries.length} nøgleelementer med tilstrækkelig dybde.`
+  return {
+    passes: true,
+    successDetail: detail,
+    failureDetail: '',
+    warnings: []
+  }
+ }
+
+ function evaluateGovernanceRequirement(entries: Array<{ key: string; value: string }>, hasCommittee: boolean | null) {
+  const detailedEntries = entries.filter((entry) => entry.value.length >= MIN_SUPPORTING_TEXT_LENGTH)
+  const warnings: string[] = []
+
+  if (hasCommittee === false) {
+    warnings.push('Dokumentér hvordan bestyrelsen følger op uden et dedikeret ESG-udvalg.')
+  }
+
+  if (hasCommittee == null) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Angiv om der er et ESG-/bæredygtighedsudvalg og dets mandat.',
+      warnings
+    }
+  }
+
+  if (detailedEntries.length < 4) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Uddyb bestyrelsens tilsyn, ledelsesroller, incitamenter og politikker.',
+      warnings
+    }
+  }
+
+  return {
+    passes: true,
+    successDetail: 'Governance-roller og kontrolmiljø er beskrevet i mindst fire dimensioner.',
+    failureDetail: '',
+    warnings
+  }
+ }
+
+ function evaluateImpactsRequirement(entries: Array<{ key: string; value: string }>) {
+  const detailedEntries = entries.filter((entry) => entry.value.length >= MIN_SUPPORTING_TEXT_LENGTH)
+
+  if (detailedEntries.length < 3) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Uddyb processen for identificering, prioritering og håndtering af impacts/risici/muligheder.',
+      warnings: []
+    }
+  }
+
+  return {
+    passes: true,
+    successDetail: `Procesbeskrivelsen dækker ${detailedEntries.length} hovedtrin.`,
+    failureDetail: '',
+    warnings: []
+  }
+ }
+
+ function evaluateTargetsRequirement(
+  entries: Array<{ key: string; value: string }>,
+  quantitativeTargets: boolean | null,
+  kpis: TargetLine[]
+ ) {
+  const detailedEntries = entries.filter((entry) => entry.value.length >= MIN_SUPPORTING_TEXT_LENGTH)
+  const quantifiedKpis = kpis.filter((kpi) =>
+    (kpi.baselineYear != null || kpi.baselineValue != null) &&
+    (kpi.targetYear != null || kpi.targetValue != null)
+  )
+
+  const warnings: string[] = []
+
+  if (quantitativeTargets === false) {
+    warnings.push('Bekræft kvantitative mål for væsentlige impacts og risici.')
+  }
+
+  if (quantitativeTargets == null) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Angiv om organisationen arbejder med kvantitative mål.',
+      warnings
+    }
+  }
+
+  if (detailedEntries.length < 2) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Uddyb governance-forankring og fremdrift for målene.',
+      warnings
+    }
+  }
+
+  if (quantitativeTargets === true && quantifiedKpis.length === 0) {
+    return {
+      passes: false,
+      successDetail: '',
+      failureDetail: 'Tilføj mindst én KPI med baseline og mål for at dokumentere opfølgning.',
+      warnings
+    }
+  }
+
+  const detail = `Kvantitative mål er bekræftet og ${quantifiedKpis.length} KPI’er har baseline/mål.`
+  return {
+    passes: true,
+    successDetail: detail,
+    failureDetail: '',
+    warnings
+  }
+ }

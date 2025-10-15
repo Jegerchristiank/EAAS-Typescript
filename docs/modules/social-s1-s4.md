@@ -6,9 +6,28 @@ Denne guide beskriver inputfelter og UI-flow for de sociale moduler i wizard-tri
 
 ## S1 – Arbejdsstyrke & headcount
 
-- Formularen i `S1Step` indsamler årstal, total headcount og segmenterede rækker.
+- Formularen i `S1Step` indsamler årstal, total headcount **og** total FTE samt datadækning for begge nøgletal.
 - Segmentkortene giver felt for segmentnavn, headcount, andel kvinder og kollektiv dækning.
+- Nye sektioner dækker:
+  - **Ansættelsesformer** med headcount/FTE pr. kontrakttype og andel kvinder.
+  - **Beskæftigelsesstatus** (fuldtid/deltid/sæson) med headcount og FTE.
+  - **Kønsopdelt aflønning** for samlet workforce, ledelse og øvrige medarbejdere.
+  - **Arbejdsmiljø & fravær** med fraværsrate, LTIFR og arbejdsulykker/dødsfald.
+  - **Træning & sociale ydelser** med træningstimer, dækning af træning, social beskyttelse, sundheds- og pensionsordninger.
+- Brug dropdown til at markere om kollektive overenskomster dækker medarbejderne.
 - Narrative feltet bruges til kontekst og samarbejde med medarbejderrepræsentanter.
+
+### ESRS S1 datapunkter og felter
+
+| ESRS datapunkt | Felter i formularen |
+| -------------- | ------------------- |
+| **S1-6** – Antal ansatte & FTE | `totalHeadcount`, `totalFte`, `employmentContractBreakdown`, `employmentStatusBreakdown` |
+| **S1-6** – Datadækning | `dataCoveragePercent`, `fteCoveragePercent` |
+| **S1-7** – Kollektive aftaler | `hasCollectiveBargainingAgreements`, kolonne for kollektiv dækning i segmenter |
+| **S1-13** – Kønsopdelt aflønning | `genderPayGapPercent`, `genderPayGapPercentManagement`, `genderPayGapPercentOperations` |
+| **S1-8** – Arbejdsmiljø KPI’er | `absenteeismRatePercent`, `lostTimeInjuryFrequencyRate`, `workRelatedAccidentsCount`, `workRelatedFatalitiesCount` |
+| **S1-17** – Kompetenceudvikling | `averageTrainingHoursPerEmployee`, `trainingCoveragePercent` |
+| **S1-18** – Sociale ydelser | `socialProtectionCoveragePercent`, `healthCareCoveragePercent`, `pensionPlanCoveragePercent` |
 
 <a id="esrs-mapping"></a>
 

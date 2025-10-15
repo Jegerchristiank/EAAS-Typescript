@@ -1,7 +1,13 @@
 /**
  * Beregning for modul G1 – governance-politikker og targets.
  */
-import type { G1Input, ModuleInput, ModuleResult } from '../../types'
+import type {
+  G1Input,
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleResult
+} from '../../types'
 import { factors } from '../factors'
 
 const { g1 } = factors
@@ -114,8 +120,59 @@ export function runG1(input: ModuleInput): ModuleResult {
     )
   })
 
-  if (raw?.governanceNarrative == null || raw.governanceNarrative.trim().length < 40) {
+  const governanceNarrative = raw?.governanceNarrative?.trim() ?? ''
+
+  if (governanceNarrative.length < 40) {
     warnings.push('Tilføj narrativ om governance-strukturen for at dokumentere roller, incitamenter og tilsyn.')
+  }
+
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('G1PolicyCount', policies.length, 'pure', 0)
+  pushNumericFact('G1TargetCount', targets.length, 'pure', 0)
+  pushNumericFact('G1PolicyAverageScore', policyScore == null ? null : policyScore * 100, 'percent', 1)
+  pushNumericFact('G1TargetAverageScore', targetScore == null ? null : targetScore * 100, 'percent', 1)
+  pushNumericFact('G1OversightScore', oversightScore * 100, 'percent', 1)
+
+  if (raw?.boardOversight != null) {
+    esrsFacts.push({ conceptKey: 'G1BoardOversight', value: raw.boardOversight, unitId: null })
+  }
+
+  if (governanceNarrative) {
+    esrsFacts.push({ conceptKey: 'G1GovernanceNarrative', value: governanceNarrative })
+  }
+
+  const esrsTables: ModuleEsrsTable[] = []
+  if (policies.length > 0) {
+    esrsTables.push({
+      conceptKey: 'G1PoliciesTable',
+      rows: policies.map((policy) => ({
+        topic: policy.topic,
+        status: policy.status,
+        owner: policy.owner,
+        lastReviewed: policy.lastReviewed
+      }))
+    })
+  }
+
+  if (targets.length > 0) {
+    esrsTables.push({
+      conceptKey: 'G1TargetsTable',
+      rows: targets.map((target) => ({
+        topic: target.topic,
+        baselineYear: target.baselineYear,
+        targetYear: target.targetYear,
+        targetValue: target.targetValue,
+        unit: target.unit,
+        status: target.status
+      }))
+    })
   }
 
   return {
@@ -123,7 +180,9 @@ export function runG1(input: ModuleInput): ModuleResult {
     unit: g1.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables.length > 0 ? { esrsTables } : {})
   }
 }
 

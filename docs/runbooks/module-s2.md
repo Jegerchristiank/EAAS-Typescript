@@ -23,3 +23,9 @@ Modulet samler ESRS S2 datapunkter om leverandørarbejdere: dækningsgrad af ris
 - Unit-testen `runS2` i `runModule.spec.ts` dækker scenario med flere hændelser og kontrollerer trace/warnings.
 - UI (`S2Step`) understøtter alle datapunkter samt incident-tabellen og narrativer.
 - Validering findes i `s2InputSchema` og `esg-input-schema.json`; husk at opdatere begge ved schemaændringer.
+
+## CSRD/XBRL-eksport
+
+- Centrale nøgletal eksporteres til ESRS S2-fakta (`S2ValueChainWorkersCount`, `S2LivingWageCoveragePercent` osv.).
+- Narrativer om dialog og afhjælpning eksporteres som `S2SocialDialogueNarrative` og `S2RemediationNarrative`.
+- Hændelseslisten serialiseres som `S2IncidentsTable`, så hver leverandørlinje bevares i XBRL-instansen.

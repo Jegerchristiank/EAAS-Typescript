@@ -1,77 +1,117 @@
-import { describe, expect, beforeEach, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  loadWizardProfile,
-  loadWizardState,
-  loadWizardStorage,
+  createFallbackStorage,
+  fetchWizardSnapshot,
+  persistWizardStorage,
+  type PersistMetadata,
 } from '../localStorage'
 
-const LEGACY_STATE_KEY = 'esg-wizard-state'
-const LEGACY_PROFILE_KEY = 'wizardProfile'
+import type { PersistedWizardStorage, WizardPersistenceSnapshot } from '@org/shared/wizard/persistence'
 
-describe('wizard storage migration', () => {
+describe('wizard persistence client', () => {
+  let snapshot: WizardPersistenceSnapshot
+  let fetchMock: ReturnType<typeof vi.fn>
+
   beforeEach(() => {
-    window.localStorage.clear()
+    snapshot = {
+      storage: createFallbackStorage(),
+      auditLog: [],
+      permissions: { canEdit: true, canPublish: false },
+      user: { id: 'tester', roles: ['editor'] },
+    }
+
+    fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+      if (!url.endsWith('/wizard/snapshot')) {
+        return new Response('Not Found', { status: 404 })
+      }
+
+      if (!init || !init.method || init.method.toUpperCase() === 'GET') {
+        return new Response(JSON.stringify(snapshot), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      const body =
+        typeof init.body === 'string'
+          ? JSON.parse(init.body)
+          : ((init.body as unknown) as { storage: PersistedWizardStorage })
+      snapshot = {
+        storage: body.storage,
+        auditLog: [
+          {
+            id: 'audit-1',
+            profileId: body.storage.activeProfileId,
+            timestamp: new Date().toISOString(),
+            userId: 'tester',
+            version: 2,
+            changes: [
+              {
+                field: 'state.B1',
+                previous: null,
+                next: body.storage.profiles[body.storage.activeProfileId]?.state?.['B1'] ?? null,
+              },
+            ],
+          },
+        ],
+        permissions: snapshot.permissions,
+        user: snapshot.user,
+      }
+
+      return new Response(JSON.stringify(snapshot), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock as typeof fetch)
   })
 
-  it('migrates legacy keys into combined storage', () => {
-    const legacyState = { moduleA: { answer: 42 } }
-    const legacyProfile = { hasVehicles: true }
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
 
-    window.localStorage.setItem(LEGACY_STATE_KEY, JSON.stringify(legacyState))
-    window.localStorage.setItem(LEGACY_PROFILE_KEY, JSON.stringify(legacyProfile))
+  it('fetchWizardSnapshot henter data med autorisationsheader', async () => {
+    const result = await fetchWizardSnapshot()
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:4010/wizard/snapshot', {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer local-dev-token',
+      },
+    })
+    expect(result.storage.activeProfileId).toBe(snapshot.storage.activeProfileId)
+    expect(result.permissions.canEdit).toBe(true)
+  })
 
-    const state = loadWizardState()
-    const profile = loadWizardProfile()
-    const storage = loadWizardStorage()
+  it('persistWizardStorage sender metadata og returnerer audit-log fra serveren', async () => {
+    const storage = createFallbackStorage()
+    const metadata: PersistMetadata = { userId: 'tester', reason: 'unit-test' }
 
-    expect(state).toStrictEqual(legacyState)
-    expect(profile.hasVehicles).toBe(true)
+    const result = await persistWizardStorage(storage, metadata)
 
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:4010/wizard/snapshot', {
+      method: 'PUT',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer local-dev-token',
+      },
+      body: JSON.stringify({ storage, metadata }),
+    })
+
+    expect(result.auditLog).toHaveLength(1)
+    expect(result.auditLog[0]?.userId).toBe('tester')
+    expect(result.auditLog[0]?.changes[0]?.field).toBe('state.B1')
+  })
+
+  it('createFallbackStorage genererer standardprofil med gyldigt id', () => {
+    const storage = createFallbackStorage()
     expect(storage.activeProfileId).toBeTruthy()
     const active = storage.profiles[storage.activeProfileId]
     expect(active).toBeDefined()
-    if (!active) {
-      throw new Error('Active profile was not created during migration')
-    }
-    expect(active.state).toStrictEqual(legacyState)
-    expect(active.profile.hasVehicles).toBe(true)
-
-    expect(window.localStorage.getItem(LEGACY_STATE_KEY)).toBeNull()
-    expect(window.localStorage.getItem(LEGACY_PROFILE_KEY)).toBeNull()
-  })
-
-  it('normalises invalid profile values when loading combined storage', () => {
-    const invalidStorage = {
-      activeProfileId: 'invalid',
-      profiles: {
-        invalid: {
-          id: 'invalid',
-          name: 'Invalid profil',
-          state: { nested: { value: 1 } },
-          profile: {
-            hasVehicles: 'ja tak',
-            hasHeating: true,
-            unknownKey: true,
-          },
-          createdAt: 1,
-          updatedAt: 2,
-        },
-      },
-    }
-
-    window.localStorage.setItem('esg-wizard-profiles', JSON.stringify(invalidStorage))
-
-    const storage = loadWizardStorage()
-
-    const active = storage.profiles[storage.activeProfileId]
-    expect(active).toBeDefined()
-    if (!active) {
-      throw new Error('Active profile blev ikke normaliseret korrekt')
-    }
-
-    expect(active.profile.hasHeating).toBe(true)
-    expect(active.profile.hasVehicles).toBeNull()
-    expect((active.profile as Record<string, unknown>)['unknownKey']).toBeUndefined()
+    expect(active?.profile).toBeDefined()
   })
 })

@@ -16,12 +16,31 @@ const d1ValueChainCoverageOptions = [
   'fullValueChain'
 ] as const
 export const materialityRiskOptions = ['risk', 'opportunity', 'both'] as const
+export const materialityImpactTypeOptions = ['actual', 'potential'] as const
+export const materialitySeverityOptions = ['minor', 'moderate', 'major', 'severe'] as const
+export const materialityLikelihoodOptions = ['rare', 'unlikely', 'possible', 'likely', 'veryLikely'] as const
+export const materialityValueChainStageOptions = ['ownOperations', 'upstream', 'downstream'] as const
+export const materialityRemediationStatusOptions = ['none', 'planned', 'inPlace'] as const
 export const materialityTimelineOptions = ['shortTerm', 'mediumTerm', 'longTerm', 'ongoing'] as const
 export const materialityGapStatusOptions = ['aligned', 'partial', 'missing'] as const
 export const e1EnergyMixOptions = ['electricity', 'districtHeat', 'steam', 'cooling', 'biogas', 'diesel', 'other'] as const
 export const e1TargetScopeOptions = ['scope1', 'scope2', 'scope3', 'combined'] as const
 export const e1TargetStatusOptions = ['onTrack', 'lagging', 'atRisk'] as const
 export const e1ActionStatusOptions = ['planned', 'inProgress', 'delayed', 'completed'] as const
+export const e1TransitionStatusOptions = ['planned', 'inProgress', 'lagging', 'completed', 'notStarted'] as const
+export const e1FinancialEffectTypeOptions = ['capex', 'opex', 'revenues', 'costs', 'impairments', 'other'] as const
+export const e1RemovalTypeOptions = ['inHouse', 'valueChain', 'carbonCredits', 'other'] as const
+export const e1ScenarioTypeOptions = ['netZero15', 'wellBelow2', 'currentPolicies', 'stressTest', 'custom'] as const
+export const e1RiskTypeOptions = ['transition', 'acutePhysical', 'chronicPhysical'] as const
+export const e1DecarbonisationDriverOptions = [
+  'energyEfficiency',
+  'renewableEnergy',
+  'processInnovation',
+  'fuelSwitching',
+  'carbonCapture',
+  'valueChainEngagement',
+  'other'
+] as const
 export const remediationStatusOptions = ['notStarted', 'inProgress', 'completed'] as const
 export const s2IssueTypeOptions = [
   'healthAndSafety',
@@ -491,11 +510,18 @@ const d2MaterialTopicSchema = z
     title: z.string().trim().min(1).max(120),
     description: z.string().max(500).nullable(),
     riskType: z.enum(materialityRiskOptions).nullable(),
+    impactType: z.enum(materialityImpactTypeOptions).nullable(),
+    severity: z.enum(materialitySeverityOptions).nullable(),
+    likelihood: z.enum(materialityLikelihoodOptions).nullable(),
     impactScore: z.number().min(0).max(5).nullable(),
     financialScore: z.number().min(0).max(5).nullable(),
+    financialExceptionApproved: z.boolean().nullable(),
+    financialExceptionJustification: z.string().max(500).nullable(),
     timeline: z.enum(materialityTimelineOptions).nullable(),
+    valueChainSegment: z.enum(materialityValueChainStageOptions).nullable(),
     responsible: z.string().max(120).nullable(),
-    csrdGapStatus: z.enum(materialityGapStatusOptions).nullable()
+    csrdGapStatus: z.enum(materialityGapStatusOptions).nullable(),
+    remediationStatus: z.enum(materialityRemediationStatusOptions).nullable()
   })
   .strict()
 
@@ -573,6 +599,16 @@ export const d1InputSchema = z
   })
   .strict()
 
+export const s1EmploymentContractTypeOptions = [
+  'permanentEmployees',
+  'temporaryEmployees',
+  'nonEmployeeWorkers',
+  'apprentices',
+  'other'
+] as const
+
+export const s1EmploymentStatusOptions = ['fullTime', 'partTime', 'seasonal', 'other'] as const
+
 const s1HeadcountLineSchema = z
   .object({
     segment: z.string().max(120).nullable(),
@@ -582,12 +618,47 @@ const s1HeadcountLineSchema = z
   })
   .strict()
 
+const s1EmploymentContractLineSchema = z
+  .object({
+    contractType: z.enum(s1EmploymentContractTypeOptions),
+    headcount: z.number().min(0).nullable(),
+    fte: z.number().min(0).nullable(),
+    femalePercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+const s1EmploymentStatusLineSchema = z
+  .object({
+    status: z.enum(s1EmploymentStatusOptions),
+    headcount: z.number().min(0).nullable(),
+    fte: z.number().min(0).nullable()
+  })
+  .strict()
+
 export const s1InputSchema = z
   .object({
     reportingYear: z.number().min(1900).max(2100).nullable(),
     totalHeadcount: z.number().min(0).nullable(),
+    totalFte: z.number().min(0).nullable(),
     dataCoveragePercent: z.number().min(0).max(100).nullable(),
+    fteCoveragePercent: z.number().min(0).max(100).nullable(),
+    averageWeeklyHours: z.number().min(0).max(80).nullable(),
     headcountBreakdown: z.array(s1HeadcountLineSchema).max(20).optional(),
+    employmentContractBreakdown: z.array(s1EmploymentContractLineSchema).max(20).optional(),
+    employmentStatusBreakdown: z.array(s1EmploymentStatusLineSchema).max(20).optional(),
+    hasCollectiveBargainingAgreements: z.boolean().nullable(),
+    genderPayGapPercent: z.number().min(-100).max(100).nullable(),
+    genderPayGapPercentManagement: z.number().min(-100).max(100).nullable(),
+    genderPayGapPercentOperations: z.number().min(-100).max(100).nullable(),
+    absenteeismRatePercent: z.number().min(0).max(100).nullable(),
+    lostTimeInjuryFrequencyRate: z.number().min(0).nullable(),
+    workRelatedAccidentsCount: z.number().min(0).nullable(),
+    workRelatedFatalitiesCount: z.number().min(0).nullable(),
+    averageTrainingHoursPerEmployee: z.number().min(0).nullable(),
+    trainingCoveragePercent: z.number().min(0).max(100).nullable(),
+    socialProtectionCoveragePercent: z.number().min(0).max(100).nullable(),
+    healthCareCoveragePercent: z.number().min(0).max(100).nullable(),
+    pensionPlanCoveragePercent: z.number().min(0).max(100).nullable(),
     workforceNarrative: z.string().max(2000).nullable()
   })
   .strict()
@@ -706,7 +777,89 @@ const e1EnergyMixLineSchema = z
   .object({
     energyType: z.enum(e1EnergyMixOptions),
     consumptionKwh: z.number().min(0).nullable(),
+    sharePercent: z.number().min(0).max(100).nullable(),
     documentationQualityPercent: z.number().min(0).max(100).nullable()
+  })
+  .strict()
+
+const e1RemovalProjectSchema = z
+  .object({
+    projectName: z.string().max(160).nullable(),
+    removalType: z.enum(e1RemovalTypeOptions).nullable(),
+    annualRemovalTonnes: z.number().min(0).nullable(),
+    storageDescription: z.string().max(320).nullable(),
+    qualityStandard: z.string().max(160).nullable(),
+    permanenceYears: z.number().min(0).max(200).nullable(),
+    financedThroughCredits: z.boolean().nullable(),
+    responsible: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const e1FinancialEffectSchema = z
+  .object({
+    label: z.string().max(160).nullable(),
+    type: z.enum(e1FinancialEffectTypeOptions).nullable(),
+    amountDkk: z.number().nullable(),
+    timeframe: z.string().max(80).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1TransitionPlanMeasureSchema = z
+  .object({
+    initiative: z.string().max(160).nullable(),
+    milestoneYear: z.number().min(2000).max(2100).nullable(),
+    investmentNeedDkk: z.number().min(0).nullable(),
+    status: z.enum(e1TransitionStatusOptions).nullable(),
+    responsible: z.string().max(120).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1ScenarioSchema = z
+  .object({
+    name: z.string().max(160).nullable(),
+    provider: z.string().max(160).nullable(),
+    scenarioType: z.enum(e1ScenarioTypeOptions).nullable(),
+    timeHorizon: z.enum(d1TimeHorizonOptions).nullable(),
+    coveragePercent: z.number().min(0).max(100).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1InternalCarbonPriceSchema = z
+  .object({
+    scheme: z.string().max(160).nullable(),
+    scope: z.enum(e1TargetScopeOptions).nullable(),
+    priceDkkPerTonne: z.number().min(0).nullable(),
+    coveragePercent: z.number().min(0).max(100).nullable(),
+    appliesToCapex: z.boolean().nullable(),
+    appliesToOpex: z.boolean().nullable(),
+    appliesToInvestmentDecisions: z.boolean().nullable(),
+    alignedWithFinancialStatements: z.boolean().nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1RiskGeographySchema = z
+  .object({
+    geography: z.string().max(160).nullable(),
+    riskType: z.enum(e1RiskTypeOptions).nullable(),
+    timeHorizon: z.enum(d1TimeHorizonOptions).nullable(),
+    assetsAtRiskDkk: z.number().min(0).nullable(),
+    revenueAtRiskDkk: z.number().min(0).nullable(),
+    exposureNarrative: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const e1DecarbonisationDriverSchema = z
+  .object({
+    lever: z.enum(e1DecarbonisationDriverOptions).nullable(),
+    name: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    expectedReductionTonnes: z.number().min(0).nullable(),
+    investmentNeedDkk: z.number().min(0).nullable(),
+    startYear: z.number().min(2000).max(2100).nullable(),
   })
   .strict()
 
@@ -722,7 +875,180 @@ export const e1ContextInputSchema = z
     energyMixLines: z.array(e1EnergyMixLineSchema).max(10).optional(),
     previousYearScope1Tonnes: z.number().min(0).nullable(),
     previousYearScope2Tonnes: z.number().min(0).nullable(),
-    previousYearScope3Tonnes: z.number().min(0).nullable()
+    previousYearScope3Tonnes: z.number().min(0).nullable(),
+    ghgRemovalProjects: z.array(e1RemovalProjectSchema).max(12).optional(),
+    financialEffects: z.array(e1FinancialEffectSchema).max(12).optional(),
+    transitionPlanMeasures: z.array(e1TransitionPlanMeasureSchema).max(12).optional(),
+  })
+  .strict()
+
+export const e1ScenariosInputSchema = z
+  .object({
+    scenarios: z.array(e1ScenarioSchema).max(12).optional(),
+    scenarioNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+export const e1CarbonPriceInputSchema = z
+  .object({
+    carbonPrices: z.array(e1InternalCarbonPriceSchema).max(12).optional(),
+    methodologyNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+export const e1RiskGeographyInputSchema = z
+  .object({
+    riskRegions: z.array(e1RiskGeographySchema).max(20).optional(),
+    assessmentNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+export const e1DecarbonisationDriversInputSchema = z
+  .object({
+    drivers: z.array(e1DecarbonisationDriverSchema).max(20).optional(),
+    summaryNarrative: z.string().max(2000).nullable(),
+  })
+  .strict()
+
+const sbmDependencySchema = z
+  .object({
+    dependency: z.string().max(160).nullable(),
+    impact: z.string().max(500).nullable(),
+    mitigation: z.string().max(500).nullable(),
+    responsible: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const sbmOpportunitySchema = z
+  .object({
+    title: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    timeframe: z.string().max(80).nullable(),
+    owner: z.string().max(120).nullable(),
+  })
+  .strict()
+
+export const sbmInputSchema = z
+  .object({
+    businessModelNarrative: z.string().max(2000).nullable(),
+    valueChainNarrative: z.string().max(2000).nullable(),
+    sustainabilityStrategyNarrative: z.string().max(2000).nullable(),
+    resilienceNarrative: z.string().max(2000).nullable(),
+    transitionPlanNarrative: z.string().max(2000).nullable(),
+    stakeholderNarrative: z.string().max(2000).nullable(),
+    dependencies: z.array(sbmDependencySchema).max(12).optional(),
+    opportunities: z.array(sbmOpportunitySchema).max(12).optional(),
+    transitionPlanMeasures: z.array(e1TransitionPlanMeasureSchema).max(12).optional(),
+  })
+  .strict()
+
+const govOversightSchema = z
+  .object({
+    body: z.string().max(160).nullable(),
+    mandate: z.string().max(500).nullable(),
+    chair: z.string().max(120).nullable(),
+    meetingFrequency: z.string().max(80).nullable(),
+  })
+  .strict()
+
+const govControlSchema = z
+  .object({
+    process: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    owner: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const govIncentiveSchema = z
+  .object({
+    role: z.string().max(160).nullable(),
+    incentive: z.string().max(500).nullable(),
+    metric: z.string().max(120).nullable(),
+  })
+  .strict()
+
+export const govInputSchema = z
+  .object({
+    oversightNarrative: z.string().max(2000).nullable(),
+    managementNarrative: z.string().max(2000).nullable(),
+    competenceNarrative: z.string().max(2000).nullable(),
+    reportingNarrative: z.string().max(2000).nullable(),
+    assuranceNarrative: z.string().max(2000).nullable(),
+    incentiveNarrative: z.string().max(2000).nullable(),
+    oversightBodies: z.array(govOversightSchema).max(12).optional(),
+    controlProcesses: z.array(govControlSchema).max(12).optional(),
+    incentiveStructures: z.array(govIncentiveSchema).max(12).optional(),
+  })
+  .strict()
+
+const iroProcessSchema = z
+  .object({
+    step: z.string().max(160).nullable(),
+    description: z.string().max(500).nullable(),
+    frequency: z.string().max(80).nullable(),
+    owner: z.string().max(120).nullable(),
+  })
+  .strict()
+
+const iroImpactResponseSchema = z
+  .object({
+    topic: z.string().max(160).nullable(),
+    severity: z.string().max(80).nullable(),
+    response: z.string().max(500).nullable(),
+    status: z.string().max(80).nullable(),
+    responsible: z.string().max(120).nullable(),
+  })
+  .strict()
+
+export const iroInputSchema = z
+  .object({
+    processNarrative: z.string().max(2000).nullable(),
+    integrationNarrative: z.string().max(2000).nullable(),
+    stakeholderNarrative: z.string().max(2000).nullable(),
+    dueDiligenceNarrative: z.string().max(2000).nullable(),
+    escalationNarrative: z.string().max(2000).nullable(),
+    monitoringNarrative: z.string().max(2000).nullable(),
+    riskProcesses: z.array(iroProcessSchema).max(12).optional(),
+    impactResponses: z.array(iroImpactResponseSchema).max(20).optional(),
+  })
+  .strict()
+
+export const mrProgressStatusOptions = ['onTrack', 'lagging', 'atRisk', 'achieved', 'notStarted'] as const
+
+const mrMetricSchema = z
+  .object({
+    name: z.string().max(160).nullable(),
+    unit: z.string().max(32).nullable(),
+    baselineYear: z.number().min(1990).max(2100).nullable(),
+    baselineValue: z.number().nullable(),
+    currentYear: z.number().min(1990).max(2100).nullable(),
+    currentValue: z.number().nullable(),
+    targetYear: z.number().min(1990).max(2100).nullable(),
+    targetValue: z.number().nullable(),
+    status: z.enum(mrProgressStatusOptions).nullable(),
+    owner: z.string().max(120).nullable(),
+    description: z.string().max(500).nullable(),
+  })
+  .strict()
+
+const mrNarrativeSchema = z
+  .object({
+    title: z.string().max(160).nullable(),
+    content: z.string().max(500).nullable(),
+  })
+  .strict()
+
+export const mrInputSchema = z
+  .object({
+    intensityNarrative: z.string().max(2000).nullable(),
+    targetNarrative: z.string().max(2000).nullable(),
+    dataQualityNarrative: z.string().max(2000).nullable(),
+    assuranceNarrative: z.string().max(2000).nullable(),
+    transitionPlanNarrative: z.string().max(2000).nullable(),
+    financialEffectNarrative: z.string().max(2000).nullable(),
+    metrics: z.array(mrMetricSchema).max(20).optional(),
+    keyNarratives: z.array(mrNarrativeSchema).max(12).optional(),
+    financialEffects: z.array(e1FinancialEffectSchema).max(12).optional(),
   })
   .strict()
 
@@ -865,7 +1191,18 @@ export type E1EnergyMixType = (typeof e1EnergyMixOptions)[number]
 export type E1TargetScope = (typeof e1TargetScopeOptions)[number]
 export type E1TargetStatus = (typeof e1TargetStatusOptions)[number]
 export type E1ActionStatus = (typeof e1ActionStatusOptions)[number]
+export type E1TransitionStatus = (typeof e1TransitionStatusOptions)[number]
+export type E1FinancialEffectType = (typeof e1FinancialEffectTypeOptions)[number]
+export type E1RemovalType = (typeof e1RemovalTypeOptions)[number]
+export type E1ScenarioType = (typeof e1ScenarioTypeOptions)[number]
+export type E1RiskType = (typeof e1RiskTypeOptions)[number]
+export type E1DecarbonisationDriverType = (typeof e1DecarbonisationDriverOptions)[number]
+export type MrProgressStatus = (typeof mrProgressStatusOptions)[number]
 export type E1ContextInput = z.infer<typeof e1ContextInputSchema>
+export type E1ScenariosInput = z.infer<typeof e1ScenariosInputSchema>
+export type E1CarbonPriceInput = z.infer<typeof e1CarbonPriceInputSchema>
+export type E1RiskGeographyInput = z.infer<typeof e1RiskGeographyInputSchema>
+export type E1DecarbonisationDriversInput = z.infer<typeof e1DecarbonisationDriversInputSchema>
 export type E1TargetMilestone = z.infer<typeof e1TargetMilestoneSchema>
 export type E1TargetLine = z.infer<typeof e1TargetLineSchema>
 export type E1ActionLine = z.infer<typeof e1ActionLineSchema>
@@ -874,6 +1211,13 @@ export type E2WaterInput = z.infer<typeof e2WaterInputSchema>
 export type E3PollutionInput = z.infer<typeof e3PollutionInputSchema>
 export type E4BiodiversityInput = z.infer<typeof e4BiodiversityInputSchema>
 export type E5ResourcesInput = z.infer<typeof e5ResourcesInputSchema>
+export type SbmInput = z.infer<typeof sbmInputSchema>
+export type GovInput = z.infer<typeof govInputSchema>
+export type IroInput = z.infer<typeof iroInputSchema>
+export type MrInput = z.infer<typeof mrInputSchema>
+export type E1RemovalProject = z.infer<typeof e1RemovalProjectSchema>
+export type E1FinancialEffect = z.infer<typeof e1FinancialEffectSchema>
+export type E1TransitionPlanMeasure = z.infer<typeof e1TransitionPlanMeasureSchema>
 
 
 export const esgInputSchema = z
@@ -909,11 +1253,19 @@ export const esgInputSchema = z
     C14: c14InputSchema.optional(),
     C15: c15InputSchema.optional(),
     E1Context: e1ContextInputSchema.optional(),
+    E1Scenarios: e1ScenariosInputSchema.optional(),
+    E1CarbonPrice: e1CarbonPriceInputSchema.optional(),
+    E1RiskGeography: e1RiskGeographyInputSchema.optional(),
+    E1DecarbonisationDrivers: e1DecarbonisationDriversInputSchema.optional(),
     E1Targets: e1TargetsInputSchema.optional(),
     E2Water: e2WaterInputSchema.optional(),
     E3Pollution: e3PollutionInputSchema.optional(),
     E4Biodiversity: e4BiodiversityInputSchema.optional(),
     E5Resources: e5ResourcesInputSchema.optional(),
+    SBM: sbmInputSchema.optional(),
+    GOV: govInputSchema.optional(),
+    IRO: iroInputSchema.optional(),
+    MR: mrInputSchema.optional(),
     S1: s1InputSchema.optional(),
     S2: s2InputSchema.optional(),
     S3: s3InputSchema.optional(),

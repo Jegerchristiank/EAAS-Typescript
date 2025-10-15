@@ -1,7 +1,16 @@
 /**
  * Beregning for modul S4 – forbrugere og slutbrugere.
  */
-import type { ModuleInput, ModuleResult, S4Input } from '../../types'
+import type {
+  ModuleEsrsFact,
+  ModuleEsrsTable,
+  ModuleInput,
+  ModuleMetric,
+  ModuleNarrative,
+  ModuleResult,
+  ModuleTable,
+  S4Input
+} from '../../types'
 import { factors } from '../factors'
 
 const { s4 } = factors
@@ -35,6 +44,14 @@ export function runS4(input: ModuleInput): ModuleResult {
     'Indberettede hændelser reducerer scoren efter alvorlighed, antal berørte brugere og status på afhjælpning.'
   ]
 
+  const productsAssessedPercent = clampPercent(raw?.productsAssessedPercent)
+  const severeIncidents = clampCount(raw?.severeIncidentsCount)
+  const recalls = clampCount(raw?.recallsCount)
+  const complaintsResolvedPercent = clampPercent(raw?.complaintsResolvedPercent)
+  const dataBreaches = clampCount(raw?.dataBreachesCount)
+  const grievanceMechanism = raw?.grievanceMechanismInPlace ?? null
+  const escalationDays = raw?.escalationTimeframeDays ?? null
+
   const coverageScore = resolveCoverageScore(raw, trace, warnings)
   const complaintsScore = resolveComplaintsScore(raw, trace, warnings)
   const mechanismScore = resolveMechanismScore(raw, warnings)
@@ -67,12 +84,137 @@ export function runS4(input: ModuleInput): ModuleResult {
     warnings.push('Tilføj narrativ om forbrugerkommunikation, uddannelse og samarbejde (ESRS S4 §22).')
   }
 
+  const esrsFacts: ModuleEsrsFact[] = []
+  const pushNumericFact = (key: string, value: number | null | undefined, unitId: string, decimals: number) => {
+    if (value == null || Number.isNaN(value) || !Number.isFinite(Number(value))) {
+      return
+    }
+    esrsFacts.push({ conceptKey: key, value: Number(value), unitId, decimals })
+  }
+
+  pushNumericFact('S4ProductsAssessedPercent', productsAssessedPercent, 'percent', 1)
+  pushNumericFact('S4SevereIncidentsCount', severeIncidents, 'pure', 0)
+  pushNumericFact('S4RecallsCount', recalls, 'pure', 0)
+  pushNumericFact('S4ComplaintsResolvedPercent', complaintsResolvedPercent, 'percent', 1)
+  pushNumericFact('S4DataBreachesCount', dataBreaches, 'pure', 0)
+
+  if (grievanceMechanism !== null) {
+    esrsFacts.push({ conceptKey: 'S4GrievanceMechanismInPlace', value: grievanceMechanism, unitId: null })
+  }
+
+  if (escalationDays != null && Number.isFinite(escalationDays)) {
+    esrsFacts.push({ conceptKey: 'S4EscalationTimeframeDays', value: Number(escalationDays), unitId: 'day', decimals: 0 })
+  }
+
+  const issuesCount = issues.length
+  pushNumericFact('S4IssuesCount', issuesCount, 'pure', 0)
+
+  const usersAffectedTotal = issues
+    .map((issue) => issue.usersAffected ?? 0)
+    .reduce((sum, users) => sum + users, 0)
+  pushNumericFact('S4UsersAffectedTotal', usersAffectedTotal, 'pure', 0)
+
+  const vulnerableUsersNarrative = raw?.vulnerableUsersNarrative?.trim() ?? ''
+  if (vulnerableUsersNarrative) {
+    esrsFacts.push({ conceptKey: 'S4VulnerableUsersNarrative', value: vulnerableUsersNarrative })
+  }
+
+  const consumerEngagementNarrative = raw?.consumerEngagementNarrative?.trim() ?? ''
+  if (consumerEngagementNarrative) {
+    esrsFacts.push({ conceptKey: 'S4ConsumerEngagementNarrative', value: consumerEngagementNarrative })
+  }
+
+  const esrsTables: ModuleEsrsTable[] | undefined =
+    issues.length === 0
+      ? undefined
+      : [
+          {
+            conceptKey: 'S4ConsumerIssuesTable',
+            rows: issues.map((issue) => ({
+              productOrService: issue.productOrService,
+              market: issue.market,
+              issueType: issue.issueType,
+              usersAffected: issue.usersAffected,
+              severityLevel: issue.severityLevel,
+              remediationStatus: issue.remediationStatus,
+              description: issue.description
+            }))
+          }
+        ]
+
+  const metrics: ModuleMetric[] = []
+  if (productsAssessedPercent != null) {
+    metrics.push({ label: 'Risikovurderede produkter', value: productsAssessedPercent, unit: '%' })
+  }
+  if (complaintsResolvedPercent != null) {
+    metrics.push({ label: 'Klager løst inden SLA', value: complaintsResolvedPercent, unit: '%' })
+  }
+  if (grievanceMechanism != null) {
+    metrics.push({ label: 'Klagemekanisme etableret', value: grievanceMechanism ? 'Ja' : 'Nej' })
+  }
+  if (escalationDays != null) {
+    metrics.push({ label: 'Eskaleringsfrist', value: escalationDays, unit: 'dage' })
+  }
+  if (dataBreaches != null) {
+    metrics.push({ label: 'Datasikkerhedsbrud', value: dataBreaches, unit: 'sager' })
+  }
+  if (severeIncidents != null) {
+    metrics.push({ label: 'Alvorlige hændelser', value: severeIncidents, unit: 'sager' })
+  }
+  if (recalls != null) {
+    metrics.push({ label: 'Tilbagekaldelser', value: recalls, unit: 'sager' })
+  }
+  if (issues.length > 0) {
+    metrics.push({ label: 'Registrerede issues', value: issues.length, unit: 'sager' })
+    metrics.push({ label: 'Berørte brugere', value: usersAffectedTotal, unit: 'personer' })
+  }
+
+  const tables: ModuleTable[] = []
+  if (issues.length > 0) {
+    tables.push({
+      id: 's4-issues',
+      title: 'Hændelser for forbrugere og slutbrugere',
+      summary: 'Liste over produkt-/service-relaterede issues og status for afhjælpning.',
+      columns: [
+        { key: 'productOrService', label: 'Produkt/tjeneste' },
+        { key: 'market', label: 'Marked' },
+        { key: 'issueType', label: 'Issue-type' },
+        { key: 'usersAffected', label: 'Berørte', align: 'end', format: 'number' },
+        { key: 'severityLevel', label: 'Alvorlighed' },
+        { key: 'remediationStatus', label: 'Status' },
+        { key: 'description', label: 'Beskrivelse' }
+      ],
+      rows: issues.map((issue) => ({
+        productOrService: issue.productOrService,
+        market: issue.market,
+        issueType: issue.issueType,
+        usersAffected: issue.usersAffected,
+        severityLevel: issue.severityLevel,
+        remediationStatus: issue.remediationStatus,
+        description: issue.description
+      }))
+    })
+  }
+
+  const narratives: ModuleNarrative[] = []
+  if (vulnerableUsersNarrative) {
+    narratives.push({ label: 'Indsatser for udsatte brugere', content: vulnerableUsersNarrative })
+  }
+  if (consumerEngagementNarrative) {
+    narratives.push({ label: 'Forbrugerengagement', content: consumerEngagementNarrative })
+  }
+
   return {
     value,
     unit: s4.unit,
     assumptions,
     trace,
-    warnings
+    warnings,
+    ...(metrics.length > 0 ? { metrics } : {}),
+    ...(narratives.length > 0 ? { narratives } : {}),
+    ...(tables.length > 0 ? { tables } : {}),
+    ...(esrsFacts.length > 0 ? { esrsFacts } : {}),
+    ...(esrsTables ? { esrsTables } : {})
   }
 }
 

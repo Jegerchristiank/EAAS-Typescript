@@ -1,65 +1,94 @@
-# AGENT INSTRUKTIONER
+# AGENTS.md – Global instruktion for EAAS-Typescript
 
-## Formål
-Denne fil opsummerer de vigtigste arbejdsgange og faldgruber for dette monorepo. Læs den før du skriver kode og tjek om underkataloger har deres egne `AGENTS.md`-filer.
+> **Scope:** Denne fil gælder for hele monorepoet. Hvis du opretter mapper med særlige regler, skal du lægge en ny `AGENTS.md` dér og referere til dette dokument.
+> **Forrang:** Følg altid system-/brugerinstruktioner først, derefter den mest specifikke `AGENTS.md`.
+> **Meta-krav:** Når du opdager nye faldgruber eller ændrer arbejdsgange, skal du opdatere denne fil (og evt. en mere specifik). Brug _Erfaringslog_-sektionen til at logge læringer og kendte issues.
 
-> **Meta-instruktion:** Gem ALTID nye erfaringer, faldgruber og rettelser i dette dokument (eller i mere specifikke `AGENTS.md`-filer). Brug sektionen _"Erfaringslog"_ til at logge læringer fra tidligere prompts, reviews og fejl.
+## 1. Hurtigt overblik
+- Monorepo med pnpm + Turbo. Workspaces ligger i `apps/*`, `packages/*`, `docs/*` og `tooling/*`.
+- `apps/web` er Next.js-frontend med wizard UI, PDF-preview og designsystem.
+- `packages/shared` indeholder domænelogik, schemaer, typer og PDF-komponenter. **Ingen Next.js imports her.**
+- `packages/tooling` og `tooling/` rummer scripts og generators til schema/formler.
+- Al IO foregår klient-side eller i isolerede route handlers. Server-state undgås.
 
-## Arkitektur
-- Monorepo styret af pnpm/turbo. Arbejd i apps og packages uden at bryde domænegrænser.
-- `apps/web`: Next.js-appen med wizard UI, PDF-preview og designsystem.
-- `packages/shared`: Schemaer, typer, beregninger, PDF-komponenter. **Må ikke kende til Next.js.**
-- `packages/tooling`: Scripts til at generere schema og formel-map fra CSV.
-- `tooling/`: Repo-scripts (lint, typecheck, codegen).
+## 2. Før-du-starter tjekliste
+1. Læs `README.md`, `CHANGELOG.md`, `docs/` og relevante `AGENTS.md`-filer.
+2. Kør `rg --files -g 'AGENTS.md'` for at opdage nested instruktioner.
+3. Bekræft at `pnpm install` er kørt (brug workspaces-filtrering ved nye apps/packages).
+4. Notér hvilke tests og scripts der skal køres før commit (se sektion 5).
+5. Hvis opgaven berører UI, planlæg et Playwright/screenshot-scope.
 
-## Centrale principper
-- Prioritér stabilitet og determinisme. Undgå “smarte” one-liners der gør logik uforudsigelig.
-- Al IO og persistens sker i klienten; ingen servertilstand.
-- PDF-generering foregår i klienten eller i en isoleret route handler. Brug `dynamic` import af `@react-pdf/renderer` i Next.
-- Scope 2-moduler modellerer nettoprofilen: indkøbt energi minus dokumenteret genindvinding/frikilder, dernæst reduktion for certificeret vedvarende andel. Enhed: kWh; output i ton CO2e.
-- UI-moduler må forvente negative tal for reduktioner og skal forklare brugeren hvorfor.
+## 3. Dev-environment og tooling
+- Navigér mellem workspaces med `pnpm dlx turbo run where <workspace>`.
+- Tilføj et workspace til et eksisterende install: `pnpm install --filter <workspace>`.
+- Opret nye React+TS apps via `pnpm create vite@latest <navn> -- --template react-ts` hvis Next.js ikke er påkrævet.
+- Start `apps/web` lokalt: `pnpm --filter @org/web dev --hostname 0.0.0.0 --port 3000` (bemærk `--` før flag).
+- Generér schema/formel-map: `pnpm --filter @org/tooling run schema:generate`.
+- Brug `turbo.json` som sandhed for pipelines; opdater når nye scripts tilføjes.
 
-## Arbejdsgang for nye features
-1. Generér schema og formel-map: `pnpm --filter @org/tooling run schema:generate`.
-2. Udvikl beregninger i `packages/shared/calculations`, udvid `runModule` og tilhørende tests/fixtures.
-3. Udbyg wizard-felter i `apps/web` baseret på schemaet. Brug Zod-validering og bracket notation til modulnøgler (`state['B7']`).
-4. Kør testpyramiden: `pnpm -w run lint && pnpm -w run typecheck && pnpm -w run test`.
-5. Valider web-appen med `pnpm --filter @org/web build`. Brug `pnpm --filter @org/web test` til komponent/UI-tests.
+## 4. Arbejdsgange for nye features og bugs
+1. Afklar domæneændring i `docs/modules` og eksisterende tests.
+2. Udvikl businesslogik i `packages/shared/*`. Udvid `runModule` og tilføj fixtures/tests.
+3. Synkroniser schemaændringer til UI (`apps/web`) via Zod-former og wizard-state (`useWizard.ts`). Brug bracket notation til modulnøgler (`state['B7']`).
+4. Opdater designsystemet i `apps/web/styles/design-system.css` og genbrug `PrimaryButton`-varianter.
+5. Tilføj Playwright-scenarier eller komponenttests for UI-ændringer.
+6. Opdater `CHANGELOG.md`, `docs/` og evt. README.
+7. Tag screenshot af relevante UI-ændringer.
 
-## Designsystem og UI
-- `apps/web/styles/design-system.css` indeholder fælles `ds-*` util-klasser. Genbrug dem og `PrimaryButton`-varianten for konsistens.
-- Wizard-trin B1–B6 er reference for valideringsmønster, hjælpetekster og autosave (`useWizard.ts`). Udvid `TouchedMap`-mønstret ved behov.
-- Når der laves nye UI-moduler, sørg for Playwright-scenarier til at dække ændringer.
+## 5. Tests, kvalitet og CI
+- **Standard pipeline (kør inden commit):** `pnpm -w run lint && pnpm -w run typecheck && pnpm -w run test && pnpm -w run build`.
+- For targeted checks:
+  - `pnpm turbo run lint --filter <workspace>`
+  - `pnpm turbo run typecheck --filter <workspace>`
+  - `pnpm turbo run test --filter <workspace>` eller `pnpm vitest run -t "<test name>"`
+  - `pnpm --filter @org/web build`
+- Krav:
+  - Ingen lint-fejl, ingen TypeScript-`any`, ingen build warnings.
+  - PDF-tests skal hashe buffer-output for determinisme.
+  - Efter filflyt/ændringer skal ESLint og TS køres for at sikre korrekte imports.
+  - Nye features kræver tests (unit + integration/fixtures).
 
-## Kvalitetskrav
-- Hvert nyt modul kræver mindst én enhedstest, ét fixturesæt og én linje i `CHANGELOG.md`.
-- Ingen lint-fejl, ingen TypeScript-`any`, ingen build-advarsler.
-- PDF-tests bør hashe buffer-output for determinisme.
+## 6. Kodestandard og arkitekturprincipper
+- Prioritér deterministiske løsninger fremfor “smarte” one-liners.
+- Scope 2-moduler: modeller nettoprofilen (indkøbt energi – genindvinding/frikilder – certificeret VE-andel). Output i ton CO2e.
+- UI skal håndtere negative tal og forklare brugeren hvorfor.
+- Next.js SSR + `@react-pdf/renderer`: brug `dynamic` import eller isoleret route handler for at undgå SSR-konflikter.
+- TypeScript kører med `exactOptionalPropertyTypes`; undgå `undefined` på optionelle felter medmindre typerne udvides.
+- Ved Set-brug i tests: initialisér som `new Set<string>()` for korrekt inferens.
 
-## CI og publicering
-- npm-pakker udgives via GitHub Packages. Tjek `.npmrc` og `publishConfig` i relevante pakker.
-- Ingen tokens i koden; brug miljøvariabler i CI.
-- Sørg for at GitHub Actions har adgang til private pakker.
+## 7. Dokumentation og vidensdeling
+- Opdater `CHANGELOG.md` for alle ikke-trivielle ændringer.
+- Skriv/udvid guides i `docs/` ved domæneændringer.
+- Brug _Erfaringslog_-sektionen til at fastholde reviewer-feedback, flaky tests og workarounds.
+- Dokumentér delvist arbejde og TODOs i PR-beskrivelser + denne fil hvis relevant for fremtidige agenter.
 
-## Kendte fejl og løsninger
-- SSR-konflikter med `@react-pdf/renderer`: brug `dynamic` import eller isoleret route handler.
-- Forkert npm-registry ved publish: dobbelttjek `publishConfig` og `.npmrc`.
-- NPM-auth issues: brug `GITHUB_TOKEN` i CI, ikke `.env`-filer.
-- Merge-konflikter: fjern altid `<<<<<<<`/`=======`/`>>>>>>>`. Tjek med `rg '<<<<<<<'` før commit.
+## 8. PR- og commit-proces
+- Commit tidligt og ofte, men kun med grøn pipeline.
+- PR-titel: `[<workspace-navn>] Kort og præcis titel`.
+- PR-body skal beskrive ændringer, tests, og evt. kendte issues. Indsæt checklisten fra sektion 5 hvis den ikke allerede er i skabelonen.
+- Før commit: kør standardpipeline (se sektion 5). Log resultater i PR.
+- Merge kun når CI er grønt.
 
-## Erfaringslog & før-du-koder-tjekliste
-- **Læs dokumentation først:** Start med `README.md`, `AI_GUIDE.md`, `docs/` og denne fil for at forstå domæne og eksisterende mønstre.
-- **Søg efter nested `AGENTS.md`:** Kør `rg --files -g 'AGENTS.md'` før større ændringer for at fange katalogspecifikke regler.
-- **Opdater dette dokument:** Efter hver opgave, log nye faldgruber, teststrategier eller reviewer-feedback her.
-- **Hold styr på arbejdskontekst:** Notér hvis en opgave kræver koordinering på tværs af apps/packages – brug sektionen ovenfor til at linke til relevante filer eller scripts.
-- **Dokumentér partial work:** Hvis du må afbryde arbejdet, beskriv status, TODOs og kendte problemer i PR-beskrivelsen og herunder.
-- **Testdisciplin:** Når du finder en test der fejler pga. flaky setup, beskriv root cause og workaround i denne log.
-- **Respekter globale prompts:** Følg altid seneste system-/brugerkrav (fx citations, PR-format, commit-regler) og skriv dem her, hvis de er relevante for fremtidige agenter.
+## 9. Kendte faldgruber og løsninger
+- SSR-konflikter med `@react-pdf/renderer`: brug `dynamic` import.
+- NPM publish issues: tjek `publishConfig` og `.npmrc` for GitHub Packages.
+- NPM-auth i CI: brug `GITHUB_TOKEN`, ikke lokale `.env`-filer.
+- Merge-konflikter: fjern alle `<<<<<<<`-markører. Tjek med `rg '<<<<<<<'` før commit.
+- ESLint "couldn't find config": kør `pnpm install` for at regenerere pnpm-symlinks.
 
-_Seneste læringer:_
-- 2024-XX-XX: Husk altid at inkludere meta-instruktion ovenfor og udvide denne log med ny viden fra prompts eller reviewer-kommentarer.
+## 10. Reference og hjælperedskaber
+- `docs/modules`: kilde til moduloversigt og afhængigheder.
+- `turbo.json`: definerer pipeline og afhængigheder.
+- `prettier.config.cjs`: formatstandarder.
+- `tsconfig.base.json`: fælles TypeScript-konfiguration.
+- `CHANGELOG.md`: skal opdateres for nye features/bugfixes.
 
-## Sidst men ikke mindst
-- Dokumentér større ændringer i `CHANGELOG.md` og opdater `README`/`docs` ved behov.
-- Hvis du er i tvivl om modulreference, peg på `docs/modules` fremfor en ufuldstændig liste.
-- Dette er den eneste `AGENTS.md` i repoet. Opret en lokal fil hvis du tilføjer katalogspecifikke krav.
+## 11. Erfaringslog
+- 2024-XX-XX: Husk at inkludere meta-instruktionerne ovenfor og udvide loggen med ny viden fra prompts/reviews.
+- 2025-02-14: `exactOptionalPropertyTypes` kræver eksplicit håndtering af `undefined` i eksport/taksonomiobjekter.
+- 2025-03-10: `pnpm --filter @org/web dev --hostname 0.0.0.0 --port 3000` – ekstra `--` før flag er nødvendigt.
+- 2025-03-20: Brug `new Set<string>()` i tests når ESRS-qnames matches dynamisk.
+- 2025-03-22: Efter nye workspaces, kør `pnpm install` for at hydrere symlinks.
+- 2025-03-24: ESLint config-fejl løses ved `pnpm install` før `pnpm -w run lint && pnpm -w run typecheck && pnpm -w run test`.
+- 2025-10-10: React-PDF `View`-stile må ikke modtage `null` i array-sammensætning; brug conditionelle spreads eller dedikerede klasser.
+

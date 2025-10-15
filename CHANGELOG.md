@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt B9-modul for fysiske PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B10-modul for virtuelle PPA-leverancer med schema, beregning, UI og tests.
 - Fuldt B11-modul for time-matchede certifikatporteføljer med schema, beregning, UI og tests.
+- Udvidede S1–S4 sociale moduler med ESRS-nøgletal, tabeller, UI-validering og rapport/PDF-understøttelse.
+- ESRS S1 udvidet med FTE, ansættelsesformer, løngab, arbejdsmiljø, træning og sociale ydelser på tværs af schema, beregning, UI, eksport og tests.
 - Fuldt A1-modul for Scope 1 stationær forbrænding med schema, beregning, UI og tests.
 - Fuldt A2-modul for Scope 1 mobile kilder med schema, beregning, UI og tests.
 - Fuldt A3-modul for Scope 1 procesemissioner med schema, beregning, UI og tests.
@@ -48,9 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fuldt C14-modul for Scope 3 behandling af solgte produkter med schema, beregning, UI og tests.
 - Fuldt C15-modul for Scope 3 screening af øvrige kategorier med schema, beregning, UI og tests.
 - E1 klimamål- og actionmodul med ESRS E1 intensiteter, målstatus, wizard-step, PDF og test-fixtures.
+- E1 kontekstmoduler for klimascenarier, interne CO₂-priser, risikogeografi og decarboniseringsdrivere med schema, beregninger,
+  wizard-trin, ESRS-eksport og tests.
+- Server-baseret wizard-persistence med revisionslog, rollebaseret adgangskontrol, Vitest-dækning og runbook for drift/compliance.
+- Udvidet E1-målmodul med energiforbrug, vedvarende andele, dokumentationskvalitet og ESRS-eksport.
 
 
 ### Changed
+- Omstillede ESRS 2 D1 og MR til kravbaseret validering med kvalitative outputs, opdaterede UI-komponenter og dækkende tests/fixtures.
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.
 - Normalised wizard infrastructure to rely on strongly typed module input and removed duplicate step registrations.
 - Tuned Turbo test outputs to avoid false cache warnings while coverage instrumentation is not yet enabled.
@@ -58,9 +65,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the validation workflow with a single matrix job that disables telemetry, installs with a frozen lockfile, and blocks on lint, typecheck, test and build failures.
 - Refreshed the baseline quality report to reflect the current green installation, lint, typecheck, test and build status, while documenting outstanding bundle-size and coverage risks.
 - Removed the repository-level `.npmrc`; publishing now generates scoped auth config in CI to avoid local token requirements.
+- Omkalfatrede D2-materialitetsmodulet til ESRS’ severity × likelihood matrix med finansielle effekter, tidslinjer og strukturerede rapporteringstabeller i UI, PDF og eksport.
 
 ### Fixed
 - Resolved merge artefacts across shared calculation, schema, PDF and tooling modules so TypeScript and ESLint parse cleanly.
 - Restored review, PDF preview and storage utilities after conflict markers to ensure runtime components compile again.
 - Cleaned B1 calculation tests to eliminate duplicate suites and reinstate deterministic assertions.
 - Ensured `next lint` bruger den understøttede TypeScript-version ved at fastlåse 5.5.4 gennem pnpm overrides.
+- Udvidede tooling-CLIens skemakonvertering til at forstå boolean- og array-typer, så GitHub CLI-testen lykkes for de nye E1-energifelter.
