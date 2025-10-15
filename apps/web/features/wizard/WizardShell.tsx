@@ -3,7 +3,7 @@
  */
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
 import {
@@ -28,6 +28,35 @@ import { WizardProvider, useWizardContext } from './useWizard'
 
 const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance']
 
+/**
+ * Breakpoint der aktiverer desktop-layoutet. Matcher design-tokenen `--breakpoint-lg` (60rem).
+ */
+const NAVIGATION_MEDIA_QUERY = '(min-width: 60rem)'
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+    return window.matchMedia(query).matches
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
+    const mediaQueryList = window.matchMedia(query)
+    const updateMatch = () => setMatches(mediaQueryList.matches)
+
+    updateMatch()
+    mediaQueryList.addEventListener('change', updateMatch)
+    return () => mediaQueryList.removeEventListener('change', updateMatch)
+  }, [query])
+
+  return matches
+}
+
 type RelevantModuleGroup = {
   scope: WizardScope
   modules: {
@@ -35,16 +64,6 @@ type RelevantModuleGroup = {
     label: string
     isActive: boolean
     isRecommended: boolean
-  }[]
-}
-
-type ModuleFeedbackGroup = {
-  scope: WizardScope
-  modules: {
-    id: string
-    label: string
-    relevant: boolean
-    isFirstRelevant: boolean
   }[]
 }
 
@@ -98,8 +117,13 @@ export function WizardShell(): JSX.Element {
 function WizardShellContent(): JSX.Element {
   const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizardContext()
   const [isProfileOpen, setIsProfileOpen] = useState(() => !isProfileComplete(profile))
+  const [isNavigationOpen, setIsNavigationOpen] = useState(false)
+  const navigationRef = useRef<HTMLDivElement | null>(null)
   const StepComponent = wizardSteps[currentStep]?.component
   const currentStepMeta = wizardSteps[currentStep]
+
+  const isDesktopNavigation = useMediaQuery(NAVIGATION_MEDIA_QUERY)
+  const navigationVisible = isDesktopNavigation || isNavigationOpen
 
   const recommendedStepIndex = useMemo(() => resolveRecommendedStepIndex(profile), [profile])
   const recommendedStepId = wizardSteps[recommendedStepIndex]?.id ?? null
@@ -114,42 +138,63 @@ function WizardShellContent(): JSX.Element {
   const positiveAnswers = useMemo(() => countPositiveAnswers(profile), [profile])
   const answeredQuestions = useMemo(() => countAnsweredQuestions(profile), [profile])
   const progressPercent = totalQuestions === 0 ? 0 : Math.round((positiveAnswers / totalQuestions) * 100)
-  const firstRelevantStepIndex = useMemo(
-    () => findFirstRelevantStepIndex(wizardSteps, profile),
-    [profile]
-  )
-  const recommendedProfileStep = useMemo(() => {
-    const candidate = wizardSteps[firstRelevantStepIndex]
-    if (!candidate) {
-      return null
-    }
-    return isModuleRelevant(profile, candidate.id) ? candidate : null
-  }, [firstRelevantStepIndex, profile])
-  const moduleFeedback: ModuleFeedbackGroup[] = useMemo(() => {
-    const firstRelevantStep = wizardSteps[firstRelevantStepIndex]?.id
-    return scopeOrder
-      .map((scope) => ({
-        scope,
-        modules: wizardSteps
-          .filter((step) => step.scope === scope)
-          .map((step) => ({
-            id: step.id,
-            label: step.label,
-            relevant: isModuleRelevant(profile, step.id),
-            isFirstRelevant: step.id === firstRelevantStep,
-          })),
-      }))
-      .filter((group) => group.modules.length > 0)
-  }, [firstRelevantStepIndex, profile])
-  const hasRelevantModules = useMemo(
-    () => moduleFeedback.some((group) => group.modules.some((module) => module.relevant)),
-    [moduleFeedback]
-  )
-
   const relevantModuleGroups = useMemo(
     () => buildRelevantModuleGroups(profile, activeModuleId, recommendedStepId),
     [profile, activeModuleId, recommendedStepId]
   )
+
+  useEffect(() => {
+    const node = navigationRef.current
+    if (!node) {
+      return
+    }
+
+    const elementWithInert = node as HTMLElement & { inert?: boolean }
+
+    if (!navigationVisible && !isDesktopNavigation) {
+      elementWithInert.setAttribute('inert', '')
+      elementWithInert.inert = true
+    } else {
+      elementWithInert.removeAttribute('inert')
+      elementWithInert.inert = false
+    }
+
+    return () => {
+      elementWithInert.removeAttribute('inert')
+      elementWithInert.inert = false
+    }
+  }, [isDesktopNavigation, navigationVisible])
+
+  const scopeSummaries = useMemo(
+    () =>
+      scopeOrder
+        .map((scope) => {
+          const readySteps = wizardSteps.filter((step) => step.scope === scope && step.status === 'ready')
+          if (readySteps.length === 0) {
+            return null
+          }
+          const relevantSteps = readySteps.filter((step) => isModuleRelevant(profile, step.id))
+          const recommended = relevantSteps[0]
+          const isActiveScope = readySteps.some((step) => step.id === activeModuleId)
+
+          return {
+            scope,
+            total: readySteps.length,
+            relevantCount: relevantSteps.length,
+            recommendedLabel: recommended?.label ?? null,
+            isActive: isActiveScope,
+          }
+        })
+        .filter((entry): entry is NonNullable<typeof entry> => entry !== null),
+    [activeModuleId, profile]
+  )
+
+  const relevantModuleTotal = useMemo(
+    () => relevantModuleGroups.reduce((count, group) => count + group.modules.length, 0),
+    [relevantModuleGroups]
+  )
+
+  const recommendedModuleLabel = wizardSteps[recommendedStepIndex]?.label ?? null
 
   useEffect(() => {
     if (!isProfileComplete(profile)) {
@@ -175,6 +220,12 @@ function WizardShellContent(): JSX.Element {
     }
   }, [currentStep, goToStep, isProfileOpen, profile, recommendedStepIndex])
 
+  useEffect(() => {
+    if (isDesktopNavigation) {
+      setIsNavigationOpen(false)
+    }
+  }, [isDesktopNavigation])
+
   const handleOpenProfile = () => {
     setIsProfileOpen(true)
   }
@@ -194,8 +245,11 @@ function WizardShellContent(): JSX.Element {
       }
       setIsProfileOpen(false)
       goToStep(index)
+      if (!isDesktopNavigation) {
+        setIsNavigationOpen(false)
+      }
     },
-    [goToStep, profileComplete]
+    [goToStep, isDesktopNavigation, profileComplete]
   )
 
   const handleSelectStepperStep = useCallback(
@@ -221,20 +275,133 @@ function WizardShellContent(): JSX.Element {
       if (targetIndex !== -1) {
         setIsProfileOpen(false)
         goToStep(targetIndex)
+        if (!isDesktopNavigation) {
+          setIsNavigationOpen(false)
+        }
       }
     },
-    [goToStep, profile, profileComplete]
+    [goToStep, isDesktopNavigation, profile, profileComplete]
   )
 
   return (
-    <section className="ds-page">
-      <div className="ds-shell ds-shell--wizard ds-layout ds-layout--with-sidebar ds-layout--wizard">
-        <aside className="ds-shell__sidebar ds-stack ds-sidebar ds-sidebar--sticky" data-variant="wizard">
-          <section className="ds-card ds-stack ds-sidebar__section" aria-label="Status for virksomhedsprofil">
-            <header className="ds-stack-sm">
-              <div className="ds-stack-xs">
-                <p className="ds-text-subtle">Trin 0</p>
-                <h2 className="ds-heading-sm">Virksomhedsprofil</h2>
+    <section className="wizard-shell">
+      <div className="wizard-shell__top-nav" data-testid="wizard-top-nav">
+        <div className="wizard-shell__top-row">
+          <div className="wizard-shell__title">
+            <p className="ds-text-subtle">Version 4 · Opdateret wizard-oplevelse</p>
+            <h1 className="ds-heading-lg">ESG-beregninger</h1>
+            <p className="ds-text-muted">
+              Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og
+              hvert modul viser relevante hjælpetekster og validering.
+            </p>
+          </div>
+          <div className="wizard-shell__top-actions">
+            <button
+              type="button"
+              className="wizard-shell__nav-trigger"
+              onClick={() => setIsNavigationOpen(true)}
+            >
+              Moduloversigt
+            </button>
+            <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
+              Rediger profil
+            </PrimaryButton>
+          </div>
+        </div>
+
+        <div className="wizard-shell__stepper">
+          <ProfileProgressStepper
+            profile={profile}
+            activeStep={activeStepperStep}
+            onSelectStep={handleSelectStepperStep}
+          />
+        </div>
+
+        <div className="wizard-shell__top-meta">
+          <span className="wizard-shell__meta-item">
+            {answeredQuestions} / {totalQuestions} spørgsmål besvaret
+          </span>
+          <span className="wizard-shell__meta-item">{progressPercent}% positive aktiviteter</span>
+          {recommendedModuleLabel && (
+            <span className="wizard-shell__meta-item" data-variant="highlight">
+              Anbefalet start: {recommendedModuleLabel}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="wizard-shell__body">
+        <div className="wizard-shell__primary">
+          <div
+            className="wizard-shell__navigation"
+            ref={navigationRef}
+            data-open={navigationVisible ? 'true' : undefined}
+            data-desktop={isDesktopNavigation ? 'true' : undefined}
+            aria-hidden={navigationVisible ? undefined : 'true'}
+          >
+            <div className="wizard-shell__navigation-panel" data-testid="wizard-navigation">
+              {!isDesktopNavigation && (
+                <div className="wizard-shell__navigation-header">
+                  <h2 className="ds-heading-sm">Modulnavigation</h2>
+                  <button type="button" onClick={() => setIsNavigationOpen(false)}>
+                    Luk
+                  </button>
+                </div>
+              )}
+              <WizardOverview
+                steps={wizardSteps}
+                currentStep={currentStep}
+                onSelect={handleSelectStep}
+                profile={profile}
+                profileComplete={profileComplete}
+              />
+            </div>
+          </div>
+
+          <div className="wizard-shell__module">
+            <section className="wizard-shell__module-content" aria-live="polite">
+              {isProfileOpen ? (
+                <PreWizardQuestionnaire
+                  profile={profile}
+                  onChange={updateProfile}
+                  onContinue={handleCompleteProfile}
+                />
+              ) : StepComponent ? (
+                <StepComponent state={state} onChange={updateField} />
+              ) : (
+                <p className="ds-text-muted">Ingen trin fundet.</p>
+              )}
+            </section>
+
+            {!isProfileOpen && StepComponent && (
+              <div className="wizard-shell__bottom-bar" data-testid="wizard-bottom-bar">
+                <NextRelevantButton className="wizard-shell__bottom-primary" />
+                <div className="wizard-shell__bottom-actions">
+                  <PrimaryButton
+                    onClick={() => goToStep(Math.max(0, currentStep - 1))}
+                    disabled={currentStep === 0}
+                    variant="ghost"
+                  >
+                    Forrige trin
+                  </PrimaryButton>
+                  <PrimaryButton
+                    onClick={() => goToStep(Math.min(wizardSteps.length - 1, currentStep + 1))}
+                    disabled={currentStep === wizardSteps.length - 1}
+                  >
+                    Næste trin
+                  </PrimaryButton>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <aside className="wizard-shell__secondary" aria-label="Status for virksomhedsprofil">
+          <section className="wizard-summary-panel">
+            <header className="wizard-summary-panel__header">
+              <div>
+                <p className="ds-text-subtle">Virksomhedsprofil</p>
+                <h2 className="ds-heading-sm">Status og anbefalinger</h2>
               </div>
               <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
                 Rediger profil
@@ -249,168 +416,54 @@ function WizardShellContent(): JSX.Element {
               </div>
             )}
 
-            <ProfileProgressStepper
-              profile={profile}
-              activeStep={activeStepperStep}
-              onSelectStep={handleSelectStepperStep}
-            />
-
-            <div className="ds-stack-sm">
-              <h3 className="ds-heading-xs">Relevante moduler</h3>
-              {relevantModuleGroups.length > 0 ? (
-                <div className="ds-stack-sm">
-                  {relevantModuleGroups.map((group) => (
-                    <section key={group.scope} className="ds-stack-xs">
-                      <p className="ds-text-subtle">{group.scope}</p>
-                      <div className="ds-pill-group">
-                        {group.modules.map((module) => (
-                          <span
-                            key={module.id}
-                            className="ds-pill"
-                            data-active={module.isActive ? 'true' : undefined}
-                          >
-                            {module.label}
-                            {module.isRecommended && (
-                              <span className="ds-pill__hint">Anbefalet start</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              ) : (
-                <p className="ds-text-subtle">Ingen moduler markeret som relevante endnu.</p>
-              )}
-            </div>
-          </section>
-
-          <section className="ds-card ds-stack ds-sidebar__section" aria-label="Status for profilspørgeskemaet">
-            <div className="ds-stack-sm">
-              <h3 className="ds-heading-xs">Status</h3>
-              <p className="ds-text-muted">
-                {positiveAnswers} ud af {totalQuestions} aktiviteter markeret som relevante.
-              </p>
-            </div>
-            <div
-              className="ds-progress"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progressPercent}
-              aria-valuetext={`${positiveAnswers} relevante ud af ${totalQuestions}`}
-            >
-              <span className="ds-progress__bar" style={{ width: `${progressPercent}%` }} />
-            </div>
-            <p className="ds-text-subtle">
-              {answeredQuestions} / {totalQuestions} spørgsmål er besvaret.
-            </p>
-          </section>
-
-          <section className="ds-card ds-stack ds-sidebar__section" aria-label="Modulfeedback">
-            <div className="ds-stack-sm">
-              <h3 className="ds-heading-xs">Modulfeedback</h3>
-              {recommendedProfileStep ? (
-                <p className="ds-text-muted">
-                  Start beregningerne med <strong>{recommendedProfileStep.label}</strong>.
-                </p>
-              ) : (
-                <p className="ds-text-muted">Besvar flere spørgsmål for at få anbefalede moduler.</p>
-              )}
-            </div>
-
-            {moduleFeedback.map((group) => (
-              <section key={group.scope} className="ds-stack-xs">
-                <p className="ds-text-subtle">{group.scope}</p>
-                <div className="ds-pill-group">
-                  {group.modules.map((module) => (
-                    <span
-                      key={module.id}
-                      className="ds-pill"
-                      data-active={module.isFirstRelevant ? 'true' : undefined}
-                      data-relevant={module.relevant ? 'true' : 'false'}
-                    >
-                      {module.label}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            ))}
-
-            {!hasRelevantModules && (
-              <p className="ds-text-subtle">Ingen moduler markeret som relevante endnu.</p>
-            )}
-          </section>
-
-          <ProfileSwitcher
-            heading="Profiler"
-            description="Skift mellem gemte virksomhedsprofiler."
-            className="ds-sidebar__section"
-          />
-        </aside>
-
-        <div className="ds-shell__main ds-stack">
-          <header className="ds-stack-sm">
-            <div className="ds-question-card__header">
-              <div className="ds-stack-sm">
-                <p className="ds-text-subtle">Version 4 · Opdateret wizard-oplevelse</p>
-                <h1 className="ds-heading-lg">ESG-beregninger</h1>
-                <p className="ds-text-muted">
-                  Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og
-                  hvert modul viser relevante hjælpetekster og validering.
-                </p>
+            <dl className="wizard-summary-metrics">
+              <div className="wizard-summary-chip">
+                <dt>Besvarelse</dt>
+                <dd>
+                  {answeredQuestions} / {totalQuestions} spørgsmål
+                </dd>
               </div>
-              <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
-                Rediger profil
-              </PrimaryButton>
-            </div>
-            <ProfileProgressStepper
-              profile={profile}
-              activeStep={activeStepperStep}
-              onSelectStep={handleSelectStepperStep}
-            />
-          </header>
+              <div className="wizard-summary-chip">
+                <dt>Relevante moduler</dt>
+                <dd>{relevantModuleTotal}</dd>
+              </div>
+              <div className="wizard-summary-chip" data-highlight="true">
+                <dt>Anbefalet start</dt>
+                <dd>{recommendedModuleLabel ?? 'Besvar flere spørgsmål'}</dd>
+              </div>
+            </dl>
 
-          <WizardOverview
-            steps={wizardSteps}
-            currentStep={currentStep}
-            onSelect={handleSelectStep}
-            profile={profile}
-            profileComplete={profileComplete}
-          />
+            <table className="wizard-summary-table">
+              <caption className="ds-text-subtle">Overblik over scopes og relevans</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Scope</th>
+                  <th scope="col">Relevante</th>
+                  <th scope="col">Anbefalet modul</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scopeSummaries.map((summary) => (
+                  <tr key={summary.scope} data-active={summary.isActive ? 'true' : undefined}>
+                    <th scope="row">{summary.scope}</th>
+                    <td>
+                      {summary.relevantCount} / {summary.total}
+                    </td>
+                    <td>{summary.recommendedLabel ?? '–'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          <section className="ds-panel ds-stack" aria-live="polite">
-            {isProfileOpen ? (
-              <PreWizardQuestionnaire
-                profile={profile}
-                onChange={updateProfile}
-                onContinue={handleCompleteProfile}
+            <div className="wizard-summary-switcher">
+              <ProfileSwitcher
+                heading="Profiler"
+                description="Skift mellem gemte virksomhedsprofiler."
+                className="wizard-summary-switcher__card"
               />
-            ) : StepComponent ? (
-              <>
-                <StepComponent state={state} onChange={updateField} />
-                <NextRelevantButton />
-                <footer className="ds-toolbar">
-                  <PrimaryButton
-                    onClick={() => goToStep(Math.max(0, currentStep - 1))}
-                    disabled={currentStep === 0}
-                    variant="ghost"
-                  >
-                    Forrige trin
-                  </PrimaryButton>
-                  <PrimaryButton
-                    onClick={() => goToStep(Math.min(wizardSteps.length - 1, currentStep + 1))}
-                    disabled={currentStep === wizardSteps.length - 1}
-                  >
-                    Næste trin
-                  </PrimaryButton>
-                </footer>
-              </>
-            ) : (
-              <p className="ds-text-muted">Ingen trin fundet.</p>
-            )}
+            </div>
           </section>
-        </div>
+        </aside>
       </div>
     </section>
   )
