@@ -72,3 +72,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Restored review, PDF preview and storage utilities after conflict markers to ensure runtime components compile again.
 - Cleaned B1 calculation tests to eliminate duplicate suites and reinstate deterministic assertions.
 - Ensured `next lint` bruger den understøttede TypeScript-version ved at fastlåse 5.5.4 gennem pnpm overrides.
+- Udvidede tooling-CLIens skemakonvertering til at forstå boolean- og array-typer, så GitHub CLI-testen lykkes for de nye E1-energifelter.
