@@ -8,10 +8,13 @@
 - **Overblik over profiler** – `ProfileSwitcher` indlejres direkte på landing-siden, hvilket blander onboarding med avanceret administrationsfunktionalitet og kan virke overvældende ved første besøg.【F:apps/web/app/page.tsx†L78-L82】
 
 ### Wizard shell (`apps/web/features/wizard/WizardShell.tsx`)
-- **Profil-afhængighed** – Hele modulet gates af profilstatus; manglende afslutning tvinger brugeren tilbage til spørgeskemaet via `isProfileOpen`, hvilket kan skabe loops hvis brugeren ønsker at inspicere moduler før færdiggørelse.【F:apps/web/features/wizard/WizardShell.tsx†L98-L140】
-- **Anbefalingslogik** – `resolveRecommendedStepIndex` vælger første "ready" relevante modul, men fallback kan springe til første "ready" selvom intet er relevant, hvilket kan opleves som arbitrær navigation uden forklaring i UI'et.【F:apps/web/features/wizard/WizardShell.tsx†L73-L88】
-- **Sidebar-kompleksitet** – Tre sektioner (Relevante moduler, Status, Modulfeedback) kombinerer chips, progressbar og noter; indholdet ændres samtidigt og kræver forklaring for nye brugere.【F:apps/web/features/wizard/WizardShell.tsx†L255-L343】
-- **Handlinger i footer** – Navigationen tilbyder både "Næste" og "Næste relevante" (`NextRelevantButton`) uden kontekstuel guidance, hvilket kan skabe usikkerhed om forskellen på lineær vs. anbefalet progression.【F:apps/web/features/wizard/WizardShell.tsx†L382-L406】
+- **Sticky top-navigation** – Fremdriftsindikator og profilhandlinger ligger i en sticky topbar, hvilket holder progression synlig under scroll og reducerer kognitiv belastning.【F:apps/web/features/wizard/WizardShell.tsx†L263-L307】【F:apps/web/styles/design-system.css†L864-L930】
+- **Responsiv navigation** – Moduloversigten vises som slide-in overlay på mobil og som permanent kolonne fra 60rem, styret af `NAVIGATION_MEDIA_QUERY` og tilsvarende CSS.【F:apps/web/features/wizard/WizardShell.tsx†L31-L335】【F:apps/web/styles/design-system.css†L931-L1006】
+- **Sektioneret hovedindhold** – Modulvisningen kombinerer et fleksibelt indholdsfelt med sticky bottom-bar for CTA'er samt en enkelt statusblok med summary chips og tabeloversigt.【F:apps/web/features/wizard/WizardShell.tsx†L337-L441】【F:apps/web/styles/design-system.css†L1007-L1097】
+
+#### Breakpoint-logik
+- Navigationens desktop-state aktiveres ved `--breakpoint-lg` (60rem), som kodespejles i `NAVIGATION_MEDIA_QUERY` for at undgå drift mellem CSS og JavaScript.【F:apps/web/features/wizard/WizardShell.tsx†L31-L125】
+- Topbar og bottom-bar bruger sticky-positioner med samme spacing-variabler, så elementerne fastholdes uanset viewport-højde og interagerer korrekt med mobil overlay'et.【F:apps/web/styles/design-system.css†L864-L1006】【F:apps/web/styles/design-system.css†L1007-L1056】
 
 ## 2. Workshop-plan med forretning og compliance
 
