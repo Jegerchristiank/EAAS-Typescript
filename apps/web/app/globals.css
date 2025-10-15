@@ -1,7 +1,7 @@
 /* Basisglobal CSS for neutral layout */
 :root {
   color-scheme: light;
-  font-family: system-ui, sans-serif;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
