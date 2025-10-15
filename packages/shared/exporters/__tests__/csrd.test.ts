@@ -47,6 +47,13 @@ describe('buildCsrdReportPackage', () => {
             conceptKey: 'E1TargetsNarrative',
             value: 'Scope 1 reduktion – mål 45 t i 2027',
           },
+          { conceptKey: 'E1EnergyConsumptionTotalKwh', value: 1_950_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyConsumptionRenewableKwh', value: 180_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyConsumptionNonRenewableKwh', value: 1_770_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyRenewableSharePercent', value: 9.2, unitId: 'percent', decimals: 1 },
+          { conceptKey: 'E1EnergyNonRenewableSharePercent', value: 90.8, unitId: 'percent', decimals: 1 },
+          { conceptKey: 'E1EnergyRenewableProductionKwh', value: 180_000, unitId: 'kWh', decimals: 0 },
+          { conceptKey: 'E1EnergyNonRenewableProductionKwh', value: 70_000, unitId: 'kWh', decimals: 0 },
         ],
         esrsTables: [
           {
@@ -61,6 +68,17 @@ describe('buildCsrdReportPackage', () => {
                 targetValueTonnes: 45,
                 status: 'lagging',
                 owner: 'Operations',
+              },
+            ],
+          },
+          {
+            conceptKey: 'E1EnergyMixTable',
+            rows: [
+              {
+                energyType: 'electricity',
+                consumptionKwh: 1_500_000,
+                sharePercent: 70,
+                documentationQualityPercent: 80,
               },
             ],
           },
@@ -145,6 +163,21 @@ describe('buildCsrdReportPackage', () => {
       fact.concept.endsWith('TargetsRelatedToClimateChangeMitigationAndAdaptationGHGEmissionsReductionTargetsTable'),
     )
     expect(targetsTableFact?.value).toContain('"scope":"scope1"')
+
+    const energyTotalFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith('EnergyConsumptionRelatedToOwnOperations'),
+    )
+    expect(energyTotalFact?.value).toBe('1950000')
+
+    const renewableShareFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith('PercentageOfRenewableSourcesInTotalEnergyConsumption'),
+    )
+    expect(renewableShareFact?.value).toBe('9.2')
+
+    const energyMixTableFact = pkg.facts.find((fact) =>
+      fact.concept.endsWith('DisclosureOfEnergyConsumptionAndMixTable'),
+    )
+    expect(energyMixTableFact?.value).toContain('"energyType":"electricity"')
 
     expect(pkg.contexts).toEqual(
       expect.arrayContaining([

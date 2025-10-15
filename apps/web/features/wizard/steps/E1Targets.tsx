@@ -13,6 +13,7 @@ import type {
   E1TargetStatus,
   E1TargetsInput,
   ModuleInput,
+  ModuleMetric,
   ModuleResult,
 } from '@org/shared'
 import {
@@ -226,6 +227,14 @@ export function E1TargetsStep({ state, onChange }: WizardStepProps): JSX.Element
     } as ModuleInput
     return runE1Targets(input)
   }, [currentContext, currentTargets])
+
+  const formatMetricValue = useCallback((metric: ModuleMetric) => {
+    const value = metric.value
+    const formatted =
+      value == null || (typeof value === 'number' && Number.isNaN(value)) ? '–' : value
+    const unit = metric.unit ? ` ${metric.unit}` : ''
+    return `${formatted}${unit}`
+  }, [])
 
   const handleTargetFieldChange = (
     index: number,
@@ -1222,6 +1231,35 @@ export function E1TargetsStep({ state, onChange }: WizardStepProps): JSX.Element
             ))}
           </ul>
         </div>
+        {preview.metrics && preview.metrics.length > 0 && (
+          <div className="ds-stack-sm">
+            <strong>Nøgletal</strong>
+            <ul>
+              {preview.metrics.map((metric, index) => (
+                <li key={index}>
+                  {metric.label}: {formatMetricValue(metric)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {preview.energyMix && preview.energyMix.length > 0 && (
+          <div className="ds-stack-sm">
+            <strong>Energimix</strong>
+            <ul>
+              {preview.energyMix.map((entry, index) => {
+                const label =
+                  ENERGY_MIX_OPTIONS.find((option) => option.value === entry.energyType)?.label ??
+                  entry.energyType
+                return (
+                  <li key={index}>
+                    {label}: {entry.sharePercent}% ({entry.consumptionKwh} kWh)
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
         {preview.plannedActions && preview.plannedActions.length > 0 && (
           <div className="ds-stack-sm">
             <strong>Planlagte handlinger</strong>

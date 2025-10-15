@@ -36,7 +36,9 @@ const b1Override = {
 const typeMap: Record<string, unknown> = {
   string: { type: 'string' },
   number: { type: 'number' },
-  object: { type: 'object' }
+  object: { type: 'object' },
+  array: { type: 'array' },
+  boolean: { type: 'boolean' }
 }
 
 const d1Override = {

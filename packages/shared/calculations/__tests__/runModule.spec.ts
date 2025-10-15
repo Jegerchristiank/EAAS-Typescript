@@ -1998,12 +1998,38 @@ describe('runE1Targets', () => {
     expect(result.targetsOverview).toBeDefined()
     expect(result.targetsOverview?.[0]).toMatchObject({ id: 'scope1-1', scope: 'scope1' })
     expect(result.plannedActions?.length).toBe(2)
+    expect(result.metrics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Samlet energiforbrug', value: 1_950_000 }),
+        expect.objectContaining({ label: 'Vedvarende energiandel', value: 9.2 }),
+        expect.objectContaining({ label: 'Ikke-vedvarende energiandel', value: 90.8 }),
+        expect.objectContaining({ label: 'Dokumentationskvalitet', value: 80 }),
+      ]),
+    )
+    expect(result.energyMix?.length).toBe(3)
+    expect(result.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'e1-energy-mix',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ energyType: 'Elektricitet', sharePercent: 70 }),
+          ]),
+        }),
+      ]),
+    )
     expect(result.trace).toEqual(expect.arrayContaining(['targets.onTrack=1', 'targets.lagging=1']))
     expect(result.warnings).toEqual([])
     expect(result.esrsFacts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ conceptKey: 'E1TargetsPresent', value: true }),
         expect.objectContaining({ conceptKey: 'E1TargetsNarrative', value: expect.stringContaining('Scope 1 reduktion') }),
+        expect.objectContaining({ conceptKey: 'E1EnergyConsumptionTotalKwh', value: 1_950_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyConsumptionRenewableKwh', value: 180_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyConsumptionNonRenewableKwh', value: 1_770_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyRenewableSharePercent', value: 9.2 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyNonRenewableSharePercent', value: 90.8 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyRenewableProductionKwh', value: 180_000 }),
+        expect.objectContaining({ conceptKey: 'E1EnergyNonRenewableProductionKwh', value: 70_000 }),
       ]),
     )
     expect(result.esrsTables).toEqual(
@@ -2012,6 +2038,12 @@ describe('runE1Targets', () => {
           conceptKey: 'E1TargetsTable',
           rows: expect.arrayContaining([
             expect.objectContaining({ scope: 'scope1', targetYear: 2027, status: 'lagging' }),
+          ]),
+        }),
+        expect.objectContaining({
+          conceptKey: 'E1EnergyMixTable',
+          rows: expect.arrayContaining([
+            expect.objectContaining({ energyType: 'electricity', consumptionKwh: 1_500_000 }),
           ]),
         }),
       ]),

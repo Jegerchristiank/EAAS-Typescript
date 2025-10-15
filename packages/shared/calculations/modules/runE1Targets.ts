@@ -4,6 +4,8 @@
 import type {
   E1ActionStatus,
   E1ActionLine,
+  E1ContextInput,
+  E1EnergyMixType,
   E1TargetLine,
   E1TargetMilestone,
   E1TargetScope,
@@ -13,7 +15,9 @@ import type {
   ModuleEsrsFact,
   ModuleEsrsTable,
   ModuleInput,
+  ModuleMetric,
   ModuleResult,
+  ModuleTable,
   ModuleTargetSummary,
 } from '../../types'
 
@@ -23,6 +27,7 @@ const VALID_ACTION_STATUS: ReadonlyArray<E1ActionStatus> = ['planned', 'inProgre
 
 export function runE1Targets(input: ModuleInput): ModuleResult {
   const raw = ((input.E1Targets ?? {}) as E1TargetsInput) || {}
+  const context = ((input.E1Context ?? {}) as E1ContextInput) || {}
   const assumptions = [
     'Målene anvendes til at vurdere ESRS E1-krav for reduktion og energistyring.',
     'Status beregnes ud fra angivet baseline, mål og subjektiv status, hvis tilgængelig.',
@@ -40,6 +45,62 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
   const sanitisedActions = actions
     .map((action, index) => normaliseAction(action, index, warnings, trace))
     .filter((action): action is ModuleActionItem => action !== null)
+
+  const energyMixEntries = normaliseEnergyMix(context.energyMixLines, trace)
+  const totalEnergyConsumptionKwh = resolveTotalEnergyConsumption(context, energyMixEntries, warnings, trace)
+  const renewableProductionKwh = toNonNegativeNumber(context.renewableEnergyProductionKwh)
+  const energyProductionKwh = toNonNegativeNumber(context.energyProductionKwh)
+
+  let renewableConsumptionKwh: number | null = renewableProductionKwh
+  if (totalEnergyConsumptionKwh != null && renewableConsumptionKwh != null) {
+    if (renewableConsumptionKwh > totalEnergyConsumptionKwh) {
+      warnings.push('Vedvarende egenproduktion overstiger totalforbrug. Afkortes til totalforbrug.')
+      renewableConsumptionKwh = totalEnergyConsumptionKwh
+    }
+  }
+
+  const nonRenewableConsumptionKwh =
+    totalEnergyConsumptionKwh != null && renewableConsumptionKwh != null
+      ? Math.max(totalEnergyConsumptionKwh - renewableConsumptionKwh, 0)
+      : null
+
+  const renewableSharePercent =
+    totalEnergyConsumptionKwh != null && totalEnergyConsumptionKwh > 0 && renewableConsumptionKwh != null
+      ? round((renewableConsumptionKwh / totalEnergyConsumptionKwh) * 100, 1)
+      : null
+  const nonRenewableSharePercent =
+    renewableSharePercent != null
+      ? round(Math.max(100 - renewableSharePercent, 0), 1)
+      : totalEnergyConsumptionKwh != null && totalEnergyConsumptionKwh > 0 && nonRenewableConsumptionKwh != null
+        ? round((nonRenewableConsumptionKwh / totalEnergyConsumptionKwh) * 100, 1)
+        : null
+
+  let nonRenewableProductionKwh: number | null = null
+  if (energyProductionKwh != null) {
+    if (renewableProductionKwh != null) {
+      nonRenewableProductionKwh = Math.max(energyProductionKwh - renewableProductionKwh, 0)
+    } else {
+      nonRenewableProductionKwh = energyProductionKwh
+    }
+  }
+
+  const documentationQualityPercent = calculateDocumentationQuality(energyMixEntries)
+
+  if (totalEnergyConsumptionKwh != null) {
+    trace.push(`energy.totalConsumptionKwh=${totalEnergyConsumptionKwh}`)
+  }
+  if (renewableSharePercent != null) {
+    trace.push(`energy.renewableSharePercent=${renewableSharePercent}`)
+  }
+  if (nonRenewableSharePercent != null) {
+    trace.push(`energy.nonRenewableSharePercent=${nonRenewableSharePercent}`)
+  }
+  if (documentationQualityPercent != null) {
+    trace.push(`energy.documentationQualityPercent=${documentationQualityPercent}`)
+  }
+  if (energyMixEntries.length > 0) {
+    trace.push(`energyMix.lines=${energyMixEntries.length}`)
+  }
 
   const value = sanitisedTargets.length
   const onTrackCount = sanitisedTargets.filter((target) => target.status === 'onTrack').length
@@ -117,9 +178,95 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
     })),
   ]
 
+  const metrics: ModuleMetric[] = []
+  if (totalEnergyConsumptionKwh != null) {
+    metrics.push({
+      label: 'Samlet energiforbrug',
+      value: round(totalEnergyConsumptionKwh, 0),
+      unit: 'kWh',
+    })
+  }
+  if (renewableSharePercent != null) {
+    metrics.push({
+      label: 'Vedvarende energiandel',
+      value: renewableSharePercent,
+      unit: '%',
+    })
+  }
+  if (nonRenewableSharePercent != null) {
+    metrics.push({
+      label: 'Ikke-vedvarende energiandel',
+      value: nonRenewableSharePercent,
+      unit: '%',
+    })
+  }
+  if (documentationQualityPercent != null) {
+    metrics.push({
+      label: 'Dokumentationskvalitet',
+      value: documentationQualityPercent,
+      unit: '%',
+    })
+  }
+
   const esrsFacts: ModuleEsrsFact[] = [
     { conceptKey: 'E1TargetsPresent', value: sanitisedTargets.length > 0 },
   ]
+  if (totalEnergyConsumptionKwh != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyConsumptionTotalKwh',
+      value: totalEnergyConsumptionKwh,
+      unitId: 'kWh',
+      decimals: 0,
+    })
+  }
+  if (renewableConsumptionKwh != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyConsumptionRenewableKwh',
+      value: renewableConsumptionKwh,
+      unitId: 'kWh',
+      decimals: 0,
+    })
+  }
+  if (nonRenewableConsumptionKwh != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyConsumptionNonRenewableKwh',
+      value: nonRenewableConsumptionKwh,
+      unitId: 'kWh',
+      decimals: 0,
+    })
+  }
+  if (renewableSharePercent != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyRenewableSharePercent',
+      value: renewableSharePercent,
+      unitId: 'percent',
+      decimals: 1,
+    })
+  }
+  if (nonRenewableSharePercent != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyNonRenewableSharePercent',
+      value: nonRenewableSharePercent,
+      unitId: 'percent',
+      decimals: 1,
+    })
+  }
+  if (renewableProductionKwh != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyRenewableProductionKwh',
+      value: renewableProductionKwh,
+      unitId: 'kWh',
+      decimals: 0,
+    })
+  }
+  if (nonRenewableProductionKwh != null) {
+    esrsFacts.push({
+      conceptKey: 'E1EnergyNonRenewableProductionKwh',
+      value: nonRenewableProductionKwh,
+      unitId: 'kWh',
+      decimals: 0,
+    })
+  }
 
   const targetNarrativeLines = [
     ...sanitisedTargets.map((target) => describeTarget(target)).filter((line): line is string => line !== null),
@@ -129,25 +276,64 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
     esrsFacts.push({ conceptKey: 'E1TargetsNarrative', value: targetNarrativeLines.join('\n') })
   }
 
-  const esrsTables: ModuleEsrsTable[] = sanitisedTargets.length
-    ? [
+  const esrsTables: ModuleEsrsTable[] = []
+  if (sanitisedTargets.length) {
+    esrsTables.push({
+      conceptKey: 'E1TargetsTable',
+      rows: sanitisedTargets.map((target) => ({
+        scope: target.scope,
+        name: target.name,
+        targetYear: target.targetYear ?? null,
+        targetValueTonnes: target.targetValueTonnes ?? null,
+        baselineYear: target.baselineYear ?? null,
+        baselineValueTonnes: target.baselineValueTonnes ?? null,
+        owner: target.owner ?? null,
+        status: target.status ?? null,
+        description: target.description ?? null,
+        milestones: formatMilestoneSummary(target.milestones),
+      })),
+    })
+  }
+  if (energyMixEntries.length) {
+    esrsTables.push({
+      conceptKey: 'E1EnergyMixTable',
+      rows: energyMixEntries.map((entry) => ({
+        energyType: entry.energyType,
+        consumptionKwh: entry.consumptionKwh,
+        sharePercent: entry.sharePercent,
+        documentationQualityPercent: entry.documentationQualityPercent,
+      })),
+    })
+  }
+
+  const moduleTables: ModuleTable[] = []
+  if (energyMixEntries.length) {
+    moduleTables.push({
+      id: 'e1-energy-mix',
+      title: 'Energimix',
+      summary:
+        totalEnergyConsumptionKwh != null
+          ? `Samlet energiforbrug: ${formatNumber(totalEnergyConsumptionKwh)} kWh`
+          : null,
+      columns: [
+        { key: 'energyType', label: 'Energitype' },
+        { key: 'consumptionKwh', label: 'Forbrug (kWh)', align: 'end' },
+        { key: 'sharePercent', label: 'Andel (%)', align: 'end', format: 'percent' },
         {
-          conceptKey: 'E1TargetsTable',
-          rows: sanitisedTargets.map((target) => ({
-            scope: target.scope,
-            name: target.name,
-            targetYear: target.targetYear ?? null,
-            targetValueTonnes: target.targetValueTonnes ?? null,
-            baselineYear: target.baselineYear ?? null,
-            baselineValueTonnes: target.baselineValueTonnes ?? null,
-            owner: target.owner ?? null,
-            status: target.status ?? null,
-            description: target.description ?? null,
-            milestones: formatMilestoneSummary(target.milestones),
-          })),
+          key: 'documentationQualityPercent',
+          label: 'Dokumentationskvalitet (%)',
+          align: 'end',
+          format: 'percent',
         },
-      ]
-    : []
+      ],
+      rows: energyMixEntries.map((entry) => ({
+        energyType: ENERGY_TYPE_LABELS[entry.energyType] ?? entry.energyType,
+        consumptionKwh: round(entry.consumptionKwh, 0),
+        sharePercent: entry.sharePercent,
+        documentationQualityPercent: entry.documentationQualityPercent,
+      })),
+    })
+  }
 
   return {
     value,
@@ -155,6 +341,9 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
     assumptions,
     trace,
     warnings,
+    ...(metrics.length ? { metrics } : {}),
+    ...(moduleTables.length ? { tables: moduleTables } : {}),
+    ...(energyMixEntries.length ? { energyMix: energyMixEntries } : {}),
     targetsOverview: sanitisedTargets,
     plannedActions: sanitisedActions,
     narratives,
@@ -163,6 +352,16 @@ export function runE1Targets(input: ModuleInput): ModuleResult {
     ...(esrsFacts.length ? { esrsFacts } : {}),
     ...(esrsTables.length ? { esrsTables } : {}),
   }
+}
+
+const ENERGY_TYPE_LABELS: Record<E1EnergyMixType, string> = {
+  electricity: 'Elektricitet',
+  districtHeat: 'Fjernvarme',
+  steam: 'Damp',
+  cooling: 'Køling',
+  biogas: 'Biogas',
+  diesel: 'Diesel',
+  other: 'Andet',
 }
 
 function describeTarget(target: ModuleTargetSummary): string | null {
@@ -232,6 +431,113 @@ function formatMilestoneSummary(milestones: ModuleTargetSummary['milestones']): 
   }
 
   return parts.join('; ')
+}
+
+function normaliseEnergyMix(
+  rawLines: E1ContextInput['energyMixLines'],
+  trace: string[],
+): Array<{
+  energyType: E1EnergyMixType
+  consumptionKwh: number
+  sharePercent: number
+  documentationQualityPercent: number | null
+}> {
+  const lines = Array.isArray(rawLines) ? rawLines : []
+  if (lines.length === 0) {
+    return []
+  }
+
+  const sanitised = lines
+    .map((line, index) => {
+      const rawType = line?.energyType as E1EnergyMixType | undefined
+      const energyType: E1EnergyMixType = isEnergyMixType(rawType) ? rawType : 'other'
+      const consumption = toNonNegativeNumber(line?.consumptionKwh)
+      const share = clampPercent(line?.sharePercent)
+      const documentationQualityPercent = clampPercent(line?.documentationQualityPercent)
+
+      if (consumption == null || consumption === 0) {
+        trace.push(`energyMix[${index}].consumption=0`)
+        return null
+      }
+
+      return {
+        energyType,
+        consumption,
+        share,
+        documentationQualityPercent,
+      }
+    })
+    .filter((entry): entry is { energyType: E1EnergyMixType; consumption: number; share: number | null; documentationQualityPercent: number | null } => entry !== null)
+
+  if (sanitised.length === 0) {
+    return []
+  }
+
+  const totalConsumption = sanitised.reduce((sum, entry) => sum + entry.consumption, 0)
+  if (totalConsumption === 0) {
+    return []
+  }
+
+  return sanitised.map((entry, index) => {
+    const defaultShare = round((entry.consumption / totalConsumption) * 100, 1)
+    const sharePercent = entry.share != null ? round(entry.share, 1) : defaultShare
+    trace.push(`energyMix[${index}].sharePercent=${sharePercent}`)
+    return {
+      energyType: entry.energyType,
+      consumptionKwh: entry.consumption,
+      sharePercent,
+      documentationQualityPercent: entry.documentationQualityPercent,
+    }
+  })
+}
+
+function resolveTotalEnergyConsumption(
+  context: E1ContextInput,
+  energyMix: Array<{ consumptionKwh: number }>,
+  warnings: string[],
+  trace: string[],
+): number | null {
+  const contextValue = toNonNegativeNumber(context.totalEnergyConsumptionKwh)
+  const mixSum = energyMix.reduce((sum, entry) => sum + entry.consumptionKwh, 0)
+
+  if (contextValue != null && mixSum > 0 && Math.abs(contextValue - mixSum) / Math.max(contextValue, 1) > 0.25) {
+    warnings.push('Energimix afviger væsentligt fra angivet totalforbrug. Vurder datakvaliteten.')
+  }
+
+  if (contextValue != null) {
+    return contextValue
+  }
+
+  if (mixSum > 0) {
+    trace.push('energy.totalFromMix=true')
+    return mixSum
+  }
+
+  return null
+}
+
+function calculateDocumentationQuality(
+  entries: Array<{ consumptionKwh: number; documentationQualityPercent: number | null }>,
+): number | null {
+  if (entries.length === 0) {
+    return null
+  }
+
+  let weightedSum = 0
+  let weight = 0
+  for (const entry of entries) {
+    if (entry.documentationQualityPercent == null) {
+      continue
+    }
+    weightedSum += entry.documentationQualityPercent * entry.consumptionKwh
+    weight += entry.consumptionKwh
+  }
+
+  if (weight === 0) {
+    return null
+  }
+
+  return round(weightedSum / weight, 1)
 }
 
 function normaliseTarget(
@@ -345,6 +651,18 @@ function isActionStatus(value: unknown): value is E1ActionStatus {
   return typeof value === 'string' && VALID_ACTION_STATUS.includes(value as E1ActionStatus)
 }
 
+function isEnergyMixType(value: unknown): value is E1EnergyMixType {
+  return (
+    value === 'electricity' ||
+    value === 'districtHeat' ||
+    value === 'steam' ||
+    value === 'cooling' ||
+    value === 'biogas' ||
+    value === 'diesel' ||
+    value === 'other'
+  )
+}
+
 function trimString(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null
@@ -382,4 +700,26 @@ function validateQuarter(value: unknown): string | null {
     return null
   }
   return `${match[1]}-Q${match[2]}`
+}
+
+function clampPercent(value: unknown): number | null {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return null
+  }
+  if (value < 0) {
+    return 0
+  }
+  if (value > 100) {
+    return 100
+  }
+  return value
+}
+
+function formatNumber(value: number): string {
+  return Number.isFinite(value) ? value.toLocaleString('da-DK') : String(value)
+}
+
+function round(value: number, precision: number): number {
+  const factor = 10 ** precision
+  return Math.round(value * factor) / factor
 }
