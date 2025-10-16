@@ -226,6 +226,12 @@ function WizardShellContent(): JSX.Element {
     }
   }, [isDesktopNavigation])
 
+  useEffect(() => {
+    if (isProfileOpen) {
+      setIsNavigationOpen(false)
+    }
+  }, [isProfileOpen])
+
   const handleOpenProfile = () => {
     setIsProfileOpen(true)
   }
@@ -300,6 +306,7 @@ function WizardShellContent(): JSX.Element {
               type="button"
               className="wizard-shell__nav-trigger"
               onClick={() => setIsNavigationOpen(true)}
+              disabled={isProfileOpen}
             >
               Moduloversigt
             </button>
@@ -330,33 +337,35 @@ function WizardShellContent(): JSX.Element {
         </div>
       </div>
 
-      <div className="wizard-shell__body">
-        <div className="wizard-shell__primary">
-          <div
-            className="wizard-shell__navigation"
-            ref={navigationRef}
-            data-open={navigationVisible ? 'true' : undefined}
-            data-desktop={isDesktopNavigation ? 'true' : undefined}
-            aria-hidden={navigationVisible ? undefined : 'true'}
-          >
-            <div className="wizard-shell__navigation-panel" data-testid="wizard-navigation">
-              {!isDesktopNavigation && (
-                <div className="wizard-shell__navigation-header">
-                  <h2 className="ds-heading-sm">Modulnavigation</h2>
-                  <button type="button" onClick={() => setIsNavigationOpen(false)}>
-                    Luk
-                  </button>
-                </div>
-              )}
-              <WizardOverview
-                steps={wizardSteps}
-                currentStep={currentStep}
-                onSelect={handleSelectStep}
-                profile={profile}
-                profileComplete={profileComplete}
-              />
+      <div className="wizard-shell__body" data-profile-open={isProfileOpen ? 'true' : undefined}>
+        <div className="wizard-shell__primary" data-profile-open={isProfileOpen ? 'true' : undefined}>
+          {!isProfileOpen && (
+            <div
+              className="wizard-shell__navigation"
+              ref={navigationRef}
+              data-open={navigationVisible ? 'true' : undefined}
+              data-desktop={isDesktopNavigation ? 'true' : undefined}
+              aria-hidden={navigationVisible ? undefined : 'true'}
+            >
+              <div className="wizard-shell__navigation-panel" data-testid="wizard-navigation">
+                {!isDesktopNavigation && (
+                  <div className="wizard-shell__navigation-header">
+                    <h2 className="ds-heading-sm">Modulnavigation</h2>
+                    <button type="button" onClick={() => setIsNavigationOpen(false)}>
+                      Luk
+                    </button>
+                  </div>
+                )}
+                <WizardOverview
+                  steps={wizardSteps}
+                  currentStep={currentStep}
+                  onSelect={handleSelectStep}
+                  profile={profile}
+                  profileComplete={profileComplete}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="wizard-shell__module">
             <section className="wizard-shell__module-content" aria-live="polite">
@@ -396,7 +405,13 @@ function WizardShellContent(): JSX.Element {
           </div>
         </div>
 
-        <aside className="wizard-shell__secondary" aria-label="Status for virksomhedsprofil">
+        <aside
+          className="wizard-shell__secondary"
+          aria-label="Status for virksomhedsprofil"
+          data-profile-open={isProfileOpen ? 'true' : undefined}
+          hidden={isProfileOpen ? true : undefined}
+          aria-hidden={isProfileOpen ? 'true' : undefined}
+        >
           <section className="wizard-summary-panel">
             <header className="wizard-summary-panel__header">
               <div>

@@ -2,14 +2,19 @@
 
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  type MutableRefObject,
-  type SyntheticEvent,
 } from 'react'
 
-import { isProfileComplete, type WizardProfile, type WizardProfileKey, wizardProfileSections } from './profile'
+import {
+  countAnsweredQuestions,
+  isProfileComplete,
+  type WizardProfile,
+  type WizardProfileKey,
+  wizardProfileSections,
+} from './profile'
 import { PrimaryButton } from '../../../components/ui/PrimaryButton'
 
 type PreWizardQuestionnaireProps = {
@@ -18,58 +23,160 @@ type PreWizardQuestionnaireProps = {
   onContinue: () => void
 }
 
-type SectionRefs = MutableRefObject<Record<string, HTMLDetailsElement | null>>
+type SectionStatus = 'not-started' | 'in-progress' | 'complete'
+
+type SectionProgress = {
+  id: string
+  heading: string
+  summaryHint: string
+  total: number
+  answered: number
+  status: SectionStatus
+}
+
+type UnansweredPointer = {
+  sectionId: string
+  questionId: WizardProfileKey
+  label: string
+}
+
+const statusLabels: Record<SectionStatus, string> = {
+  'not-started': 'Ikke startet',
+  'in-progress': 'I gang',
+  complete: 'Færdig',
+}
+
+function resolveStatus(answered: number, total: number): SectionStatus {
+  if (answered === 0) {
+    return 'not-started'
+  }
+  if (answered >= total) {
+    return 'complete'
+  }
+  return 'in-progress'
+}
+
+function findSection(sectionId: string | null) {
+  if (!sectionId) {
+    return undefined
+  }
+  return wizardProfileSections.find((section) => section.id === sectionId)
+}
 
 export function PreWizardQuestionnaire({ profile, onChange, onContinue }: PreWizardQuestionnaireProps): JSX.Element {
   const initialSectionId = wizardProfileSections[0]?.id ?? null
-  const [openSectionId, setOpenSectionId] = useState<string | null>(initialSectionId)
-  const sectionRefs = useRef<Record<string, HTMLDetailsElement | null>>({}) as SectionRefs
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(initialSectionId)
+  const [statusMessage, setStatusMessage] = useState('')
+
+  const firstInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const headingRefs = useRef<Record<string, HTMLHeadingElement | null>>({})
 
   const profileComplete = useMemo(() => isProfileComplete(profile), [profile])
-  const currentSectionIndex = useMemo(() => {
-    if (!openSectionId) {
+  const totalQuestions = useMemo(() => {
+    return wizardProfileSections.reduce((count, section) => count + section.questions.length, 0)
+  }, [])
+  const answeredQuestions = useMemo(() => countAnsweredQuestions(profile), [profile])
+  const progressPercent = totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100)
+
+  const activeSectionIndex = useMemo(() => {
+    if (!activeSectionId) {
       return -1
     }
-    return wizardProfileSections.findIndex((section) => section.id === openSectionId)
-  }, [openSectionId])
-  const isLastSectionOpen = currentSectionIndex === wizardProfileSections.length - 1
+    return wizardProfileSections.findIndex((section) => section.id === activeSectionId)
+  }, [activeSectionId])
+  const activeSection = useMemo(() => findSection(activeSectionId) ?? null, [activeSectionId])
 
-  const scrollToSection = useCallback(
-    (sectionId: string | null) => {
-      if (!sectionId) {
+  const sectionProgress = useMemo<SectionProgress[]>(() => {
+    return wizardProfileSections.map((section) => {
+      const total = section.questions.length
+      const answered = section.questions.reduce((count, question) => {
+        return profile[question.id] !== null ? count + 1 : count
+      }, 0)
+
+      return {
+        id: section.id,
+        heading: section.heading,
+        summaryHint: section.summaryHint,
+        total,
+        answered,
+        status: resolveStatus(answered, total),
+      }
+    })
+  }, [profile])
+
+  const unansweredSummary = useMemo<UnansweredPointer[]>(() => {
+    return wizardProfileSections.flatMap((section) => {
+      return section.questions
+        .filter((question) => profile[question.id] === null)
+        .map((question) => ({
+          sectionId: section.id,
+          questionId: question.id,
+          label: question.label,
+        }))
+    })
+  }, [profile])
+
+  useEffect(() => {
+    if (!activeSectionId) {
+      return
+    }
+    const targetInput = firstInputRefs.current[activeSectionId]
+    if (targetInput) {
+      targetInput.focus({ preventScroll: true })
+      return
+    }
+    const heading = headingRefs.current[activeSectionId]
+    heading?.focus({ preventScroll: true })
+  }, [activeSectionId])
+
+  const activateSection = useCallback((sectionId: string | null) => {
+    if (!sectionId) {
+      return
+    }
+    setActiveSectionId(sectionId)
+    const section = findSection(sectionId)
+    if (section) {
+      setStatusMessage(`${section.heading} er nu aktivt.`)
+    }
+  }, [])
+
+  const handleAnswer = useCallback(
+    (sectionId: string, questionId: WizardProfileKey, label: string, value: boolean | null) => {
+      onChange(questionId, value)
+      if (value === null) {
+        setStatusMessage(`${label} er nulstillet.`)
         return
       }
-      const element = sectionRefs.current[sectionId]
-      if (element) {
-        window.requestAnimationFrame(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          element.focus({ preventScroll: true })
-        })
+      const answerLabel = value ? 'Ja' : 'Nej'
+      setStatusMessage(`${label} markeret som ${answerLabel}.`)
+      activateSection(sectionId)
+    },
+    [activateSection, onChange]
+  )
+
+  const handlePrevious = useCallback(() => {
+    if (activeSectionIndex === -1 && initialSectionId) {
+      activateSection(initialSectionId)
+      return
+    }
+    if (activeSectionIndex > 0) {
+      const previousSection = wizardProfileSections[activeSectionIndex - 1]
+      if (previousSection) {
+        activateSection(previousSection.id)
       }
-    },
-    []
-  )
+    }
+  }, [activateSection, activeSectionIndex, initialSectionId])
 
-  const handleSectionToggle = useCallback(
-    (sectionId: string) => (event: SyntheticEvent<HTMLDetailsElement>) => {
-      const isOpen = event.currentTarget.open
-      setOpenSectionId(isOpen ? sectionId : null)
-    },
-    []
-  )
-
-  const handleContinue = useCallback(() => {
-    if (currentSectionIndex === -1 && initialSectionId) {
-      setOpenSectionId(initialSectionId)
-      scrollToSection(initialSectionId)
+  const handleNext = useCallback(() => {
+    if (activeSectionIndex === -1 && initialSectionId) {
+      activateSection(initialSectionId)
       return
     }
 
-    if (currentSectionIndex < wizardProfileSections.length - 1) {
-      const nextSection = wizardProfileSections[currentSectionIndex + 1]
+    if (activeSectionIndex < wizardProfileSections.length - 1) {
+      const nextSection = wizardProfileSections[activeSectionIndex + 1]
       if (nextSection) {
-        setOpenSectionId(nextSection.id)
-        scrollToSection(nextSection.id)
+        activateSection(nextSection.id)
       }
       return
     }
@@ -79,122 +186,242 @@ export function PreWizardQuestionnaire({ profile, onChange, onContinue }: PreWiz
         section.questions.some((question) => profile[question.id] === null)
       )
       if (nextIncomplete) {
-        setOpenSectionId(nextIncomplete.id)
-        scrollToSection(nextIncomplete.id)
+        activateSection(nextIncomplete.id)
+        return
       }
-      return
     }
 
+    setStatusMessage('Virksomhedsprofilen er udfyldt. Fortsætter til næste trin.')
     onContinue()
-  }, [
-    currentSectionIndex,
-    initialSectionId,
-    onContinue,
-    profile,
-    profileComplete,
-    scrollToSection,
-  ])
+  }, [activateSection, activeSectionIndex, initialSectionId, onContinue, profile, profileComplete])
 
-  const continueLabel = isLastSectionOpen ? 'Fortsæt til moduler' : 'Næste sektion'
+  const nextLabel = useMemo(() => {
+    if (activeSectionIndex === -1) {
+      return 'Start profil'
+    }
+    if (profileComplete) {
+      return activeSectionIndex === wizardProfileSections.length - 1
+        ? 'Fortsæt til moduler'
+        : 'Næste sektion'
+    }
+    return activeSectionIndex === wizardProfileSections.length - 1
+      ? 'Find næste ubesvarede'
+      : 'Næste sektion'
+  }, [activeSectionIndex, profileComplete])
+
+  const activeSectionProgress = sectionProgress.find((section) => section.id === activeSection?.id)
 
   return (
-    <section className="ds-stack" aria-labelledby="wizard-profile-heading">
-      <header className="ds-stack-sm">
-        <p className="ds-text-subtle">Trin 0 · Virksomhedsprofil</p>
-        <h1 id="wizard-profile-heading" className="ds-heading-lg">
-          Afgræns ESG-modulerne til din virksomheds aktiviteter
-        </h1>
-        <p className="ds-text-muted">
-          Besvar spørgsmålene nedenfor for hurtigt at vælge de områder, der er relevante for jeres ESG-beregninger.
-          Svar kan altid justeres senere via “Rediger profil”.
-        </p>
-      </header>
-
-      <div className="ds-stack-lg" role="list">
-        {wizardProfileSections.map((section) => {
-          const isOpen = openSectionId === section.id
-          return (
-            <details
-              key={section.id}
-              className="ds-accordion"
-              role="listitem"
-              open={isOpen}
-              onToggle={handleSectionToggle(section.id)}
-              ref={(node) => {
-                sectionRefs.current[section.id] = node
-              }}
-              tabIndex={-1}
-              data-active={isOpen ? 'true' : undefined}
+    <section className="ds-questionnaire" aria-labelledby="wizard-profile-heading">
+      <div
+        className="ds-questionnaire__primary ds-stack-lg"
+        role="region"
+        aria-labelledby="wizard-profile-heading"
+      >
+        <header className="wizard-questionnaire__intro ds-stack-sm">
+          <p className="ds-text-subtle">Trin 0 · Virksomhedsprofil</p>
+          <h1 id="wizard-profile-heading" className="ds-heading-lg">
+            Afgræns ESG-modulerne til din virksomheds aktiviteter
+          </h1>
+          <p className="ds-text-muted">
+            Svar på spørgsmålene ét område ad gangen. Du kan altid ændre svarene senere under “Rediger profil”.
+          </p>
+          <div className="ds-stack-xs" aria-live="off">
+            <div
+              className="ds-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuenow={answeredQuestions}
+              aria-valuemax={totalQuestions}
+              aria-valuetext={`${progressPercent}% fuldført`}
             >
-              <summary className="ds-accordion__summary">
-                <div className="ds-stack-sm">
-                  <h2 className="ds-section-heading">{section.heading}</h2>
-                  <p className="ds-text-subtle">{section.description}</p>
-                </div>
-                <span aria-hidden>▾</span>
-              </summary>
-              <div className="ds-stack">
-                {section.questions.map((question) => {
-                  const value = profile[question.id]
-                  const yesId = `${section.id}-${question.id}-yes`
-                  const noId = `${section.id}-${question.id}-no`
+              <div className="ds-progress__bar" style={{ width: `${progressPercent}%` }} />
+            </div>
+            <p className="ds-text-subtle">
+              {answeredQuestions}/{totalQuestions} spørgsmål besvaret
+            </p>
+          </div>
+        </header>
 
-                  return (
-                    <article key={question.id} className="ds-card ds-question-card">
-                      <div className="ds-stack-sm">
-                        <div className="ds-question-card__header">
-                          <h3 className="ds-heading-sm">{question.label}</h3>
-                          <PrimaryButton
-                            variant="ghost"
-                            className="ds-button--sm"
-                            onClick={() => onChange(question.id, null)}
-                            disabled={value === null}
-                          >
-                            Spring over
-                          </PrimaryButton>
-                        </div>
-                        <p className="ds-text-subtle">{question.helpText}</p>
-                      </div>
-                      <fieldset className="ds-choice-group">
-                        <legend className="sr-only">{question.label}</legend>
-                        <label className="ds-choice" data-selected={value === true ? 'true' : undefined} htmlFor={yesId}>
-                          <input
-                            type="radio"
-                            id={yesId}
-                            name={question.id}
-                            checked={value === true}
-                            onChange={() => onChange(question.id, true)}
-                          />
-                          <span>Ja</span>
-                        </label>
-                        <label className="ds-choice" data-selected={value === false ? 'true' : undefined} htmlFor={noId}>
-                          <input
-                            type="radio"
-                            id={noId}
-                            name={question.id}
-                            checked={value === false}
-                            onChange={() => onChange(question.id, false)}
-                          />
-                          <span>Nej</span>
-                        </label>
-                      </fieldset>
-                    </article>
-                  )
-                })}
-              </div>
-            </details>
-          )
-        })}
+        {activeSection ? (
+          <article
+            className="ds-stack"
+            aria-labelledby={`${activeSection.id}-heading`}
+            aria-describedby={`${activeSection.id}-hint`}
+          >
+            <header className="ds-stack-xs">
+              <h2
+                id={`${activeSection.id}-heading`}
+                className="ds-heading-md"
+                tabIndex={-1}
+                ref={(node) => {
+                  headingRefs.current[activeSection.id] = node
+                }}
+              >
+                {activeSection.heading}
+              </h2>
+              <p id={`${activeSection.id}-hint`} className="ds-text-muted">
+                {activeSection.description}
+              </p>
+              {activeSectionProgress && (
+                <p className="ds-text-subtle">
+                  {activeSectionProgress.answered}/{activeSectionProgress.total} besvaret i denne sektion
+                </p>
+              )}
+            </header>
+
+            <div
+              className="wizard-questionnaire__questions ds-stack"
+              role="group"
+              aria-label="Spørgsmål i aktiv sektion"
+            >
+              {activeSection.questions.map((question, questionIndex) => {
+                const value = profile[question.id]
+                const yesId = `${activeSection.id}-${question.id}-yes`
+                const noId = `${activeSection.id}-${question.id}-no`
+                const isFirstQuestion = questionIndex === 0
+
+                return (
+                  <fieldset key={question.id} className="wizard-question">
+                    <legend className="wizard-question__legend">
+                      <span className="wizard-question__title">{question.label}</span>
+                      <button
+                        type="button"
+                        className="ds-icon-button wizard-question__reset"
+                        onClick={() => handleAnswer(activeSection.id, question.id, question.label, null)}
+                        disabled={value === null}
+                        aria-label={`Nulstil svaret for ${question.label}`}
+                        title="Nulstil svar"
+                      >
+                        <span aria-hidden>⟲</span>
+                        <span className="sr-only">Nulstil svar</span>
+                      </button>
+                    </legend>
+                    <p className="wizard-question__help">{question.helpText}</p>
+                    <div className="wizard-question__choices ds-choice-group">
+                      <label className="ds-choice" data-selected={value === true ? 'true' : undefined} htmlFor={yesId}>
+                        <input
+                          type="radio"
+                          id={yesId}
+                          name={question.id}
+                          checked={value === true}
+                          onChange={() => handleAnswer(activeSection.id, question.id, question.label, true)}
+                          ref={(node) => {
+                            if (isFirstQuestion) {
+                              firstInputRefs.current[activeSection.id] = node
+                            }
+                          }}
+                        />
+                        <span>Ja</span>
+                      </label>
+                      <label className="ds-choice" data-selected={value === false ? 'true' : undefined} htmlFor={noId}>
+                        <input
+                          type="radio"
+                          id={noId}
+                          name={question.id}
+                          checked={value === false}
+                          onChange={() => handleAnswer(activeSection.id, question.id, question.label, false)}
+                        />
+                        <span>Nej</span>
+                      </label>
+                    </div>
+                  </fieldset>
+                )
+              })}
+            </div>
+          </article>
+        ) : (
+          <p className="ds-text-muted">Ingen sektioner tilgængelige.</p>
+        )}
+
+        <footer className="wizard-questionnaire__footer" aria-label="Navigationskontrol for virksomhedsprofilen">
+          <div className="wizard-questionnaire__actions">
+            <PrimaryButton
+              variant="ghost"
+              className="ds-button--sm"
+              onClick={handlePrevious}
+              disabled={activeSectionIndex <= 0}
+            >
+              Tilbage
+            </PrimaryButton>
+            <PrimaryButton onClick={handleNext}>{nextLabel}</PrimaryButton>
+          </div>
+          {!profileComplete && (
+            <p className="ds-text-subtle" role="status">
+              Besvar de resterende spørgsmål eller vælg et element i oversigten for at fortsætte.
+            </p>
+          )}
+        </footer>
+
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {statusMessage || 'Statusopdateringer vises her.'}
+        </div>
       </div>
 
-      <footer className="ds-stack" aria-label="Navigationskontrol for virksomhedsprofilen">
-        <PrimaryButton onClick={handleContinue}>{continueLabel}</PrimaryButton>
-        {!profileComplete && isLastSectionOpen && (
-          <p className="ds-text-subtle" role="status">
-            Besvar de resterende spørgsmål for at fortsætte til modulerne.
-          </p>
-        )}
-      </footer>
+      <aside className="ds-questionnaire__summary" aria-label="Statuspanel for virksomhedsprofilen">
+        <section className="ds-stack-sm">
+          <h2 className="ds-heading-sm">Sektioner</h2>
+          <p className="ds-text-subtle">Få overblik over fremskridt og hop direkte til en sektion.</p>
+          <ol className="ds-stepper" role="list">
+            {sectionProgress.map((section) => {
+              const isActive = section.id === activeSectionId
+              return (
+                <li
+                  key={section.id}
+                  className="ds-stepper__step"
+                  data-status={section.status}
+                  data-active={isActive ? 'true' : undefined}
+                >
+                  <button
+                    type="button"
+                    className="ds-stepper__trigger"
+                    onClick={() => activateSection(section.id)}
+                    aria-current={isActive ? 'step' : undefined}
+                  >
+                    <div className="ds-stepper__header">
+                      <span className="ds-stepper__label">{section.heading}</span>
+                      <span className="ds-stepper__status">{statusLabels[section.status]}</span>
+                    </div>
+                    <p className="ds-stepper__meta">
+                      {section.answered}/{section.total} besvaret · {section.summaryHint}
+                    </p>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </section>
+
+        <section className="ds-stack-sm">
+          <h2 className="ds-heading-sm">Ubesvarede spørgsmål</h2>
+          <p className="ds-text-subtle">Spring til det næste spørgsmål der mangler et svar.</p>
+          {unansweredSummary.length === 0 ? (
+            <p className="ds-text-muted">Alle spørgsmål er besvaret.</p>
+          ) : (
+            <ul className="wizard-unanswered-list">
+              {unansweredSummary.map((item) => {
+                const section = findSection(item.sectionId)
+                const isActive = item.sectionId === activeSectionId
+                return (
+                  <li key={`${item.sectionId}-${item.questionId}`}>
+                    <button
+                      type="button"
+                      className="wizard-unanswered-button"
+                      data-active={isActive ? 'true' : undefined}
+                      onClick={() => activateSection(item.sectionId)}
+                    >
+                      <span className="wizard-unanswered-label">{item.label}</span>
+                      {section ? (
+                        <span className="wizard-unanswered-meta">{section.heading}</span>
+                      ) : null}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+      </aside>
     </section>
   )
 }
