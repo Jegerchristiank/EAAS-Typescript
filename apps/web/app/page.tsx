@@ -56,8 +56,10 @@ function LandingContent(): JSX.Element {
             flowet. Dine valg gemmes automatisk og kan altid justeres i wizardens venstre kolonne.
           </p>
           <div className="ds-cluster">
-            <PrimaryButton onClick={handleCreateProfile}>Ny profil</PrimaryButton>
-            <PrimaryButton onClick={handleOpenLatestProfile} disabled={!latestProfile}>
+            <PrimaryButton size="lg" onClick={handleCreateProfile}>
+              Ny profil
+            </PrimaryButton>
+            <PrimaryButton size="lg" variant="secondary" onClick={handleOpenLatestProfile} disabled={!latestProfile}>
               Åbn seneste profil
             </PrimaryButton>
           </div>

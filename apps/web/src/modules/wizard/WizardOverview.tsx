@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 
 import { isModuleRelevant, type WizardProfile } from './profile'
+import { WizardSegmentedControl } from '../../../features/wizard/components/WizardSegmentedControl'
 
 import type { WizardScope, WizardStep } from '../../../features/wizard/steps'
 
@@ -58,6 +59,8 @@ export function WizardOverview({
       ? `${relevantCount} moduler markeret som relevante.`
       : 'Ingen moduler markeret som relevante endnu.'
 
+  const activeStepId = steps[currentStep]?.id ?? null
+
   const handleSelect = (stepId: WizardStep['id']) => {
     const index = steps.findIndex((candidate) => candidate.id === stepId)
     if (index !== -1) {
@@ -78,32 +81,13 @@ export function WizardOverview({
             {relevantGroups.map((group) => (
               <section key={group.scope} className="ds-stack-xs">
                 <p className="ds-text-subtle">{group.scope}</p>
-                <div className="ds-pill-group" role="tablist" aria-label={`Relevante moduler i ${group.scope}`}>
-                  {group.steps.map((step) => {
-                    const index = steps.findIndex((candidate) => candidate.id === step.id)
-                    const isActive = index === currentStep
-                    const isDisabled = !profileComplete
-
-                    return (
-                      <button
-                        key={step.id}
-                        type="button"
-                        className="ds-pill"
-                        data-active={isActive ? 'true' : undefined}
-                        onClick={() => handleSelect(step.id)}
-                        aria-pressed={isActive}
-                        disabled={isDisabled}
-                        title={
-                          !profileComplete
-                            ? 'Afslut virksomhedsprofilen for at aktivere modulet.'
-                            : undefined
-                        }
-                      >
-                        <span>{step.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+                <WizardSegmentedControl
+                  scope={group.scope}
+                  steps={group.steps}
+                  activeStepId={activeStepId}
+                  onSelect={handleSelect}
+                  profileComplete={profileComplete}
+                />
               </section>
             ))}
           </div>

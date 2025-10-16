@@ -222,19 +222,19 @@ function ReviewContent(): JSX.Element {
       )}
 
       <section className="ds-toolbar">
-        <PrimaryButton onClick={handleDownloadPdf} disabled={!hasPrintableResults}>
+        <PrimaryButton size="sm" onClick={handleDownloadPdf} disabled={!hasPrintableResults}>
           Download PDF
         </PrimaryButton>
-        <PrimaryButton onClick={handleDownloadCsrd} disabled={!hasPrintableResults}>
+        <PrimaryButton size="sm" variant="secondary" onClick={handleDownloadCsrd} disabled={!hasPrintableResults}>
           Download CSRD-pakke
         </PrimaryButton>
-        <PrimaryButton onClick={handleDownloadXbrl} disabled={!hasPrintableResults}>
+        <PrimaryButton size="sm" variant="secondary" onClick={handleDownloadXbrl} disabled={!hasPrintableResults}>
           Download XBRL
         </PrimaryButton>
-        <PrimaryButton onClick={handleSubmit} disabled={!hasPrintableResults} variant="ghost">
+        <PrimaryButton size="sm" variant="danger" onClick={handleSubmit} disabled={!hasPrintableResults}>
           Send til myndighed
         </PrimaryButton>
-        <PrimaryButton as={Link} href="/wizard" variant="ghost">
+        <PrimaryButton as={Link} href="/wizard" variant="link" size="sm">
           Tilbage til wizard
         </PrimaryButton>
       </section>
@@ -714,7 +714,7 @@ function EmptyStateCard({
         Start med at udfylde {recommendedStepLabel ?? 'det næste relevante modul'} i wizard-flowet. Når du har gennemført
         mindst ét modul, viser review-siden resultater og PDF-preview for profilen.
       </p>
-      <PrimaryButton as={Link} href="/wizard">
+      <PrimaryButton as={Link} href="/wizard" size="md">
         Gå til wizard
       </PrimaryButton>
     </section>

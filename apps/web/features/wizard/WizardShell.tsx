@@ -25,6 +25,7 @@ import { ProfileSwitcher } from './ProfileSwitcher'
 import { NextRelevantButton } from './NextRelevantButton'
 import { wizardSteps, type WizardScope } from './steps'
 import { WizardProvider, useWizardContext } from './useWizard'
+import { WizardNavigationIconButton } from './components/WizardNavigationIconButton'
 
 const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance']
 
@@ -310,7 +311,12 @@ function WizardShellContent(): JSX.Element {
             >
               Moduloversigt
             </button>
-            <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
+            <PrimaryButton
+              variant="secondary"
+              size="sm"
+              onClick={handleOpenProfile}
+              disabled={isProfileOpen}
+            >
               Rediger profil
             </PrimaryButton>
           </div>
@@ -351,9 +357,12 @@ function WizardShellContent(): JSX.Element {
                 {!isDesktopNavigation && (
                   <div className="wizard-shell__navigation-header">
                     <h2 className="ds-heading-sm">Modulnavigation</h2>
-                    <button type="button" onClick={() => setIsNavigationOpen(false)}>
-                      Luk
-                    </button>
+                    <WizardNavigationIconButton
+                      icon={<CloseIcon />}
+                      label="Luk navigation"
+                      onClick={() => setIsNavigationOpen(false)}
+                      className="wizard-shell__navigation-close"
+                    />
                   </div>
                 )}
                 <WizardOverview
@@ -389,13 +398,15 @@ function WizardShellContent(): JSX.Element {
                   <PrimaryButton
                     onClick={() => goToStep(Math.max(0, currentStep - 1))}
                     disabled={currentStep === 0}
-                    variant="ghost"
+                    variant="secondary"
+                    size="sm"
                   >
                     Forrige trin
                   </PrimaryButton>
                   <PrimaryButton
                     onClick={() => goToStep(Math.min(wizardSteps.length - 1, currentStep + 1))}
                     disabled={currentStep === wizardSteps.length - 1}
+                    size="sm"
                   >
                     Næste trin
                   </PrimaryButton>
@@ -418,7 +429,12 @@ function WizardShellContent(): JSX.Element {
                 <p className="ds-text-subtle">Virksomhedsprofil</p>
                 <h2 className="ds-heading-sm">Status og anbefalinger</h2>
               </div>
-              <PrimaryButton variant="ghost" onClick={handleOpenProfile} disabled={isProfileOpen}>
+              <PrimaryButton
+                variant="secondary"
+                size="sm"
+                onClick={handleOpenProfile}
+                disabled={isProfileOpen}
+              >
                 Rediger profil
               </PrimaryButton>
             </header>
@@ -481,5 +497,14 @@ function WizardShellContent(): JSX.Element {
         </aside>
       </div>
     </section>
+  )
+}
+
+function CloseIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M5 5l10 10" />
+      <path d="M15 5l-10 10" />
+    </svg>
   )
 }

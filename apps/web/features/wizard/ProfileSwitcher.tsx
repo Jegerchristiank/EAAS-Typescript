@@ -187,7 +187,7 @@ export function ProfileSwitcher({
             {description && <p className="ds-text-subtle">{description}</p>}
           </div>
           {showCreateButton && (
-            <PrimaryButton className="ds-button--sm" onClick={handleCreate}>
+            <PrimaryButton size="sm" onClick={handleCreate}>
               Ny profil
             </PrimaryButton>
           )}
@@ -256,7 +256,7 @@ export function ProfileSwitcher({
                 </td>
                 <td className="ds-profile-table__actions">
                   <PrimaryButton
-                    className="ds-button--sm"
+                    size="sm"
                     onClick={() => switchProfile(entry.profile.id)}
                     disabled={entry.isActive}
                   >
@@ -311,7 +311,7 @@ export function ProfileSwitcher({
 
             <div className="ds-profile-card__actions">
               <PrimaryButton
-                className="ds-button--sm"
+                size="sm"
                 onClick={() => switchProfile(entry.profile.id)}
                 disabled={entry.isActive}
               >

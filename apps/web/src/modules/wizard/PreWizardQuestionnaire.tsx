@@ -337,14 +337,16 @@ export function PreWizardQuestionnaire({ profile, onChange, onContinue }: PreWiz
         <footer className="wizard-questionnaire__footer" aria-label="Navigationskontrol for virksomhedsprofilen">
           <div className="wizard-questionnaire__actions">
             <PrimaryButton
-              variant="ghost"
-              className="ds-button--sm"
+              variant="secondary"
+              size="sm"
               onClick={handlePrevious}
               disabled={activeSectionIndex <= 0}
             >
               Tilbage
             </PrimaryButton>
-            <PrimaryButton onClick={handleNext}>{nextLabel}</PrimaryButton>
+            <PrimaryButton size="sm" onClick={handleNext}>
+              {nextLabel}
+            </PrimaryButton>
           </div>
           {!profileComplete && (
             <p className="ds-text-subtle" role="status">

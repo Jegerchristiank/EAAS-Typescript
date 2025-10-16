@@ -49,7 +49,7 @@ export function NextRelevantButton({ className }: NextRelevantButtonProps): JSX.
 
   return (
     <div className={['ds-next-relevant', className].filter(Boolean).join(' ')}>
-      <PrimaryButton variant="ghost" onClick={handleClick}>
+      <PrimaryButton variant="secondary" size="sm" onClick={handleClick}>
         Næste relevante modul: {nextRelevant.step.label}
       </PrimaryButton>
     </div>
