@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import type {
+  PersistedWizardProfile,
+  PersistedWizardStorage,
+  WizardPersistenceSnapshot,
+} from '@org/shared/wizard/persistence'
 
 const PROFILE_KEYS = [
   'hasVehicles',
@@ -53,9 +58,12 @@ const PROFILE_KEYS = [
   'hasRemovalProjects',
 ] as const
 
-const COMPLETED_PROFILE = Object.fromEntries(PROFILE_KEYS.map((key) => [key, true])) as Record<string, boolean>
+const COMPLETED_PROFILE = PROFILE_KEYS.reduce<PersistedWizardProfile['profile']>((acc, key) => {
+  acc[key] = true
+  return acc
+}, {} as PersistedWizardProfile['profile'])
 
-const COMPLETED_STORAGE = {
+const COMPLETED_STORAGE: PersistedWizardStorage = {
   activeProfileId: 'e2e-profile',
   profiles: {
     'e2e-profile': {
@@ -72,12 +80,7 @@ const COMPLETED_STORAGE = {
   },
 }
 
-type SnapshotPayload = {
-  storage: typeof COMPLETED_STORAGE
-  auditLog: unknown[]
-  permissions: { canEdit: boolean; canPublish: boolean }
-  user: { id: string; roles: string[] }
-}
+type SnapshotPayload = WizardPersistenceSnapshot
 
 const DEFAULT_SNAPSHOT: SnapshotPayload = {
   storage: COMPLETED_STORAGE,
@@ -88,7 +91,7 @@ const DEFAULT_SNAPSHOT: SnapshotPayload = {
 
 const EXPECTED_SCOPE_LABELS = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance'] as const
 
-const MULTI_PROFILE_STORAGE = {
+const MULTI_PROFILE_STORAGE: PersistedWizardStorage = {
   activeProfileId: 'profile-nordic',
   profiles: {
     'profile-nordic': createProfileEntry('profile-nordic', 'Nordic Industri', 1_700_000_900_000),
@@ -128,19 +131,29 @@ const MULTI_PROFILE_STORAGE = {
       hasBoardOversight: true,
     }),
   },
-} as const
+}
+
+type ProfileOverrides = Partial<Record<keyof PersistedWizardProfile['profile'], boolean>>
 
 function createProfileEntry(
   id: string,
   name: string,
   updatedAt: number,
-  overrides: Partial<typeof COMPLETED_PROFILE> = {},
-) {
+  overrides: ProfileOverrides = {},
+): PersistedWizardProfile {
+  const profile: PersistedWizardProfile['profile'] = { ...COMPLETED_PROFILE }
+
+  for (const [key, value] of Object.entries(overrides)) {
+    if (typeof value === 'boolean') {
+      profile[key] = value
+    }
+  }
+
   return {
     id,
     name,
     state: {},
-    profile: { ...COMPLETED_PROFILE, ...overrides },
+    profile,
     createdAt: updatedAt - 10_000,
     updatedAt,
     history: {},
