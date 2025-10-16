@@ -72,19 +72,96 @@ const COMPLETED_STORAGE = {
   },
 }
 
-async function stubWizardSnapshot(page: Page) {
+type SnapshotPayload = {
+  storage: typeof COMPLETED_STORAGE
+  auditLog: unknown[]
+  permissions: { canEdit: boolean; canPublish: boolean }
+  user: { id: string; roles: string[] }
+}
+
+const DEFAULT_SNAPSHOT: SnapshotPayload = {
+  storage: COMPLETED_STORAGE,
+  auditLog: [],
+  permissions: { canEdit: true, canPublish: false },
+  user: { id: 'e2e-user', roles: [] },
+}
+
+const EXPECTED_SCOPE_LABELS = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance'] as const
+
+const MULTI_PROFILE_STORAGE = {
+  activeProfileId: 'profile-nordic',
+  profiles: {
+    'profile-nordic': createProfileEntry('profile-nordic', 'Nordic Industri', 1_700_000_900_000),
+    'profile-logistics': createProfileEntry('profile-logistics', 'Logistik A/S', 1_700_000_800_000, {
+      hasVehicles: true,
+      hasHeating: true,
+      hasIndustrialProcesses: false,
+    }),
+    'profile-retail': createProfileEntry('profile-retail', 'Retail DK', 1_700_000_700_000, {
+      usesElectricity: true,
+      purchasesMaterials: false,
+      hasConsultantsTravel: true,
+    }),
+    'profile-services': createProfileEntry('profile-services', 'Services Global', 1_700_000_600_000, {
+      hasGuaranteesOfOrigin: true,
+      leasesWithOwnMeter: false,
+      hasFranchisePartners: true,
+    }),
+    'profile-energy': createProfileEntry('profile-energy', 'Energi Hub', 1_700_000_500_000, {
+      usesDistrictHeating: true,
+      hasBackupPower: true,
+      hasIndustrialEmissions: true,
+    }),
+    'profile-tech': createProfileEntry('profile-tech', 'Tech Partners', 1_700_000_400_000, {
+      hasDataInfrastructure: true,
+      hasNetZeroTarget: true,
+      hasTransitionPlan: true,
+    }),
+    'profile-supply': createProfileEntry('profile-supply', 'Supply Unit', 1_700_000_300_000, {
+      shipsFinishedGoods: true,
+      leasesProducts: false,
+      hasSupplierCode: true,
+    }),
+    'profile-holding': createProfileEntry('profile-holding', 'Holding ApS', 1_700_000_200_000, {
+      operatesInternationalOffices: true,
+      hasInvestments: true,
+      hasBoardOversight: true,
+    }),
+  },
+} as const
+
+function createProfileEntry(
+  id: string,
+  name: string,
+  updatedAt: number,
+  overrides: Partial<typeof COMPLETED_PROFILE> = {},
+) {
+  return {
+    id,
+    name,
+    state: {},
+    profile: { ...COMPLETED_PROFILE, ...overrides },
+    createdAt: updatedAt - 10_000,
+    updatedAt,
+    history: {},
+    responsibilities: {},
+    version: 1,
+  }
+}
+
+async function stubWizardSnapshot(page: Page, override?: Partial<SnapshotPayload>) {
+  const payload: SnapshotPayload = {
+    ...DEFAULT_SNAPSHOT,
+    ...override,
+  }
+
   await page.route('**/wizard/snapshot', async (route) => {
     const method = route.request().method()
     if (method === 'GET') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          storage: COMPLETED_STORAGE,
-          auditLog: [],
-          permissions: { canEdit: true, canPublish: false },
-          user: { id: 'e2e-user', roles: [] },
-        }),
+        body: JSON.stringify(payload),
       })
       return
     }
@@ -93,12 +170,7 @@ async function stubWizardSnapshot(page: Page) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          storage: COMPLETED_STORAGE,
-          auditLog: [],
-          permissions: { canEdit: true, canPublish: false },
-          user: { id: 'e2e-user', roles: [] },
-        }),
+        body: JSON.stringify(payload),
       })
       return
     }
@@ -228,5 +300,88 @@ test.describe('Wizard layout', () => {
     })) as { top: number; bottom: number }
     expect(rect.top).toBeGreaterThanOrEqual(0)
     expect(rect.bottom).toBeLessThanOrEqual(viewportHeight)
+  })
+
+  test('profile switcher viser tabellayout med søgning på desktop', async ({ page }) => {
+    await stubWizardSnapshot(page, { storage: MULTI_PROFILE_STORAGE })
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    const switcher = page.getByTestId('profile-switcher')
+    await expect(switcher).toBeVisible()
+    await expect(switcher.locator('.ds-profile-switcher__table')).toBeVisible()
+
+    const headerCells = await switcher.locator('.ds-profile-table thead th').allInnerTexts()
+    expect(headerCells.map((text) => text.trim())).toEqual([
+      'Navn',
+      'Sidst opdateret',
+      'Scopes',
+      'Handlinger',
+    ])
+
+    const searchField = switcher.getByPlaceholder('Søg profiler eller scopes')
+    await searchField.waitFor({ state: 'visible' })
+
+    const totalProfiles = Object.keys(MULTI_PROFILE_STORAGE.profiles).length
+    const rows = switcher.locator('.ds-profile-table tbody tr')
+    await expect(rows).toHaveCount(totalProfiles)
+
+    await searchField.fill('Retail')
+    await expect(rows).toHaveCount(1)
+    await expect(rows.first()).toContainText('Retail DK')
+
+    await searchField.fill('')
+    await expect(rows).toHaveCount(totalProfiles)
+
+    const firstRowMenu = rows.first().locator('.ds-profile-menu')
+    const desktopMenuButton = firstRowMenu.getByRole('button', { name: /handlingsmenu/i })
+    await desktopMenuButton.click()
+    await expect(firstRowMenu.locator('.ds-profile-menu__panel')).toHaveAttribute('data-open', 'true')
+
+    const scopeRows = await rows
+      .first()
+      .locator('td')
+      .nth(2)
+      .locator('li')
+      .allInnerTexts()
+    expect(scopeRows.map((text) => text.trim())).toEqual([...EXPECTED_SCOPE_LABELS])
+
+    const actionButtons = firstRowMenu.locator('.ds-profile-menu__panel').getByRole('button')
+    await expect(actionButtons).toHaveCount(3)
+    await expect(actionButtons.nth(0)).toHaveAccessibleName('Omdøb profil')
+    await expect(actionButtons.nth(1)).toHaveAccessibleName('Dupliker profil')
+    await expect(actionButtons.nth(2)).toHaveAccessibleName('Slet profil')
+  })
+
+  test('profile switcher viser kortliste og drawer på mobil', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await stubWizardSnapshot(page, { storage: MULTI_PROFILE_STORAGE })
+    await page.goto('/')
+
+    const switcher = page.getByTestId('profile-switcher')
+    const cards = switcher.locator('.ds-profile-switcher__list > li')
+    await expect(cards).toHaveCount(Object.keys(MULTI_PROFILE_STORAGE.profiles).length)
+
+    const firstCard = cards.first()
+    const mobileMenu = firstCard.locator('.ds-profile-menu')
+    const menuButton = mobileMenu.getByRole('button', { name: /handlingsmenu/i })
+    await menuButton.click()
+    await expect(mobileMenu.locator('.ds-profile-menu__panel')).toHaveAttribute('data-open', 'true')
+
+    const activationButton = firstCard.getByRole('button', { name: 'Aktivér' })
+    await expect(activationButton).toBeDisabled()
+
+    await expect(firstCard.locator('.ds-profile-card__heading .ds-status-badge')).toHaveText('Aktiv')
+
+    const scopeBadges = await firstCard
+      .locator('.ds-profile-card .ds-cluster .ds-status-badge')
+      .allInnerTexts()
+    expect(scopeBadges.map((text) => text.trim())).toEqual([...EXPECTED_SCOPE_LABELS])
+
+    const actionButtons = mobileMenu.locator('.ds-profile-menu__panel').getByRole('button')
+    await expect(actionButtons).toHaveCount(3)
+    await expect(actionButtons.nth(0)).toHaveAccessibleName('Omdøb profil')
+    await expect(actionButtons.nth(1)).toHaveAccessibleName('Dupliker profil')
+    await expect(actionButtons.nth(2)).toHaveAccessibleName('Slet profil')
   })
 })

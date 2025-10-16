@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Changed
+- Opdaterede wizardens profilskifter-tests til at verificere DOM-struktur i stedet for billedsnapshots for at undgå billedfiler i repoet.
 - Skjulte modulnavigationen og statuspanelet, mens virksomhedsprofilen er åben, så stepper-flowets tekst kan brede sig og forblive læsbar.
 - Finjusterede pre-wizard-stepperens layout med smallere primærkolonne, justerede linjehøjder og forbedret reset-knapplacering for at gøre spørgsmålsteksterne lettere at læse.
 - Redesignet design-systemet med farve-, typografi-, spacing- og breakpoint-tokens, alternative kort/panel-toner samt ny `/styleguide` reference og dokumentation.

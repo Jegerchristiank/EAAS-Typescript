@@ -568,7 +568,8 @@ a {
   margin-top: var(--space-2xs);
 }
 
-.sr-only {
+.sr-only,
+.ds-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -578,6 +579,123 @@ a {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.ds-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-neutral-700);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ds-icon-button:hover:not([disabled]),
+.ds-icon-button[data-active='true'] {
+  background: var(--surface-soft);
+  color: var(--color-neutral-900);
+}
+
+.ds-icon-button:focus-visible {
+  outline: 3px solid var(--focus-ring-primary);
+  outline-offset: 2px;
+}
+
+.ds-icon-button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ds-icon-button__icon {
+  display: inline-flex;
+  pointer-events: none;
+}
+
+.ds-icon-button--sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.ds-icon-button[data-tone='danger'] {
+  color: var(--status-danger-strong);
+}
+
+.ds-icon-button[data-tone='danger']:hover:not([disabled]),
+.ds-icon-button[data-tone='danger'][data-active='true'] {
+  background: var(--status-danger-surface);
+  border-color: var(--status-danger-border);
+}
+
+.ds-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.ds-tooltip {
+  position: absolute;
+  z-index: 50;
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-0);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-xs);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.ds-tooltip[data-open='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ds-tooltip--top {
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -4px);
+}
+
+.ds-tooltip--bottom {
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+}
+
+.ds-tooltip--left {
+  right: 100%;
+  top: 50%;
+  transform: translate(-4px, -50%);
+}
+
+.ds-tooltip--right {
+  left: 100%;
+  top: 50%;
+  transform: translate(4px, -50%);
+}
+
+.ds-tooltip--top[data-open='true'] {
+  transform: translate(-50%, -8px);
+}
+
+.ds-tooltip--bottom[data-open='true'] {
+  transform: translate(-50%, 8px);
+}
+
+.ds-tooltip--left[data-open='true'] {
+  transform: translate(-8px, -50%);
+}
+
+.ds-tooltip--right[data-open='true'] {
+  transform: translate(8px, -50%);
 }
 
 .ds-list {
@@ -1547,12 +1665,150 @@ a {
   align-items: center;
 }
 
+.ds-profile-switcher__controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ds-profile-switcher__search {
+  display: inline-flex;
+  width: min(22rem, 100%);
+}
+
 .ds-profile-switcher__list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: var(--space-sm);
+}
+
+.ds-profile-switcher__table {
+  overflow-x: auto;
+  display: none;
+}
+
+.ds-profile-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 42rem;
+  font-size: var(--font-size-body-sm);
+}
+
+.ds-profile-table thead {
+  background: var(--surface-muted);
+}
+
+.ds-profile-table th,
+.ds-profile-table td {
+  padding: var(--space-sm);
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+
+.ds-profile-table tbody tr[data-active='true'] {
+  background: var(--surface-soft);
+}
+
+.ds-profile-table__name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  align-items: center;
+}
+
+.ds-profile-table__timestamp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--text-muted);
+  font-size: var(--font-size-body-sm);
+}
+
+.ds-profile-table__scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-profile-table__actions-heading {
+  text-align: right;
+}
+
+.ds-profile-table__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2xs);
+  align-items: center;
+}
+
+.ds-profile-switcher__empty {
+  margin: 0;
+  padding: var(--space-md);
+  text-align: center;
+  color: var(--text-subtle);
+  font-size: var(--font-size-body-sm);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.ds-profile-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.ds-profile-menu__panel {
+  position: absolute;
+  top: calc(100% + var(--space-2xs));
+  right: 0;
+  display: inline-flex;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs);
+  background: var(--surface-raised);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transform: scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 60;
+}
+
+.ds-profile-menu__panel[data-open='true'] {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.ds-profile-menu__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(19, 35, 33, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 40;
+}
+
+.ds-profile-menu__overlay[data-open='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 45rem) {
+  .ds-profile-switcher__list {
+    display: none;
+  }
+
+  .ds-profile-switcher__table {
+    display: block;
+  }
 }
 
 .ds-profile-card {
@@ -1584,6 +1840,24 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
+}
+
+@media (max-width: 45rem) {
+  .ds-profile-menu__panel[data-open='true'] {
+    position: fixed;
+    bottom: var(--space-md);
+    left: var(--space-md);
+    right: var(--space-md);
+    transform: translateY(0);
+    transform-origin: bottom center;
+    justify-content: center;
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+  }
+
+  .ds-profile-menu__panel {
+    transform: translateY(10px);
+  }
 }
 
 :is(.ds-badge, .ds-status-badge) {

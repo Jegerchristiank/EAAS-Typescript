@@ -737,10 +737,17 @@ export function WizardProvider({ children }: WizardProviderProps): JSX.Element {
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>
 }
 
-export function useWizardContext(): WizardHook {
+export function useWizardContext(): WizardHook
+export function useWizardContext<T>(selector: (context: WizardHook) => T): T
+export function useWizardContext<T>(selector?: (context: WizardHook) => T): WizardHook | T {
   const context = useContext(WizardContext)
   if (!context) {
     throw new Error('useWizardContext skal anvendes inden for en WizardProvider')
   }
-  return context
+
+  if (!selector) {
+    return context
+  }
+
+  return useMemo(() => selector(context), [context, selector])
 }
