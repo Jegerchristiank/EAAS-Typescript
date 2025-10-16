@@ -104,7 +104,7 @@ export const ALL_PROFILE_KEYS: WizardProfileKey[] = [
   'hasTransitionPlan',
   'assessesClimateResilience',
   'tracksFinancialEffects',
-  'hasRemovalProjects'
+  'hasRemovalProjects',
 ]
 
 export function createInitialWizardProfile(): WizardProfile {
@@ -120,310 +120,350 @@ export type WizardProfileQuestion = {
   helpText: string
 }
 
+export const WIZARD_PROFILE_FLOW_TYPES = {
+  contentPage: 'content-page',
+  statusSidebar: 'status-sidebar',
+} as const
+
+export type WizardProfileFlowType = (typeof WIZARD_PROFILE_FLOW_TYPES)[keyof typeof WIZARD_PROFILE_FLOW_TYPES]
+
 export type WizardProfileSection = {
   id: string
   heading: string
   description: string
+  summaryHint: string
+  flow: WizardProfileFlowType
   questions: WizardProfileQuestion[]
 }
+
+export type WizardProfileFlowDefinition = {
+  id: WizardProfileFlowType
+  label: string
+  description: string
+}
+
+export const wizardProfileFlows: WizardProfileFlowDefinition[] = [
+  {
+    id: WIZARD_PROFILE_FLOW_TYPES.contentPage,
+    label: 'Hovedflow',
+    description: 'Viser ét emne ad gangen i stepperen med fuldt fokus på spørgsmålene.',
+  },
+  {
+    id: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
+    label: 'Statuspanel',
+    description: 'Opsummerer fremskridt og ubesvarede spørgsmål i sidepanelet.',
+  },
+]
 
 export const wizardProfileSections: WizardProfileSection[] = [
   {
     id: 'scope-1',
-    heading: 'Scope 1 – Direkte emissioner',
-    description: 'Identificer aktiviteter med direkte udledninger fra egne køretøjer og anlæg.',
+    heading: 'Scope 1 · Direkte udledninger',
+    description:
+      'Marker alle aktiviteter hvor I selv forbrænder brændsler eller slipper kølemidler og procesgasser ud.',
+    summaryHint: 'Egne køretøjer, brændselskedler, kølemidler og procesudledninger.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.contentPage,
     questions: [
       {
         id: 'hasVehicles',
-        label: 'Har virksomheden egne køretøjer (firmabiler, varevogne, lastbiler, maskiner)?',
-        helpText: 'Omfatter alle motordrevne køretøjer der ejes eller leases af virksomheden.',
+        label: 'Driver I egne køretøjer eller mobile maskiner?',
+        helpText:
+          'Firmabiler, varebiler, lastbiler, entreprenørmaskiner og andet motordrevet udstyr I ejer eller langtidslejer.',
       },
       {
         id: 'hasHeating',
-        label: 'Har virksomheden eget varme- eller kedelanlæg (fx naturgas, olie, biogas)?',
-        helpText: 'Stationære forbrændingskilder som fyr, kedler og ovne til opvarmning af bygninger.',
+        label: 'Har I kedler, ovne eller andre anlæg der bruger brændsler?',
+        helpText:
+          'Naturgas-, olie-, biobrændsels- eller andre stationære forbrændingsanlæg til varme og produktion.',
       },
       {
         id: 'hasIndustrialProcesses',
-        label: 'Udfører virksomheden industrielle processer, der udleder gasser (cement, metal, kemi, fødevareproduktion)?',
-        helpText: 'Processer med kemiske reaktioner eller høje temperaturer som frigiver CO₂ eller andre gasser.',
+        label: 'Har I industrielle processer der udleder gasser direkte?',
+        helpText: 'Cement, metal, kemi, fødevarer eller andre højtemperaturprocesser med procesemissioner.',
       },
       {
         id: 'usesRefrigerants',
-        label: 'Anvendes der kølemidler eller andre flygtige emissioner (fx køleanlæg, aircondition, varmevekslere)?',
-        helpText: 'Gælder også mindre anlæg som aircondition og kølediske med potentielle lækager.',
+        label: 'Bruger I køleanlæg, aircondition eller varmepumper med kølemidler?',
+        helpText: 'Alt udstyr hvor lækager kan forekomme – fra butikskølere til centrale anlæg og serverrum.',
       },
       {
         id: 'hasBackupPower',
-        label: 'Har virksomheden nødgeneratorer eller backupstrøm (diesel eller benzin)?',
-        helpText: 'Reservedieselanlæg eller generatorer til nødstrøm ved strømafbrydelse.',
+        label: 'Har I nødgeneratorer eller andet backup-udstyr på brændstof?',
+        helpText: 'Diesel- og benzingeneratorer, nødstrømsmotorer og testkørsler af backup-anlæg.',
       },
       {
         id: 'hasOpenFlames',
-        label: 'Har virksomheden produktion med åbne flammer, brændere eller svejsning?',
-        helpText: 'Fx glas- og metalbearbejdning, svejseværksteder og andre højtemperaturprocesser.',
+        label: 'Arbejder I med faste åbne flammer eller svejseprocesser?',
+        helpText: 'Glas- og metalbearbejdning, svejseværksteder eller andre permanente flammeprocesser.',
       },
       {
         id: 'hasLabGas',
-        label: 'Har virksomheden laboratorieudstyr med gasforbrug?',
-        helpText: 'Laboratorier og testfaciliteter med gasbrændere eller specialgasudstyr.',
+        label: 'Anvender laboratorierne gasbrændere eller specialgas?',
+        helpText: 'Forsknings-, test- og kvalitetslaboratorier med gasforbrug eller specialgasudslip.',
       },
     ],
   },
   {
     id: 'scope-2',
-    heading: 'Scope 2 – Indirekte energiforbrug',
-    description: 'Kortlæg energiforbrug og dokumentationsmuligheder for indkøbt energi.',
+    heading: 'Scope 2 · Indirekte energiforbrug',
+    description: 'Angiv hvordan I køber og dokumenterer elektricitet, varme og køling til jeres lokationer.',
+    summaryHint: 'Indkøbt strøm og varme, aftaler om grøn energi og egne målere.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
     questions: [
       {
         id: 'usesElectricity',
-        label: 'Forbruger virksomheden elektricitet i egne lokaler?',
-        helpText: 'Fx kontorer, butikker, produktion eller datacentre med eget elforbrug.',
+        label: 'Forbruger I elektricitet i egne eller lejede lokaler?',
+        helpText: 'Kontorer, butikker, produktion, lagre eller datacentre med eget elforbrug.',
       },
       {
         id: 'usesDistrictHeating',
-        label: 'Forbruger virksomheden fjernvarme, damp eller køling?',
-        helpText: 'Indkøbt varme- og køleleverancer fra energiselskaber eller ejendomsforvaltning.',
+        label: 'Forbruger I fjernvarme, damp eller fjernkøling?',
+        helpText: 'Indkøbte varme- og køleleverancer fra energiselskab eller udlejer.',
       },
       {
         id: 'hasPpaContracts',
-        label: 'Har virksomheden kontrakter på vedvarende energi (PPA’er – fysisk, virtuel eller time-matched)?',
-        helpText: 'Power Purchase Agreements for direkte eller virtuel levering af grøn strøm.',
+        label: 'Har I PPA-aftaler for vedvarende energi?',
+        helpText: 'Fysiske, virtuelle eller time-matchede Power Purchase Agreements.',
       },
       {
         id: 'hasGuaranteesOfOrigin',
-        label: 'Har virksomheden dokumenteret vedvarende energi via oprindelsesgarantier?',
-        helpText: 'Inkluderer køb af certifikater til at dokumentere grøn strøm.',
+        label: 'Køber I oprindelsesgarantier for at dokumentere grøn strøm?',
+        helpText: 'Certifikater eller tilsvarende dokumentation for vedvarende elektricitet.',
       },
       {
         id: 'leasesWithOwnMeter',
-        label: 'Lejer virksomheden lokaler med eget elforbrug (separat elmåler)?',
-        helpText: 'Fx kontorer i lejemål hvor virksomheden selv afregner elforbrug.',
+        label: 'Lejer I lokaler med egen elmåler og selvstændig afregning?',
+        helpText: 'Lejemål hvor I aflæser og betaler for eget elforbrug.',
       },
       {
         id: 'exportsEnergy',
-        label: 'Eksporterer virksomheden selv energi (fx solceller, elproduktion)?',
-        helpText: 'Salg af egenproduceret energi til nettet eller andre parter.',
+        label: 'Eksporterer eller sælger I egenproduceret energi?',
+        helpText: 'Solceller, vind, kraftvarme eller andre anlæg hvor overskud sælges til nettet.',
       },
     ],
   },
   {
     id: 'scope-3-upstream',
-    heading: 'Scope 3 – Upstream aktiviteter',
-    description: 'Vurder emissioner i forsyningskæden før produkter eller ydelser forlader virksomheden.',
+    heading: 'Scope 3 · Upstream aktiviteter',
+    description: 'Afdæk udledninger fra indkøb, transport og andre aktiviteter før varen når kunden.',
+    summaryHint: 'Indkøb, leverandørtransport, affald og leasede aktiver.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
     questions: [
       {
         id: 'purchasesMaterials',
-        label: 'Køber virksomheden råmaterialer eller halvfabrikata?',
-        helpText: 'Inkluderer alt materialeindkøb til produktion, projekter eller salg.',
+        label: 'Køber I råvarer, materialer eller halvfabrikata til drift eller produktion?',
+        helpText: 'Materialeindkøb til projekter, produktion, byggeri eller videresalg.',
       },
       {
         id: 'hasTransportSuppliers',
-        label: 'Har virksomheden leverandører med transportydelser?',
-        helpText: 'Eksterne speditører, logistikpartnere eller transportleverandører.',
+        label: 'Bruger I eksterne leverandører til transport eller logistik?',
+        helpText: 'Speditører, fragtfirmaer, kurertjenester og andre transportpartnere.',
       },
       {
         id: 'generatesWaste',
-        label: 'Genererer virksomheden affald fra produktion, kontor eller byggeprojekter?',
-        helpText: 'Sorterede eller usorterede affaldsfraktioner fra den daglige drift.',
+        label: 'Genererer I affald fra drift, produktion eller byggeprojekter?',
+        helpText: 'Sorterede og usorterede fraktioner, inkl. farligt affald og restprodukter.',
       },
       {
         id: 'leasesEquipment',
-        label: 'Lejer virksomheden produktionsudstyr eller kontormaskiner?',
-        helpText: 'Kort- eller langtidsleje af maskiner, køretøjer, kontorudstyr eller værktøj.',
+        label: 'Lejer I maskiner, køretøjer eller andet udstyr?',
+        helpText: 'Kort- og langtidsleje af produktionsudstyr, kontormaskiner eller værktøj.',
       },
       {
         id: 'shipsGoodsUpstream',
-        label: 'Transporterer virksomheden varer til kunder eller distributører?',
-        helpText: 'Transport inden varerne når slutkunden, fx til distributionscentre.',
+        label: 'Sender I varer eller materialer afsted før de når slutkunden?',
+        helpText: 'Forsendelser til lagre, distributionscentre eller underleverandører.',
       },
       {
         id: 'usesGlobalFreight',
-        label: 'Bruger virksomheden fragt, fly eller søtransport i forsyningskæden?',
-        helpText: 'Internationale leverancer med fly, skib eller langdistance transport.',
+        label: 'Bruger I international fragt med fly, skib eller langdistance transport?',
+        helpText: 'Globale leverandørkæder med containertransport, luftfragt eller langdistancetransport.',
       },
       {
         id: 'hasConsultantsTravel',
-        label: 'Har virksomheden konsulenter eller underleverandører med arbejdsrejser?',
-        helpText: 'Eksterne samarbejdspartnere der rejser på vegne af virksomheden.',
+        label: 'Har jeres konsulenter eller underleverandører arbejdsrejser på jeres vegne?',
+        helpText: 'Partneres eller freelancernes rejser, der faktureres eller bestilles af jer.',
       },
       {
         id: 'purchasesElectronics',
-        label: 'Køber virksomheden IT-udstyr eller elektronik regelmæssigt?',
-        helpText: 'Computere, telefoner, netværksudstyr og andet elektronikindkøb.',
+        label: 'Indkøber I regelmæssigt IT-udstyr og elektronik?',
+        helpText: 'Computere, telefoner, servere, netværk eller andet elektronik til driften.',
       },
     ],
   },
   {
     id: 'scope-3-downstream',
-    heading: 'Scope 3 – Downstream aktiviteter',
-    description: 'Forstå emissioner efter produktet forlader virksomheden, inkl. kunder og investeringer.',
+    heading: 'Scope 3 · Downstream aktiviteter',
+    description: 'Vurder klimaaftryk efter produktet forlader jer – fra kundernes brug til investeringer.',
+    summaryHint: 'Produktsalg, service, investeringer og internationale aktiviteter.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
     questions: [
       {
         id: 'producesProducts',
-        label: 'Producerer eller sælger virksomheden fysiske produkter?',
-        helpText: 'Produktion eller salg af varer med efterfølgende brug hos kunder.',
+        label: 'Producerer eller sælger I fysiske produkter?',
+        helpText: 'Varer, komponenter eller anlæg som kunderne bruger efter salg.',
       },
       {
         id: 'leasesProducts',
-        label: 'Lejer virksomheden produkter ud (leasing, udlejning, deleordninger)?',
-        helpText: 'Produktudlejning hvor virksomheden beholder ejerskabet.',
+        label: 'Leaser eller udlejer I produkter, udstyr eller anlæg?',
+        helpText: 'Leasing, udlejningsløsninger eller deleordninger hvor I bevarer ejerskab.',
       },
       {
         id: 'hasFranchisePartners',
-        label: 'Har virksomheden franchisetagere eller partnere, der videresælger?',
-        helpText: 'Franchise- eller partnernetværk med egen drift under virksomhedens brand.',
+        label: 'Har I franchise- eller partnernetværk under jeres brand?',
+        helpText: 'Franchisetagere eller partnere med egen drift baseret på jeres koncept.',
       },
       {
         id: 'providesCustomerServices',
-        label: 'Tilbyder virksomheden service eller support til kundernes drift?',
-        helpText: 'Serviceaftaler, vedligehold eller konsulentydelser efter salg.',
+        label: 'Tilbyder I service, drift eller support til kundernes brug af jeres løsninger?',
+        helpText: 'Serviceaftaler, vedligehold, konsultation eller drift på kundens site.',
       },
       {
         id: 'hasProductRecycling',
-        label: 'Har virksomheden genbrugs- eller affaldsaktiviteter relateret til produkter?',
-        helpText: 'Tilbagekaldelse, take-back-ordninger eller produktgenanvendelse.',
+        label: 'Har I take-back, genbrug eller genanvendelse af produkter?',
+        helpText: 'Retursystemer, genbrugsprogrammer eller håndtering af udtjente produkter.',
       },
       {
         id: 'shipsFinishedGoods',
-        label: 'Transporterer virksomheden færdige varer til kunder (downstream logistik)?',
-        helpText: 'Distribution af færdige produkter til slutkunder eller forhandlere.',
+        label: 'Sender I færdige produkter direkte til kunder eller distributører?',
+        helpText: 'Distribution, levering og logistik efter at varen forlader jeres facilitet.',
       },
       {
         id: 'hasInvestments',
-        label: 'Har virksomheden langsigtede investeringer, fonde eller finansielle aktiver?',
-        helpText: 'Kapitalplaceringer med væsentlige klimarelaterede effekter.',
+        label: 'Har I væsentlige finansielle investeringer eller fonde?',
+        helpText: 'Aktieposter, fonde eller investeringer med mulige klimarelaterede effekter.',
       },
       {
         id: 'ownsSubsidiaries',
-        label: 'Er virksomheden medejer af datterselskaber med udledninger?',
-        helpText: 'Delvist ejede selskaber eller joint ventures med driftsaktiviteter.',
+        label: 'Ejer eller medstyrer I datterselskaber eller joint ventures?',
+        helpText: 'Delvist ejede selskaber hvor I har indflydelse på aktiviteter og udledninger.',
       },
       {
         id: 'operatesInternationalOffices',
-        label: 'Driver virksomheden kontorer i andre lande (rejser, transport, strøm)?',
-        helpText: 'Udenlandske aktiviteter med rejser og faciliteter uden for hjemlandet.',
+        label: 'Driver I kontorer eller aktiviteter i andre lande?',
+        helpText: 'Internationale kontorer, salgsled, supportfunktioner eller rejseaktiviteter.',
       },
     ],
   },
   {
     id: 'environment',
-    heading: 'Miljø – Vand, forurening og ressourcer',
-    description: 'Vurder om vand, emissioner, biodiversitet og materialeforbrug skal indgå i ESG-arbejdet.',
+    heading: 'Miljø · Ressourcer og påvirkninger',
+    description: 'Angiv om vandforbrug, udledninger eller naturpåvirkning skal indgå i ESG-arbejdet.',
+    summaryHint: 'Vandintensive processer, emissioner, naturhensyn og kritiske materialer.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
     questions: [
       {
         id: 'usesLargeWaterVolumes',
-        label: 'Har virksomheden vandintensive processer eller anlæg i vandstressede områder?',
-        helpText: 'Fx fødevareproduktion, kemi, elektronik eller aktiviteter i regioner med høj vandstress.',
+        label: 'Har I processer der bruger store mængder vand eller ligger i vandstressede områder?',
+        helpText: 'Fødevareproduktion, kemi, elektronik eller drift i regioner med høj vandstress.',
       },
       {
         id: 'hasIndustrialEmissions',
-        label: 'Har virksomheden væsentlige udledninger til luft, vand eller jord med myndighedskrav?',
-        helpText: 'Gælder anlæg med miljøtilladelser, renseanlæg eller procesudledninger.',
+        label: 'Har I væsentlige udledninger til luft, vand eller jord med myndighedskrav?',
+        helpText: 'Anlæg med miljøtilladelser, renseanlæg eller procesudledninger.',
       },
       {
         id: 'impactsNatureAreas',
-        label: 'Påvirker aktiviteter naturbeskyttede områder eller kræver biodiversitetstiltag?',
-        helpText: 'Fx infrastrukturprojekter, råstofudvinding eller landbrug tæt på Natura 2000-områder.',
+        label: 'Påvirker aktiviteterne naturbeskyttede områder eller kræver biodiversitetstiltag?',
+        helpText: 'Infrastruktur, råstofudvinding eller landbrug nær Natura 2000 og andre beskyttede zoner.',
       },
       {
         id: 'managesCriticalMaterials',
-        label: 'Anvender virksomheden større mængder kritiske materialer eller metaller?',
-        helpText: 'Fx elektronik, batterier, magneter eller andre materialer fra EU’s liste over kritiske råstoffer.',
+        label: 'Anvender I kritiske materialer eller metaller i større mængder?',
+        helpText: 'Elektronik, batterier, magneter eller materialer på EU’s liste over kritiske råstoffer.',
       },
     ],
   },
   {
     id: 'double-materiality',
-    heading: 'Dobbelt væsentlighed og CSRD-gap',
-    description:
-      'Kortlæg om virksomheden har identificeret væsentlige emner, risici/muligheder og status på CSRD-gaps.',
+    heading: 'Dobbelt væsentlighed og CSRD',
+    description: 'Tjek om I allerede har afdækket væsentlige emner, risici, muligheder og jeres CSRD-gap.',
+    summaryHint: 'Materialitet, risici, muligheder og gap-analyser.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
     questions: [
       {
         id: 'hasMaterialTopics',
-        label: 'Har virksomheden en dokumenteret liste over væsentlige ESG-emner?',
-        helpText:
-          'Fx resultat af dobbelt væsentlighedsvurdering eller lignende prioriteringsøvelser.',
+        label: 'Har I en dokumenteret liste over væsentlige ESG-emner?',
+        helpText: 'Resultater fra dobbelt væsentlighedsvurdering eller tilsvarende prioriteringer.',
       },
       {
         id: 'hasMaterialRisks',
-        label: 'Har virksomheden kortlagt de væsentligste risici (impact & finansielle)?',
-        helpText:
-          'Identificerede risici med scorer, sandsynlighed/påvirkning eller kvalitative vurderinger.',
+        label: 'Har I kortlagt de vigtigste risici – både impact og finansielle?',
+        helpText: 'Risikolister med scoringer, sandsynlighed/påvirkning eller kvalitative vurderinger.',
       },
       {
         id: 'hasMaterialOpportunities',
-        label: 'Har virksomheden kortlagt væsentlige muligheder og forretningspotentialer?',
-        helpText:
-          'Innovationsspor eller investeringer relateret til bæredygtighed, der kræver prioritering.',
+        label: 'Har I identificeret væsentlige muligheder og forretningspotentialer?',
+        helpText: 'Innovationsspor og investeringer i bæredygtighed, der kræver prioritering.',
       },
       {
         id: 'hasCsrdGapAssessment',
-        label: 'Er der gennemført en CSRD-gap analyse med status på efterlevelse?',
-        helpText:
-          'Fx oversigt over krav, status (align/partial/gap) og planlagt opfølgning.',
+        label: 'Har I gennemført en CSRD gap-analyse og status på efterlevelse?',
+        helpText: 'Oversigt over krav, nuværende status (align/partial/gap) og planlagte opfølgninger.',
       },
     ],
   },
   {
     id: 'governance',
     heading: 'Governance og rapportering',
-    description: 'Vurdér modenhed i styring, målsætninger og rapporteringspraksis.',
+    description: 'Beskriv hvordan ESG-arbejdet er forankret, målsat og rapporteret i organisationen.',
+    summaryHint: 'Politikker, rapportering, mål, data og klimastyring.',
+    flow: WIZARD_PROFILE_FLOW_TYPES.statusSidebar,
     questions: [
       {
         id: 'hasEsgPolicy',
-        label: 'Har virksomheden en skriftlig ESG- eller bæredygtighedspolitik?',
-        helpText: 'Overordnede politikker eller strategier for ESG-indsatsen.',
+        label: 'Har I en skriftlig ESG- eller bæredygtighedspolitik?',
+        helpText: 'Overordnede politikker eller strategier for virksomhedens ESG-indsats.',
       },
       {
         id: 'hasSupplierCode',
-        label: 'Har virksomheden retningslinjer for leverandørstyring (Code of Conduct)?',
-        helpText: 'Dokumenterede krav eller aftaler med leverandører om ansvarlig drift.',
+        label: 'Har I retningslinjer eller Code of Conduct for leverandører?',
+        helpText: 'Krav eller aftaler der beskriver ansvarlig drift for leverandører.',
       },
       {
         id: 'doesEsgReporting',
-        label: 'Udfører virksomheden ESG-rapportering allerede (fx CSRD, GHG)?',
-        helpText: 'Formelle rapporter eller offentliggørelser af ESG-nøgletal.',
+        label: 'Udgiver I allerede ESG- eller klimaregnskaber?',
+        helpText: 'CSRD, GHG eller andre formelle rapporter og offentliggørelser.',
       },
       {
         id: 'hasBoardOversight',
-        label: 'Har virksomheden bestyrelse, CSR-ansvarlig eller ESG-udvalg?',
-        helpText: 'Organisatorisk forankring af ESG-arbejdet i ledelsen.',
+        label: 'Er ESG-ansvaret forankret i bestyrelse eller ledelsesfora?',
+        helpText: 'Bestyrelsesudvalg, ESG-komité eller dedikerede roller med mandat.',
       },
       {
         id: 'isIso14001Certified',
-        label: 'Er virksomheden ISO 14001- eller EMAS-certificeret?',
-        helpText: 'Certificeringer for miljøledelsessystemer og løbende forbedringer.',
+        label: 'Er I certificeret efter ISO 14001, EMAS eller lignende?',
+        helpText: 'Dokumenterede miljøledelsessystemer med ekstern audit.',
       },
       {
         id: 'hasNetZeroTarget',
-        label: 'Har virksomheden et mål for CO₂-neutralitet eller energireduktion?',
-        helpText: 'Officielle målsætninger for emissioner eller energiforbrug.',
+        label: 'Har I mål for CO₂, energi eller nettonul?',
+        helpText: 'Officielle reduktionsmål, SBTi-forpligtelser eller nettonul-planer.',
       },
       {
         id: 'hasDataInfrastructure',
-        label: 'Har virksomheden datainfrastruktur til rapportering (IT-systemer, API’er)?',
-        helpText: 'Systemer og processer til indsamling af ESG-data på tværs af organisationen.',
+        label: 'Har I systemer og processer til at indsamle ESG-data?',
+        helpText: 'IT-platforme, integrationer eller manuelle processer til dataindsamling.',
       },
       {
         id: 'hasTransitionPlan',
-        label: 'Har virksomheden en formaliseret klimatransitionsplan?',
-        helpText: 'Planer med milepæle, investeringer og ansvarlige for at nå klimamål.',
+        label: 'Har I en formaliseret plan for klimatransitionen?',
+        helpText: 'Planer med milepæle, investeringer og ansvarlige for at nå målene.',
       },
       {
         id: 'assessesClimateResilience',
-        label: 'Arbejder virksomheden med scenarieanalyser eller klimamodstandsdygtighed?',
-        helpText: 'Fx stresstest af forretningsmodel, klimatilpasning eller scenarievurderinger.',
+        label: 'Arbejder I med scenarieanalyser eller klimarisikovurderinger?',
+        helpText: 'Stresstest, klimatilpasningsplaner eller scenarieanalyser for virksomheden.',
       },
       {
         id: 'tracksFinancialEffects',
-        label: 'Sporer virksomheden finansielle effekter af klimaindsatsen (CapEx/OpEx)?',
-        helpText: 'Opfølgning på investeringer, omkostninger og indtægter relateret til klima.',
+        label: 'Sporer I finansielle effekter af klimaindsatsen?',
+        helpText: 'Opfølgning på CapEx, OpEx eller finansielle KPI’er knyttet til klima.',
       },
       {
         id: 'hasRemovalProjects',
-        label: 'Investerer virksomheden i removal-projekter eller klimakreditter?',
-        helpText: 'Egne projekter, værdikædeinitiativer eller købte credits til udligning.',
+        label: 'Investerer I i removal-projekter eller klimakreditter?',
+        helpText: 'Egne projekter, partnerskaber eller køb af credits til udligning.',
       },
     ],
   },

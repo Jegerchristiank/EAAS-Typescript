@@ -57,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Changed
+- Skjulte modulnavigationen og statuspanelet, mens virksomhedsprofilen er åben, så stepper-flowets tekst kan brede sig og forblive læsbar.
+- Finjusterede pre-wizard-stepperens layout med smallere primærkolonne, justerede linjehøjder og forbedret reset-knapplacering for at gøre spørgsmålsteksterne lettere at læse.
 - Redesignet design-systemet med farve-, typografi-, spacing- og breakpoint-tokens, alternative kort/panel-toner samt ny `/styleguide` reference og dokumentation.
 - Omstillede ESRS 2 D1 og MR til kravbaseret validering med kvalitative outputs, opdaterede UI-komponenter og dækkende tests/fixtures.
 - Replaced the Next.js TypeScript config with an `.mjs` variant to unblock `next lint` and let Next manage app compiler settings.
