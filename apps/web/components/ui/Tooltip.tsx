@@ -11,9 +11,17 @@ import {
 
 type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
 
+type TooltipChildProps = {
+  onFocus?: EventHandler
+  onBlur?: EventHandler
+  onMouseEnter?: EventHandler
+  onMouseLeave?: EventHandler
+  'aria-describedby'?: string | undefined
+} & Record<string, unknown>
+
 type TooltipProps = {
   content: ReactNode
-  children: ReactElement
+  children: ReactElement<TooltipChildProps>
   placement?: TooltipPlacement
   className?: string
 }
@@ -38,7 +46,7 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
     throw new Error('Tooltip kræver et gyldigt React-element som child')
   }
 
-  const childProps = {
+  const childProps: TooltipChildProps = {
     onFocus: mergeHandlers(children.props.onFocus, () => setOpen(true)),
     onBlur: mergeHandlers(children.props.onBlur, () => setOpen(false)),
     onMouseEnter: mergeHandlers(children.props.onMouseEnter, () => setOpen(true)),
