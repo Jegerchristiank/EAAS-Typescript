@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wizard-trin, ESRS-eksport og tests.
 - Server-baseret wizard-persistence med revisionslog, rollebaseret adgangskontrol, Vitest-dækning og runbook for drift/compliance.
 - Udvidet E1-målmodul med energiforbrug, vedvarende andele, dokumentationskvalitet og ESRS-eksport.
+- Landing-komponentbibliotek (`LandingHero`, `LandingBacklog`, `LandingFlows`) dokumenteret i Storybook/MDX.
+- Feature-flag infrastruktur til `wizardRedesign` med cookie- og query-override samt initialisering i layoutet.
+- Migration-guide for wizard-redesign i `docs/migrations/2025-03-30-wizard-redesign.md`.
 
 
 ### Changed
@@ -70,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refreshed the baseline quality report to reflect the current green installation, lint, typecheck, test and build status, while documenting outstanding bundle-size and coverage risks.
 - Removed the repository-level `.npmrc`; publishing now generates scoped auth config in CI to avoid local token requirements.
 - Omkalfatrede D2-materialitetsmodulet til ESRS’ severity × likelihood matrix med finansielle effekter, tidslinjer og strukturerede rapporteringstabeller i UI, PDF og eksport.
+- Landing page redesign med sprint-backlog, flowoversigt og profilskifter integreret i det nye visuelle sprog.
 
 ### Fixed
 - Resolved merge artefacts across shared calculation, schema, PDF and tooling modules so TypeScript and ESLint parse cleanly.

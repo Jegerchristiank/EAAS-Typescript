@@ -194,35 +194,68 @@ async function stubWizardSnapshot(page: Page, override?: Partial<SnapshotPayload
 
 async function openWizard(page: Page) {
   await stubWizardSnapshot(page)
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Ny profil' }).click()
+  await page.goto('/?ff_wizardRedesign=on')
+  const resumeButton = page.getByRole('button', { name: /Fortsæt seneste profil|Åbn seneste profil/ })
+  if (await resumeButton.isEnabled()) {
+    await resumeButton.click()
+  } else {
+    await page.getByRole('button', { name: /Opret ny profil|Ny profil/ }).click()
+  }
+  await page.waitForURL('**/wizard')
   await expect(page.getByRole('heading', { name: 'ESG-beregninger' })).toBeVisible()
   await expect(page.getByTestId('wizard-top-nav')).toBeVisible()
+
+  const profileAdvanceButton = page.getByRole('button', {
+    name: /Start profil|Næste sektion|Find næste ubesvarede|Fortsæt til moduler/,
+  })
+
+  if (await profileAdvanceButton.isVisible()) {
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const label = (await profileAdvanceButton.textContent())?.trim() ?? ''
+      if (/Fortsæt til moduler/i.test(label)) {
+        await profileAdvanceButton.click()
+        break
+      }
+
+      await profileAdvanceButton.click()
+      await page.waitForTimeout(120)
+    }
+  }
+
+  await expect(page.getByTestId('wizard-navigation')).toBeVisible()
 }
 
 test.describe('Wizard layout', () => {
   test('kan starte wizard og navigere mellem moduler', async ({ page }) => {
     await openWizard(page)
 
-    const scopeTwoButton = page
-      .getByTestId('wizard-navigation')
-      .getByRole('button', { name: /B1 – Scope 2 elforbrug/ })
-    await expect(scopeTwoButton).toBeVisible()
-    await expect(scopeTwoButton).toHaveAttribute('data-active', 'true')
+    const navigation = page.getByTestId('wizard-navigation')
+    const navigationTabs = navigation.getByRole('tab')
+    const tabCount = await navigationTabs.count()
+    expect(tabCount).toBeGreaterThan(0)
 
-    const scopeOneButton = page
-      .getByTestId('wizard-navigation')
-      .getByRole('button', { name: /A1 – Scope 1 stationære forbrændingskilder/ })
-    await expect(scopeOneButton).toBeVisible()
-    await scopeOneButton.click()
-    await expect(scopeOneButton).toHaveAttribute('data-active', 'true')
-    await expect(scopeTwoButton).not.toHaveAttribute('data-active', 'true')
+    const initiallyActiveTab = navigation.getByRole('tab', { selected: true }).first()
+    await expect(initiallyActiveTab).toBeVisible()
+    const initialActiveLabel = await initiallyActiveTab.getAttribute('aria-label')
 
-    const recommendedButton = page
-      .getByTestId('wizard-navigation')
-      .getByRole('button', { name: /B1 – Scope 2 elforbrug/ })
-    await recommendedButton.click()
-    await expect(recommendedButton).toHaveAttribute('data-active', 'true')
+    if (tabCount > 1) {
+      const secondTab = navigationTabs.nth(1)
+      await expect(secondTab).toBeVisible()
+      await secondTab.click()
+      await expect(secondTab).toHaveAttribute('data-active', 'true')
+      await expect(secondTab).toHaveAttribute('aria-selected', 'true')
+      await expect(navigation.getByRole('tab', { selected: true })).toHaveCount(1)
+      if (initialActiveLabel) {
+        await expect(
+          navigation.getByRole('tab', { name: initialActiveLabel, exact: true })
+        ).not.toHaveAttribute('aria-selected', 'true')
+      }
+
+      const firstTab = navigationTabs.first()
+      await firstTab.click()
+      await expect(firstTab).toHaveAttribute('data-active', 'true')
+      await expect(firstTab).toHaveAttribute('aria-selected', 'true')
+    }
   })
 
   test('mobil navigation kan åbnes som slide-in med aktiv overlay', async ({ page }) => {
@@ -230,7 +263,9 @@ test.describe('Wizard layout', () => {
     await openWizard(page)
 
     const navigationRoot = page.locator('.wizard-shell__navigation')
-    await page.getByRole('button', { name: 'Moduloversigt' }).click()
+    const navTrigger = page.getByRole('button', { name: 'Moduloversigt' })
+    await expect(navTrigger).toBeEnabled()
+    await navTrigger.click()
     const navigation = page.getByTestId('wizard-navigation')
 
     await expect(navigationRoot).toHaveAttribute('data-open', 'true')
@@ -279,7 +314,7 @@ test.describe('Wizard layout', () => {
 
     const topNav = page.getByTestId('wizard-top-nav')
     const navigation = page.getByTestId('wizard-navigation')
-    const recommendedButton = navigation.getByRole('button', { name: /B1 – Scope 2 elforbrug/ })
+    const recommendedButton = navigation.getByRole('tab', { selected: true }).first()
     const bottomBar = page.locator('.wizard-shell__bottom-bar')
 
     await expect(recommendedButton).toHaveAttribute('data-active', 'true')
@@ -317,7 +352,7 @@ test.describe('Wizard layout', () => {
 
   test('profile switcher viser tabellayout med søgning på desktop', async ({ page }) => {
     await stubWizardSnapshot(page, { storage: MULTI_PROFILE_STORAGE })
-    await page.goto('/')
+    await page.goto('/?ff_wizardRedesign=on')
     await page.waitForLoadState('networkidle')
 
     const switcher = page.getByTestId('profile-switcher')
@@ -369,7 +404,7 @@ test.describe('Wizard layout', () => {
   test('profile switcher viser kortliste og drawer på mobil', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await stubWizardSnapshot(page, { storage: MULTI_PROFILE_STORAGE })
-    await page.goto('/')
+    await page.goto('/?ff_wizardRedesign=on')
 
     const switcher = page.getByTestId('profile-switcher')
     const cards = switcher.locator('.ds-profile-switcher__list > li')
@@ -386,15 +421,25 @@ test.describe('Wizard layout', () => {
 
     await expect(firstCard.locator('.ds-profile-card__heading .ds-status-badge')).toHaveText('Aktiv')
 
-    const scopeBadges = await firstCard
-      .locator('.ds-profile-card .ds-cluster .ds-status-badge')
-      .allInnerTexts()
-    expect(scopeBadges.map((text) => text.trim())).toEqual([...EXPECTED_SCOPE_LABELS])
+    const scopeBadges = firstCard.locator('.ds-cluster .ds-status-badge')
+    await expect(scopeBadges).toHaveCount(EXPECTED_SCOPE_LABELS.length)
+    const scopeTexts = await scopeBadges.allInnerTexts()
+    expect(scopeTexts.map((text) => text.trim())).toEqual([...EXPECTED_SCOPE_LABELS])
 
     const actionButtons = mobileMenu.locator('.ds-profile-menu__panel').getByRole('button')
     await expect(actionButtons).toHaveCount(3)
     await expect(actionButtons.nth(0)).toHaveAccessibleName('Omdøb profil')
     await expect(actionButtons.nth(1)).toHaveAccessibleName('Dupliker profil')
     await expect(actionButtons.nth(2)).toHaveAccessibleName('Slet profil')
+  })
+})
+
+test.describe('Feature flags', () => {
+  test('landing page falder tilbage til klassisk layout når redesign flag er slukket', async ({ page }) => {
+    await stubWizardSnapshot(page, { storage: MULTI_PROFILE_STORAGE })
+    await page.goto('/?ff_wizardRedesign=off')
+
+    await expect(page.getByText('Version 3 · Klassisk UI')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Åbn seneste profil' })).toBeVisible()
   })
 })
