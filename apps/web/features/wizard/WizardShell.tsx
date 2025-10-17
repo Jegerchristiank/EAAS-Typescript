@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
+import { useFeatureFlag } from '../../lib/feature-flags/FeatureFlagProvider'
 import {
   ProfileProgressStepper,
   type StepIdentifier,
@@ -117,6 +118,7 @@ export function WizardShell(): JSX.Element {
 
 function WizardShellContent(): JSX.Element {
   const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizardContext()
+  const wizardRedesignEnabled = useFeatureFlag('wizardRedesign')
   const [isProfileOpen, setIsProfileOpen] = useState(() => !isProfileComplete(profile))
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
   const navigationRef = useRef<HTMLDivElement | null>(null)
@@ -291,15 +293,18 @@ function WizardShellContent(): JSX.Element {
   )
 
   return (
-    <section className="wizard-shell">
+    <section className="wizard-shell" data-variant={wizardRedesignEnabled ? 'redesign' : 'classic'}>
       <div className="wizard-shell__top-nav" data-testid="wizard-top-nav">
         <div className="wizard-shell__top-row">
           <div className="wizard-shell__title">
-            <p className="ds-text-subtle">Version 4 · Opdateret wizard-oplevelse</p>
-            <h1 className="ds-heading-lg">ESG-beregninger</h1>
+            <p className="ds-text-subtle">
+              {wizardRedesignEnabled ? 'Version 4 · Opdateret wizard-oplevelse' : 'Version 3 · Klassisk wizard'}
+            </p>
+            <h1 className="ds-heading-lg">{wizardRedesignEnabled ? 'ESG-beregninger' : 'ESG-rapportering'}</h1>
             <p className="ds-text-muted">
-              Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og
-              hvert modul viser relevante hjælpetekster og validering.
+              {wizardRedesignEnabled
+                ? 'Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og hvert modul viser relevante hjælpetekster og validering.'
+                : 'Navigér modul for modul i den velkendte oplevelse. Profilen skal fuldføres før modulnavigationen låses op, og data gemmes fortsat automatisk.'}
             </p>
           </div>
           <div className="wizard-shell__top-actions">
@@ -330,17 +335,26 @@ function WizardShellContent(): JSX.Element {
           />
         </div>
 
-        <div className="wizard-shell__top-meta">
-          <span className="wizard-shell__meta-item">
-            {answeredQuestions} / {totalQuestions} spørgsmål besvaret
-          </span>
-          <span className="wizard-shell__meta-item">{progressPercent}% positive aktiviteter</span>
-          {recommendedModuleLabel && (
-            <span className="wizard-shell__meta-item" data-variant="highlight">
-              Anbefalet start: {recommendedModuleLabel}
+        {wizardRedesignEnabled ? (
+          <div className="wizard-shell__top-meta">
+            <span className="wizard-shell__meta-item">
+              {answeredQuestions} / {totalQuestions} spørgsmål besvaret
             </span>
-          )}
-        </div>
+            <span className="wizard-shell__meta-item">{progressPercent}% positive aktiviteter</span>
+            {recommendedModuleLabel && (
+              <span className="wizard-shell__meta-item" data-variant="highlight">
+                Anbefalet start: {recommendedModuleLabel}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="wizard-shell__top-meta" data-variant="legacy">
+            <span className="wizard-shell__meta-item">
+              {answeredQuestions} / {totalQuestions} svar fuldført ({progressPercent}% positive)
+            </span>
+            <span className="wizard-shell__meta-item">Skift variant via `wizardRedesign` feature-flag.</span>
+          </div>
+        )}
       </div>
 
       <div className="wizard-shell__body" data-profile-open={isProfileOpen ? 'true' : undefined}>
@@ -423,77 +437,86 @@ function WizardShellContent(): JSX.Element {
           hidden={isProfileOpen ? true : undefined}
           aria-hidden={isProfileOpen ? 'true' : undefined}
         >
-          <section className="wizard-summary-panel">
-            <header className="wizard-summary-panel__header">
-              <div>
-                <p className="ds-text-subtle">Virksomhedsprofil</p>
-                <h2 className="ds-heading-sm">Status og anbefalinger</h2>
-              </div>
-              <PrimaryButton
-                variant="secondary"
-                size="sm"
-                onClick={handleOpenProfile}
-                disabled={isProfileOpen}
-              >
-                Rediger profil
-              </PrimaryButton>
-            </header>
+          {wizardRedesignEnabled ? (
+            <section className="wizard-summary-panel">
+              <header className="wizard-summary-panel__header">
+                <div>
+                  <p className="ds-text-subtle">Virksomhedsprofil</p>
+                  <h2 className="ds-heading-sm">Status og anbefalinger</h2>
+                </div>
+                <PrimaryButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleOpenProfile}
+                  disabled={isProfileOpen}
+                >
+                  Rediger profil
+                </PrimaryButton>
+              </header>
 
-            {!profileComplete && (
-              <div className="ds-alert" data-variant="info" role="status">
-                <p>
-                  Afslut spørgsmålene i profilen for at aktivere modulnavigationen og få anbefalinger.
-                </p>
-              </div>
-            )}
+              {!profileComplete && (
+                <div className="ds-alert" data-variant="info" role="status">
+                  <p>Afslut spørgsmålene i profilen for at aktivere modulnavigationen og få anbefalinger.</p>
+                </div>
+              )}
 
-            <dl className="wizard-summary-metrics">
-              <div className="wizard-summary-chip">
-                <dt>Besvarelse</dt>
-                <dd>
-                  {answeredQuestions} / {totalQuestions} spørgsmål
-                </dd>
-              </div>
-              <div className="wizard-summary-chip">
-                <dt>Relevante moduler</dt>
-                <dd>{relevantModuleTotal}</dd>
-              </div>
-              <div className="wizard-summary-chip" data-highlight="true">
-                <dt>Anbefalet start</dt>
-                <dd>{recommendedModuleLabel ?? 'Besvar flere spørgsmål'}</dd>
-              </div>
-            </dl>
+              <dl className="wizard-summary-metrics">
+                <div className="wizard-summary-chip">
+                  <dt>Besvarelse</dt>
+                  <dd>
+                    {answeredQuestions} / {totalQuestions} spørgsmål
+                  </dd>
+                </div>
+                <div className="wizard-summary-chip">
+                  <dt>Relevante moduler</dt>
+                  <dd>{relevantModuleTotal}</dd>
+                </div>
+                <div className="wizard-summary-chip" data-highlight="true">
+                  <dt>Anbefalet start</dt>
+                  <dd>{recommendedModuleLabel ?? 'Besvar flere spørgsmål'}</dd>
+                </div>
+              </dl>
 
-            <table className="wizard-summary-table">
-              <caption className="ds-text-subtle">Overblik over scopes og relevans</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Scope</th>
-                  <th scope="col">Relevante</th>
-                  <th scope="col">Anbefalet modul</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scopeSummaries.map((summary) => (
-                  <tr key={summary.scope} data-active={summary.isActive ? 'true' : undefined}>
-                    <th scope="row">{summary.scope}</th>
-                    <td>
-                      {summary.relevantCount} / {summary.total}
-                    </td>
-                    <td>{summary.recommendedLabel ?? '–'}</td>
+              <table className="wizard-summary-table">
+                <caption className="ds-text-subtle">Overblik over scopes og relevans</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Scope</th>
+                    <th scope="col">Relevante</th>
+                    <th scope="col">Anbefalet modul</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {scopeSummaries.map((summary) => (
+                    <tr key={summary.scope} data-active={summary.isActive ? 'true' : undefined}>
+                      <th scope="row">{summary.scope}</th>
+                      <td>
+                        {summary.relevantCount} / {summary.total}
+                      </td>
+                      <td>{summary.recommendedLabel ?? '–'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-            <div className="wizard-summary-switcher">
-              <ProfileSwitcher
-                heading="Profiler"
-                description="Skift mellem gemte virksomhedsprofiler."
-                className="wizard-summary-switcher__card"
-              />
-            </div>
-          </section>
+              <div className="wizard-summary-switcher">
+                <ProfileSwitcher
+                  heading="Profiler"
+                  description="Skift mellem gemte virksomhedsprofiler."
+                  className="wizard-summary-switcher__card"
+                />
+              </div>
+            </section>
+          ) : (
+            <LegacyWizardAside
+              answeredQuestions={answeredQuestions}
+              totalQuestions={totalQuestions}
+              relevantModuleTotal={relevantModuleTotal}
+              recommendedModuleLabel={recommendedModuleLabel}
+              onOpenProfile={handleOpenProfile}
+              isProfileOpen={isProfileOpen}
+            />
+          )}
         </aside>
       </div>
     </section>
@@ -506,5 +529,59 @@ function CloseIcon(): JSX.Element {
       <path d="M5 5l10 10" />
       <path d="M15 5l-10 10" />
     </svg>
+  )
+}
+
+type LegacyWizardAsideProps = {
+  answeredQuestions: number
+  totalQuestions: number
+  relevantModuleTotal: number
+  recommendedModuleLabel: string | null
+  onOpenProfile: () => void
+  isProfileOpen: boolean
+}
+
+function LegacyWizardAside({
+  answeredQuestions,
+  totalQuestions,
+  relevantModuleTotal,
+  recommendedModuleLabel,
+  onOpenProfile,
+  isProfileOpen,
+}: LegacyWizardAsideProps): JSX.Element {
+  return (
+    <section className="ds-card ds-stack" data-variant="legacy">
+      <header className="ds-stack-sm">
+        <p className="ds-text-subtle">Klassisk overblik</p>
+        <h2 className="ds-heading-sm">Profilstatus</h2>
+      </header>
+      <p className="ds-text-muted">
+        Denne variant viser den tidligere statusoplevelse uden anbefalingschips. Fuldfør profilen for at aktivere modulnavigation.
+      </p>
+      <dl className="ds-stack-sm">
+        <div>
+          <dt className="ds-text-subtle">Besvarelse</dt>
+          <dd>
+            {answeredQuestions} / {totalQuestions} spørgsmål
+          </dd>
+        </div>
+        <div>
+          <dt className="ds-text-subtle">Relevante moduler</dt>
+          <dd>{relevantModuleTotal}</dd>
+        </div>
+        <div>
+          <dt className="ds-text-subtle">Anbefalet start</dt>
+          <dd>{recommendedModuleLabel ?? 'Tilgængelig efter profil'}</dd>
+        </div>
+      </dl>
+      <PrimaryButton variant="secondary" size="sm" onClick={onOpenProfile} disabled={isProfileOpen}>
+        Rediger profil
+      </PrimaryButton>
+      <ProfileSwitcher
+        heading="Profiler"
+        description="Skift mellem gemte opsætninger i den klassiske visning."
+        showCreateButton={false}
+      />
+    </section>
   )
 }

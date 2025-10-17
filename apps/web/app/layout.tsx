@@ -1,9 +1,13 @@
 /**
  * Grundlayout for Next.js appen og globale wrappers.
  */
-import type { Metadata } from 'next'
 import './globals.css'
 import '../styles/design-system.css'
+
+import { FeatureFlagProvider } from '../lib/feature-flags/FeatureFlagProvider'
+import { readFeatureFlagCookies } from '../lib/feature-flags/server'
+
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'ESG-rapportering',
@@ -11,9 +15,13 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }): JSX.Element {
+  const initialFlags = readFeatureFlagCookies()
+
   return (
     <html lang="da">
-      <body>{children}</body>
+      <body>
+        <FeatureFlagProvider initialFlags={initialFlags}>{children}</FeatureFlagProvider>
+      </body>
     </html>
   )
 }
