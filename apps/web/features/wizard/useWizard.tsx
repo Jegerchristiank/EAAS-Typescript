@@ -19,6 +19,7 @@ import {
   createFallbackStorage,
   createProfileEntry,
   fetchWizardSnapshot,
+  PersistenceRequestError,
   persistWizardStorage,
   type PersistMetadata,
 } from '../../lib/storage/localStorage'
@@ -75,6 +76,7 @@ export type WizardHook = {
   currentUser: WizardUser
   isReady: boolean
   isOffline: boolean
+  remoteError: PersistenceRequestError | null
   goToStep: (index: number) => void
   updateField: (key: string, value: unknown) => void
   updateProfile: (key: WizardProfileKey, value: boolean | null) => void
@@ -248,6 +250,7 @@ export function useWizard(): WizardHook {
   const [session, setSession] = useState<WizardSessionState>(() => createInitialSession())
   const [isReady, setIsReady] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
+  const [remoteError, setRemoteError] = useState<PersistenceRequestError | null>(null)
 
   const storageRef = useRef(session.storage)
   const userRef = useRef(session.user)
@@ -283,6 +286,7 @@ export function useWizard(): WizardHook {
           auditLog: snapshot.auditLog,
         }))
         setIsOffline(false)
+        setRemoteError(null)
         if (!storageChangedSinceRequest) {
           storageRef.current = snapshot.storage
           hasPendingSyncRef.current = false
@@ -292,7 +296,14 @@ export function useWizard(): WizardHook {
         console.error('Kunne ikke gemme wizard-data', error)
         if (requestId === persistSequenceRef.current) {
           hasPendingSyncRef.current = false
-          setIsOffline(true)
+          if (error instanceof PersistenceRequestError) {
+            const shouldShowOffline = error.isNetworkError || error.isServerError
+            setIsOffline(shouldShowOffline)
+            setRemoteError(shouldShowOffline ? null : error)
+          } else {
+            setIsOffline(true)
+            setRemoteError(null)
+          }
         }
       }
     },
@@ -336,9 +347,17 @@ export function useWizard(): WizardHook {
         storageRef.current = snapshot.storage
         userRef.current = snapshot.user
         setIsOffline(false)
+        setRemoteError(null)
       } catch (error) {
         console.error('Kunne ikke hente wizard-data', error)
-        setIsOffline(true)
+        if (error instanceof PersistenceRequestError) {
+          const shouldShowOffline = error.isNetworkError || error.isServerError
+          setIsOffline(shouldShowOffline)
+          setRemoteError(shouldShowOffline ? null : error)
+        } else {
+          setIsOffline(true)
+          setRemoteError(null)
+        }
       } finally {
         if (!isCancelled) {
           setIsReady(true)
@@ -754,6 +773,7 @@ export function useWizard(): WizardHook {
       currentUser: session.user,
       isReady,
       isOffline,
+      remoteError,
     }
   }, [
     createProfile,
@@ -772,6 +792,7 @@ export function useWizard(): WizardHook {
     updateProfile,
     isReady,
     isOffline,
+    remoteError,
   ])
 
   return value

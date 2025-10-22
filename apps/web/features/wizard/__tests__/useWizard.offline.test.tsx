@@ -1,5 +1,5 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
-import { useEffect } from 'react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import React, { useEffect } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -25,6 +25,7 @@ function WizardObserver({ wizardRef }: { wizardRef: { current: WizardHook | null
 
 describe('useWizard offline handling', () => {
   afterEach(() => {
+    cleanup()
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
     vi.clearAllTimers()
@@ -87,5 +88,28 @@ describe('useWizard offline handling', () => {
 
     expect(wizardRef.current?.isOffline).toBe(true)
     expect(fetchMock).toHaveBeenCalled()
+  })
+
+  it.each([401, 403])('does not show the offline indicator for %s responses', async (status) => {
+    const fetchMock = vi.fn(async () => new Response('Auth required', { status }))
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const wizardRef: { current: WizardHook | null } = { current: null }
+
+    render(
+      <WizardProvider>
+        <WizardObserver wizardRef={wizardRef} />
+        <WizardOfflineIndicator />
+      </WizardProvider>,
+    )
+
+    await waitFor(() => {
+      expect(wizardRef.current?.isReady).toBe(true)
+    })
+
+    expect(screen.queryByTestId('wizard-offline-indicator')).not.toBeInTheDocument()
+    expect(wizardRef.current?.isOffline).toBe(false)
+    expect(wizardRef.current?.remoteError?.status).toBe(status)
   })
 })
