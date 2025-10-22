@@ -74,6 +74,7 @@ export type WizardHook = {
   permissions: WizardPermissions
   currentUser: WizardUser
   isReady: boolean
+  isOffline: boolean
   goToStep: (index: number) => void
   updateField: (key: string, value: unknown) => void
   updateProfile: (key: WizardProfileKey, value: boolean | null) => void
@@ -99,7 +100,7 @@ type WizardSessionState = {
 function createInitialSession(): WizardSessionState {
   return {
     storage: createFallbackStorage(),
-    permissions: { canEdit: false, canPublish: false },
+    permissions: { canEdit: true, canPublish: false },
     user: { id: 'anonymous', roles: [] },
     auditLog: [],
   }
@@ -246,6 +247,7 @@ export function useWizard(): WizardHook {
   const [currentStep, setCurrentStep] = useState(INITIAL_STEP)
   const [session, setSession] = useState<WizardSessionState>(() => createInitialSession())
   const [isReady, setIsReady] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
 
   const storageRef = useRef(session.storage)
   const userRef = useRef(session.user)
@@ -280,6 +282,7 @@ export function useWizard(): WizardHook {
           user: snapshot.user,
           auditLog: snapshot.auditLog,
         }))
+        setIsOffline(false)
         if (!storageChangedSinceRequest) {
           storageRef.current = snapshot.storage
           hasPendingSyncRef.current = false
@@ -289,6 +292,7 @@ export function useWizard(): WizardHook {
         console.error('Kunne ikke gemme wizard-data', error)
         if (requestId === persistSequenceRef.current) {
           hasPendingSyncRef.current = false
+          setIsOffline(true)
         }
       }
     },
@@ -331,8 +335,10 @@ export function useWizard(): WizardHook {
         })
         storageRef.current = snapshot.storage
         userRef.current = snapshot.user
+        setIsOffline(false)
       } catch (error) {
         console.error('Kunne ikke hente wizard-data', error)
+        setIsOffline(true)
       } finally {
         if (!isCancelled) {
           setIsReady(true)
@@ -747,6 +753,7 @@ export function useWizard(): WizardHook {
       permissions: session.permissions,
       currentUser: session.user,
       isReady,
+      isOffline,
     }
   }, [
     createProfile,
@@ -764,6 +771,7 @@ export function useWizard(): WizardHook {
     updateField,
     updateProfile,
     isReady,
+    isOffline,
   ])
 
   return value

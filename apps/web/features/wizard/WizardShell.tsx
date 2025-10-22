@@ -27,6 +27,7 @@ import { ProfileSwitcher } from './ProfileSwitcher'
 import { NextRelevantButton } from './NextRelevantButton'
 import { wizardSteps, type WizardScope } from './steps'
 import { WizardProvider, useWizardContext } from './useWizard'
+import { WizardOfflineIndicator } from './components/WizardOfflineIndicator'
 import { WizardNavigationIconButton } from './components/WizardNavigationIconButton'
 
 const scopeOrder: WizardScope[] = ['Scope 1', 'Scope 2', 'Scope 3', 'Environment', 'Social', 'Governance']
@@ -118,7 +119,8 @@ export function WizardShell(): JSX.Element {
 }
 
 function WizardShellContent(): JSX.Element {
-  const { currentStep, goToStep, state, updateField, profile, updateProfile } = useWizardContext()
+  const { currentStep, goToStep, state, updateField, profile, updateProfile, isOffline } =
+    useWizardContext()
   const wizardRedesignEnabled = useFeatureFlag('wizardRedesign')
   const [isProfileOpen, setIsProfileOpen] = useState(() => !isProfileComplete(profile))
   const [isNavigationOpen, setIsNavigationOpen] = useState(false)
@@ -346,6 +348,7 @@ function WizardShellContent(): JSX.Element {
 
       {/* Rich context and progress sit below the sticky bar to avoid expanding header height. */}
       <div className="wizard-shell__top-support">
+        {isOffline && <WizardOfflineIndicator />}
         <p className="wizard-shell__lede ds-text-muted">
           {wizardRedesignEnabled
             ? 'Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og hvert modul viser relevante hjælpetekster og validering.'
