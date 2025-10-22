@@ -192,9 +192,40 @@ async function stubWizardSnapshot(page: Page, override?: Partial<SnapshotPayload
   })
 }
 
+async function performPasswordLogin(page: Page, redirectPath = '/') {
+  const target = new URL('/access', 'http://localhost')
+  if (redirectPath !== '/') {
+    target.searchParams.set('redirect', redirectPath)
+  }
+
+  await page.goto(`${target.pathname}${target.search}`)
+
+  const passwordInput = page.getByLabel('Adgangskode')
+  await expect(passwordInput).toBeVisible()
+  await passwordInput.fill('esg-as-a-service')
+
+  const submitButton = page.getByRole('button', { name: 'Fortsæt' })
+  const expectedLocation = new URL(redirectPath, 'http://localhost')
+
+  await Promise.all([
+    page.waitForURL((url) => url.pathname === expectedLocation.pathname && url.search === expectedLocation.search),
+    submitButton.click(),
+  ])
+
+  await expect(page).toHaveURL(
+    (url) => url.pathname === expectedLocation.pathname && url.search === expectedLocation.search,
+  )
+}
+
 async function openWizard(page: Page) {
   await stubWizardSnapshot(page)
-  await page.goto('/?ff_wizardRedesign=on')
+  await performPasswordLogin(page, '/?ff_wizardRedesign=on')
+  await page.waitForLoadState('networkidle')
+
+  const currentUrl = new URL(page.url())
+  if (currentUrl.pathname !== '/' || currentUrl.search !== '?ff_wizardRedesign=on') {
+    await page.goto('/?ff_wizardRedesign=on')
+  }
   const resumeButton = page.getByRole('button', { name: /Fortsæt seneste profil|Åbn seneste profil/ })
   if (await resumeButton.isEnabled()) {
     await resumeButton.click()

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Password-beskyttet adgangsflow for webappen med middleware, `/access`-side og Playwright-helper til login.
 - Baseline quality report capturing current install, lint, typecheck, test and build status.
 - Architectural decision record describing the new shared configuration packages.
 - Shared tooling packages for TypeScript, ESLint, Prettier and Jest foundations.
