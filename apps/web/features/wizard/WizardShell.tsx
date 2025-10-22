@@ -4,6 +4,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 
 import { PrimaryButton } from '../../components/ui/PrimaryButton'
 import { useFeatureFlag } from '../../lib/feature-flags/FeatureFlagProvider'
@@ -327,6 +328,15 @@ function WizardShellContent(): JSX.Element {
             >
               Moduloversigt
             </button>
+            <PrimaryButton
+              as={Link}
+              href="/"
+              variant="ghost"
+              size="sm"
+              className="wizard-shell__home-link"
+            >
+              Til forsiden
+            </PrimaryButton>
             <PrimaryButton variant="secondary" size="sm" onClick={handleOpenProfile}>
               Rediger profil
             </PrimaryButton>
