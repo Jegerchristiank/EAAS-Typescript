@@ -1197,38 +1197,54 @@ a {
   align-content: start;
 }
 
+/* Compact sticky header that no longer swallows the viewport height. */
 .wizard-shell__top-nav {
   position: sticky;
   top: 0;
   z-index: 30;
-  display: grid;
-  gap: var(--space-md);
-  padding: var(--space-lg) var(--space-lg) var(--space-md);
+  display: flex;
+  align-items: center;
+  min-height: var(--wizard-top-nav-height, 4.5rem);
+  padding: 0 var(--space-lg);
   margin: calc(-1 * var(--space-xl)) calc(-1 * var(--space-lg)) 0;
   border-bottom: 1px solid var(--wizard-topbar-border);
   background: var(--wizard-topbar-background);
   backdrop-filter: blur(14px);
 }
 
-.wizard-shell__top-row {
+.wizard-shell__top-bar {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
 }
 
-.wizard-shell__title {
+.wizard-shell__brand {
   display: grid;
-  gap: var(--space-xs);
-  max-width: 40rem;
+  gap: var(--space-2xs);
+  max-width: 30rem;
 }
 
-@media (min-width: 45rem) {
-  .wizard-shell__top-row {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--space-xl);
-  }
+.wizard-shell__heading {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.wizard-shell__version {
+  margin: 0;
+}
+
+/* Keep extended context outside the sticky header so content remains scrollable. */
+.wizard-shell__top-support {
+  display: grid;
+  gap: var(--space-lg);
+  padding-top: var(--space-lg);
+}
+
+.wizard-shell__lede {
+  margin: 0;
+  max-width: 42rem;
 }
 
 .wizard-shell__top-actions {
