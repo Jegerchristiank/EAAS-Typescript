@@ -3,7 +3,7 @@
  */
 import './globals.css'
 import '../styles/design-system.css'
-
+import AnalyticsProvider from './analytics-provider'
 import { FeatureFlagProvider } from '../lib/feature-flags/FeatureFlagProvider'
 import { readFeatureFlagCookies } from '../lib/feature-flags/server'
 
@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
     <html lang="da">
       <body>
         <FeatureFlagProvider initialFlags={initialFlags}>{children}</FeatureFlagProvider>
+        <AnalyticsProvider />
       </body>
     </html>
   )
