@@ -105,11 +105,54 @@ function createInitialSession(): WizardSessionState {
   }
 }
 
-function normaliseWizardProfile(profile: PersistedWizardProfile['profile']): WizardProfile {
-  return {
-    ...createInitialWizardProfile(),
-    ...(profile as Partial<WizardProfile>),
+function coerceProfileValue(value: unknown): boolean | null {
+  if (value === true || value === false) {
+    return value
   }
+
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  if (typeof value === 'string') {
+    const normalised = value.trim().toLowerCase()
+    if (normalised === 'true' || normalised === '1') {
+      return true
+    }
+    if (normalised === 'false' || normalised === '0') {
+      return false
+    }
+    return null
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    if (value === 1) {
+      return true
+    }
+    if (value === 0) {
+      return false
+    }
+  }
+
+  return null
+}
+
+function normaliseWizardProfile(
+  profile: PersistedWizardProfile['profile'] | Record<string, unknown> | null | undefined,
+): WizardProfile {
+  const normalised = createInitialWizardProfile()
+
+  if (!isRecord(profile)) {
+    return normalised
+  }
+
+  const persisted = profile as Record<string, unknown>
+
+  for (const key of Object.keys(normalised) as WizardProfileKey[]) {
+    normalised[key] = coerceProfileValue(persisted[key])
+  }
+
+  return normalised
 }
 
 function generateProfileId(): WizardProfileId {
