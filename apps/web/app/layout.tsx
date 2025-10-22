@@ -11,7 +11,10 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'ESG-rapportering',
-  description: 'Start ESG-beregninger direkte i browseren'
+  description: 'Start ESG-beregninger direkte i browseren',
+  icons: {
+    icon: '/icon.svg'
+  }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }): JSX.Element {
