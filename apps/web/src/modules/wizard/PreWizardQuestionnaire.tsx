@@ -13,6 +13,7 @@ import {
   isProfileComplete,
   type WizardProfile,
   type WizardProfileKey,
+  type WizardProfileQuestion,
   wizardProfileSections,
 } from './profile'
 import { PrimaryButton } from '../../../components/ui/PrimaryButton'
@@ -21,6 +22,109 @@ type PreWizardQuestionnaireProps = {
   profile: WizardProfile
   onChange: (key: WizardProfileKey, value: boolean | null) => void
   onContinue: () => void
+}
+
+type WizardQuestionCardProps = {
+  sectionId: string
+  question: WizardProfileQuestion
+  initialValue: boolean | null
+  onSelect: (value: boolean) => void
+  onReset: () => void
+  registerFirstInput?: (node: HTMLInputElement | null) => void
+}
+
+function WizardQuestionCard({
+  sectionId,
+  question,
+  initialValue,
+  onSelect,
+  onReset,
+  registerFirstInput,
+}: WizardQuestionCardProps): JSX.Element {
+  const [selected, setSelected] = useState<boolean | null>(initialValue)
+
+  useEffect(() => {
+    setSelected(initialValue)
+  }, [initialValue, question.id, sectionId])
+
+  const handleValueChange = useCallback(
+    (next: boolean | null) => {
+      setSelected((prev) => {
+        if (prev === next) {
+          return prev
+        }
+
+        if (next === null) {
+          onReset()
+        } else {
+          onSelect(next)
+        }
+
+        return next
+      })
+    },
+    [onReset, onSelect],
+  )
+
+  const yesId = `${sectionId}-${question.id}-yes`
+  const noId = `${sectionId}-${question.id}-no`
+
+  return (
+    <fieldset className="wizard-question">
+      <legend className="wizard-question__legend">
+        <span className="wizard-question__title">{question.label}</span>
+        <button
+          type="button"
+          className="ds-icon-button wizard-question__reset"
+          onClick={() => handleValueChange(null)}
+          disabled={selected === null}
+          aria-label={`Nulstil svaret for ${question.label}`}
+          title="Nulstil svar"
+        >
+          <span aria-hidden>⟲</span>
+          <span className="sr-only">Nulstil svar</span>
+        </button>
+      </legend>
+      <p className="wizard-question__help">{question.helpText}</p>
+      <div className="wizard-question__choices ds-choice-group">
+        <label
+          className="ds-choice"
+          data-selected={selected === true ? 'true' : undefined}
+          htmlFor={yesId}
+          onClick={() => handleValueChange(true)}
+        >
+          <input
+            type="radio"
+            id={yesId}
+            name={question.id}
+            checked={selected === true}
+            onChange={() => handleValueChange(true)}
+            ref={(node) => {
+              if (registerFirstInput) {
+                registerFirstInput(node)
+              }
+            }}
+          />
+          <span>Ja</span>
+        </label>
+        <label
+          className="ds-choice"
+          data-selected={selected === false ? 'true' : undefined}
+          htmlFor={noId}
+          onClick={() => handleValueChange(false)}
+        >
+          <input
+            type="radio"
+            id={noId}
+            name={question.id}
+            checked={selected === false}
+            onChange={() => handleValueChange(false)}
+          />
+          <span>Nej</span>
+        </label>
+      </div>
+    </fieldset>
+  )
 }
 
 type SectionStatus = 'not-started' | 'in-progress' | 'complete'
@@ -276,56 +380,27 @@ export function PreWizardQuestionnaire({ profile, onChange, onContinue }: PreWiz
               aria-label="Spørgsmål i aktiv sektion"
             >
               {activeSection.questions.map((question, questionIndex) => {
-                const value = profile[question.id]
-                const yesId = `${activeSection.id}-${question.id}-yes`
-                const noId = `${activeSection.id}-${question.id}-no`
-                const isFirstQuestion = questionIndex === 0
+                const registerFirstInput =
+                  questionIndex === 0
+                    ? (node: HTMLInputElement | null) => {
+                        firstInputRefs.current[activeSection.id] = node
+                      }
+                    : undefined
 
                 return (
-                  <fieldset key={question.id} className="wizard-question">
-                    <legend className="wizard-question__legend">
-                      <span className="wizard-question__title">{question.label}</span>
-                      <button
-                        type="button"
-                        className="ds-icon-button wizard-question__reset"
-                        onClick={() => handleAnswer(activeSection.id, question.id, question.label, null)}
-                        disabled={value === null}
-                        aria-label={`Nulstil svaret for ${question.label}`}
-                        title="Nulstil svar"
-                      >
-                        <span aria-hidden>⟲</span>
-                        <span className="sr-only">Nulstil svar</span>
-                      </button>
-                    </legend>
-                    <p className="wizard-question__help">{question.helpText}</p>
-                    <div className="wizard-question__choices ds-choice-group">
-                      <label className="ds-choice" data-selected={value === true ? 'true' : undefined} htmlFor={yesId}>
-                        <input
-                          type="radio"
-                          id={yesId}
-                          name={question.id}
-                          checked={value === true}
-                          onChange={() => handleAnswer(activeSection.id, question.id, question.label, true)}
-                          ref={(node) => {
-                            if (isFirstQuestion) {
-                              firstInputRefs.current[activeSection.id] = node
-                            }
-                          }}
-                        />
-                        <span>Ja</span>
-                      </label>
-                      <label className="ds-choice" data-selected={value === false ? 'true' : undefined} htmlFor={noId}>
-                        <input
-                          type="radio"
-                          id={noId}
-                          name={question.id}
-                          checked={value === false}
-                          onChange={() => handleAnswer(activeSection.id, question.id, question.label, false)}
-                        />
-                        <span>Nej</span>
-                      </label>
-                    </div>
-                  </fieldset>
+                  <WizardQuestionCard
+                    key={question.id}
+                    sectionId={activeSection.id}
+                    question={question}
+                    initialValue={profile[question.id]}
+                    onSelect={(value) =>
+                      handleAnswer(activeSection.id, question.id, question.label, value)
+                    }
+                    onReset={() => handleAnswer(activeSection.id, question.id, question.label, null)}
+                    {...(registerFirstInput
+                      ? { registerFirstInput }
+                      : {})}
+                  />
                 )
               })}
             </div>
