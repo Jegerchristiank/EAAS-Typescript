@@ -1252,7 +1252,12 @@ a {
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-sm);
+  column-gap: var(--space-sm);
+  row-gap: var(--space-xs);
+}
+
+.wizard-shell__top-actions > * {
+  flex: 0 0 auto;
 }
 
 .wizard-shell__nav-trigger {
@@ -1266,6 +1271,7 @@ a {
   background: var(--surface-soft);
   color: var(--color-primary-700);
   font-weight: var(--font-weight-semibold);
+  flex: 1 1 100%;
 }
 
 .wizard-shell__nav-trigger:hover {
@@ -1280,6 +1286,7 @@ a {
 @media (min-width: 60rem) {
   .wizard-shell__nav-trigger {
     display: none;
+    flex: 0 0 auto;
   }
 }
 

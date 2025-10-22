@@ -258,6 +258,20 @@ test.describe('Wizard layout', () => {
     }
   })
 
+  test('kan vende tilbage til landing via top handling', async ({ page }) => {
+    await openWizard(page)
+
+    const homeLink = page.getByRole('link', { name: 'Til forsiden' })
+    await expect(homeLink).toBeVisible()
+
+    await Promise.all([
+      page.waitForURL((url) => url.pathname === '/' && url.search === ''),
+      homeLink.click(),
+    ])
+
+    await expect(page.getByRole('heading', { name: 'ESG-rapportering' })).toBeVisible()
+  })
+
   test('mobil navigation kan åbnes som slide-in med aktiv overlay', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await openWizard(page)
