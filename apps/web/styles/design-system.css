@@ -1242,6 +1242,20 @@ a {
   padding-top: var(--space-lg);
 }
 
+.wizard-shell__offline-indicator {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--status-warning-border);
+  background: var(--status-warning-surface);
+  color: var(--status-warning-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.wizard-shell__offline-indicator > strong {
+  font-weight: var(--font-weight-semibold);
+}
+
 .wizard-shell__lede {
   margin: 0;
   max-width: 42rem;
