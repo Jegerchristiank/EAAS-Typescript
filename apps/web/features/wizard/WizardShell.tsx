@@ -235,9 +235,21 @@ function WizardShellContent(): JSX.Element {
     }
   }, [isProfileOpen])
 
-  const handleOpenProfile = () => {
+  const handleOpenProfile = useCallback(() => {
+    // Keep profile drawer responsive even if navigation was open.
+    setIsNavigationOpen(false)
     setIsProfileOpen(true)
-  }
+  }, [])
+
+  const handleToggleNavigation = useCallback(() => {
+    if (!profileComplete) {
+      // Surface profile completion requirement instead of silently failing.
+      setIsProfileOpen(true)
+      return
+    }
+    setIsProfileOpen(false)
+    setIsNavigationOpen((previous) => !previous)
+  }, [profileComplete])
 
   const handleCompleteProfile = () => {
     setIsProfileOpen(false)
@@ -294,38 +306,41 @@ function WizardShellContent(): JSX.Element {
 
   return (
     <section className="wizard-shell" data-variant={wizardRedesignEnabled ? 'redesign' : 'classic'}>
-      <div className="wizard-shell__top-nav" data-testid="wizard-top-nav">
-        <div className="wizard-shell__top-row">
-          <div className="wizard-shell__title">
-            <p className="ds-text-subtle">
+      <header className="wizard-shell__top-nav" data-testid="wizard-top-nav">
+        {/* Minimal sticky bar keeps navigation controls visible without covering content. */}
+        <div className="wizard-shell__top-bar">
+          <div className="wizard-shell__brand">
+            <p className="wizard-shell__version ds-text-subtle">
               {wizardRedesignEnabled ? 'Version 4 · Opdateret wizard-oplevelse' : 'Version 3 · Klassisk wizard'}
             </p>
-            <h1 className="ds-heading-lg">{wizardRedesignEnabled ? 'ESG-beregninger' : 'ESG-rapportering'}</h1>
-            <p className="ds-text-muted">
-              {wizardRedesignEnabled
-                ? 'Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og hvert modul viser relevante hjælpetekster og validering.'
-                : 'Navigér modul for modul i den velkendte oplevelse. Profilen skal fuldføres før modulnavigationen låses op, og data gemmes fortsat automatisk.'}
-            </p>
+            <h1 className="wizard-shell__heading ds-heading-lg">
+              {wizardRedesignEnabled ? 'ESG-beregninger' : 'ESG-rapportering'}
+            </h1>
           </div>
           <div className="wizard-shell__top-actions">
             <button
               type="button"
               className="wizard-shell__nav-trigger"
-              onClick={() => setIsNavigationOpen(true)}
-              disabled={isProfileOpen}
+              onClick={handleToggleNavigation}
+              aria-controls={!isDesktopNavigation ? 'wizard-shell-navigation' : undefined}
+              aria-expanded={!isDesktopNavigation ? navigationVisible : undefined}
             >
               Moduloversigt
             </button>
-            <PrimaryButton
-              variant="secondary"
-              size="sm"
-              onClick={handleOpenProfile}
-              disabled={isProfileOpen}
-            >
+            <PrimaryButton variant="secondary" size="sm" onClick={handleOpenProfile}>
               Rediger profil
             </PrimaryButton>
           </div>
         </div>
+      </header>
+
+      {/* Rich context and progress sit below the sticky bar to avoid expanding header height. */}
+      <div className="wizard-shell__top-support">
+        <p className="wizard-shell__lede ds-text-muted">
+          {wizardRedesignEnabled
+            ? 'Navigér mellem modulerne for Scope 1, Scope 3 og governance. Dine indtastninger bliver gemt løbende, og hvert modul viser relevante hjælpetekster og validering.'
+            : 'Navigér modul for modul i den velkendte oplevelse. Profilen skal fuldføres før modulnavigationen låses op, og data gemmes fortsat automatisk.'}
+        </p>
 
         <div className="wizard-shell__stepper">
           <ProfileProgressStepper
@@ -362,6 +377,7 @@ function WizardShellContent(): JSX.Element {
           {!isProfileOpen && (
             <div
               className="wizard-shell__navigation"
+              id="wizard-shell-navigation"
               ref={navigationRef}
               data-open={navigationVisible ? 'true' : undefined}
               data-desktop={isDesktopNavigation ? 'true' : undefined}
